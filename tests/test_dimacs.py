@@ -38,17 +38,19 @@ def test_parse_metis_edge_weights_ignores_weights():
     }
 
 
-def test_parse_metis_preserves_isolated_vertex_lines():
+def test_parse_metis_preserves_empty_adjacency_lines():
     payload = _bz2_graph(
-        "3 2\n"
+        "4 1\n"
         "2\n"
-        "\n"
         "1\n"
+        "\n"
+        "\n"
     )
     graph = _parse_metis_graph(payload)
-    assert graph.number_of_nodes() == 3
-    assert graph.number_of_edges() == 2
-    assert list(graph.neighbors(1)) == []
+    assert graph.number_of_nodes() == 4
+    assert graph.number_of_edges() == 1
+    assert list(graph.neighbors(2)) == []
+    assert list(graph.neighbors(3)) == []
 
 
 def test_parser_file_is_in_package():
