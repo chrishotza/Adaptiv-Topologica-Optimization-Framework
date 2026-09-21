@@ -17,6 +17,7 @@ on:
       - "pyproject.toml"
   push:
     branches:
+      - "main"
       - "research/independent-dimacs-transfer"
     paths:
       - "src/atof/dimacs.py"
