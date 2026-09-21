@@ -7,11 +7,10 @@ from experiments.run_canonical import run_suite
 from atof.statistics import paired_summary
 
 
-COMPARISONS = (
+BASE_COMPARISONS = (
     ("bloc_reloc_affinity", "random_balanced"),
     ("bloc_reloc_baseline", "random_balanced"),
     ("bloc_reloc_affinity", "bloc_reloc_baseline"),
-    ("bloc_reloc_affinity", "kernighan_lin"),
 )
 
 
@@ -33,6 +32,12 @@ def run_statistical_analysis(
     )
     rows = benchmark["rows"]
 
+    comparison_specs = list(BASE_COMPARISONS)
+    if k == 2:
+        comparison_specs.append(
+            ("bloc_reloc_affinity", "kernighan_lin")
+        )
+
     comparisons = [
         paired_summary(
             rows,
@@ -42,7 +47,7 @@ def run_statistical_analysis(
             resamples=resamples,
             seed=bootstrap_seed,
         )
-        for strategy_a, strategy_b in COMPARISONS
+        for strategy_a, strategy_b in comparison_specs
     ]
 
     payload = {
