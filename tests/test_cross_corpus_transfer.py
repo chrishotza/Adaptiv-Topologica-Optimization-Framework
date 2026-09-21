@@ -1,3 +1,5 @@
+import pytest
+
 from atof.generalization import summarize_transfer_folds
 from experiments.run_cross_corpus_transfer import _choose_majority_strategy
 
@@ -32,7 +34,7 @@ def test_transfer_summary_preserves_oracle_diversity_and_regret_delta():
     assert result["oracle_strategy_counts"] == {"a": 2, "b": 1}
     assert result["learned_oracle_agreement"] == 2 / 3
     assert result["majority_oracle_agreement"] == 1 / 3
-    assert result["learned_minus_majority_mean_relative_regret"] == -0.1
+    assert result["learned_minus_majority_mean_relative_regret"] == pytest.approx(-0.1)
 
 
 def test_majority_strategy_has_deterministic_tie_break():
