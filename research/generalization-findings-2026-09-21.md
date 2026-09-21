@@ -145,3 +145,29 @@ True leave-one-corpus-out macro transfer:
 The 1-NN router therefore reduces transfer regret versus the centroid router, but remains behind the majority control. SNAP remains non-diagnostic for adaptive routing because all four SNAP graph-level oracles are Kernighan-Lin.
 
 This is descriptive evidence on the current corpus, not a universal generalization result.
+
+## Topology feature ablation — run 3
+
+GitHub Actions workflow **35573176515** completed successfully on commit **f03079bdba77ccb9b0da46ea1117f62cbe5d1ddc**. Artifact SHA-256:
+
+~~~text
+010e223092ee07df23b93eb79ee728feeb8a4f3697f9c3787ee2baefa0dc0f03
+~~~
+
+The study used the same 15-graph, leave-one-corpus-out protocol and compared centroid, 1-NN, majority, and heuristic routing under seven feature configurations.
+
+| Feature set | Centroid regret | 1-NN regret | Majority regret | 1-NN agreement |
+| --- | ---: | ---: | ---: | ---: |
+| All features | 1.2280 | 0.8171 | 0.3242 | 0.4405 |
+| Without degree/hub | 0.7042 | 0.7387 | 0.3242 | 0.4762 |
+| Without mesoscopic | 1.1966 | 0.5845 | 0.3242 | 0.4048 |
+| Without global paths | 5.3150 | 0.5684 | 0.3242 | 0.4881 |
+| Without degree/hub + mesoscopic | 0.7713 | **0.5565** | 0.3242 | 0.4405 |
+| Without degree/hub + global paths | 5.1911 | 0.6504 | 0.3242 | **0.5238** |
+| Without mesoscopic + global paths | 5.3235 | 0.5845 | 0.3242 | 0.4048 |
+
+Interpretation: for the current corpus, the 1-NN router is most competitive when the feature space is reduced to the global-path family (the complement of degree/hub and mesoscopic groups), reaching 0.5565 mean relative regret. Removing global-path features is especially damaging to the centroid router, while 1-NN is much more stable under that ablation.
+
+These results are an evidence-guiding ablation, not evidence that any feature family is universally causal or optimal. The majority control remains lower-regret than every topology-conditioned configuration in this corpus.
+
+The practical implication is to test a **global-path-only 1-NN transfer candidate** on a larger and more heterogeneous empirical corpus before changing the public default router.
