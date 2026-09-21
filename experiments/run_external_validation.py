@@ -28,6 +28,7 @@ from experiments.run_canonical import (
     kernighan_lin,
     random_balanced,
     spectral_bisection,
+    spectral_modularity_bisection,
 )
 
 
@@ -204,6 +205,7 @@ def run_external_validation(
             ("bloc_reloc_baseline", "random_balanced"),
             ("bloc_reloc_affinity", "kernighan_lin"),
             ("spectral_bisection", "kernighan_lin"),
+            ("spectral_modularity_bisection", "kernighan_lin"),
         )
     ]
 
