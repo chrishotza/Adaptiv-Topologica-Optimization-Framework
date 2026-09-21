@@ -4,6 +4,10 @@
 
 ### Added
 
+- Balanced spectral-modularity bisection reference baseline without a SciPy runtime dependency.
+- Transparent 1-nearest-neighbor topology router as a routing control.
+- Dated 2026-09-21 transfer findings with artifact provenance and per-corpus oracle diagnostics.
+
 - Deterministic Fiedler-vector spectral bisection reference baseline across canonical, external, and routine SNAP benchmarks.
 
 - Cross-corpus routing aggregation utilities in atof.generalization.
