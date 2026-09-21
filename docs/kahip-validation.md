@@ -10,7 +10,7 @@ The repaired edge cut is the benchmark metric.
 
 ## Candidate space
 
-The baseline contains the eight strategies already validated through the METIS experiment, and adds:
+The baseline contains the full eight strategies already validated through the METIS experiment, including `metis_multilevel_balanced`, and adds:
 
 - `kahip_kaffpa_strong_balanced`
 
@@ -28,7 +28,7 @@ The output is `results/generalization/kahip_validation.json`.
 
 The result determines whether KaHIP contributes additional graph-level oracle winners beyond the current METIS-expanded strategy space.
 
-- If KaHIP creates meaningful additional oracle diversity, the next transfer experiment can expand the candidate set from eight to nine strategies.
+- If KaHIP creates meaningful additional oracle diversity, the next transfer experiment can expand the candidate set from eight to nine strategies. The validation output must contain all eight pre-existing candidates plus KaHIP; any run omitting METIS is invalid for this decision.
 - If KaHIP rarely wins and the oracle remains concentrated, it should remain a diagnostic baseline rather than entering the router.
 
 No public/default router change is made by this validation.
