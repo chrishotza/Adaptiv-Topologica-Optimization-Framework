@@ -10,6 +10,7 @@
 - Executable aligned study across development, external, and routine SNAP routing corpora.
 - GitHub Actions workflow that runs the aligned study against live SNAP data and uploads provenance-bearing manifests.
 - True leave-one-corpus-out transfer experiment with a majority-oracle control.
+- Dated research finding record for the 2026-09-21 generalization and transfer runs.
 
 ### Methodology
 
