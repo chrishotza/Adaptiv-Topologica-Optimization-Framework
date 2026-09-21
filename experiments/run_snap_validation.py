@@ -117,6 +117,12 @@ def run_snap_validation(
 
             rows.append({
                 **common,
+                "strategy": "spectral_bisection",
+                "seed": seed,
+                **spectral_bisection(graph),
+            })
+            rows.append({
+                **common,
                 "strategy": "kernighan_lin",
                 "seed": seed,
                 **kernighan_lin(graph, seed),
