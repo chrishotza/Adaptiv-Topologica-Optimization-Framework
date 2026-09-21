@@ -291,16 +291,28 @@ def summarize_generalization(
             "global_relative_regret"
         ),
         "heuristic_mean_relative_regret": mean_field(
-            "heuristic_mean_relative_regret"
+            "heuristic_relative_regret"
         ),
-        "learned_better_than_global_rate": mean_field(
-            "learned_better_than_global_rate"
+        "learned_better_than_global_rate": _mean(
+            float(
+                float(row["learned_relative_regret"])
+                < float(row["global_relative_regret"])
+            )
+            for row in all_folds
         ),
-        "learned_worse_than_global_rate": mean_field(
-            "learned_worse_than_global_rate"
+        "learned_worse_than_global_rate": _mean(
+            float(
+                float(row["learned_relative_regret"])
+                > float(row["global_relative_regret"])
+            )
+            for row in all_folds
         ),
-        "learned_equal_global_rate": mean_field(
-            "learned_equal_global_rate"
+        "learned_equal_global_rate": _mean(
+            float(
+                float(row["learned_relative_regret"])
+                == float(row["global_relative_regret"])
+            )
+            for row in all_folds
         ),
         "learned_minus_global_mean_relative_regret": mean_field(
             "learned_minus_global_mean_relative_regret"
