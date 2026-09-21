@@ -1,0 +1,66 @@
+name: KaHIP strategy validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "experiments/run_kahip_validation.py"
+      - "tests/test_kahip_validation.py"
+      - "pyproject.toml"
+      - "src/atof/snap.py"
+      - ".github/workflows/kahip-validation.yml"
+
+jobs:
+  kahip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: python -m pip install -e ".[dev,kahip]"
+
+      - name: Unit tests
+        run: pytest tests/test_kahip_validation.py
+
+      - name: Run KaHIP validation
+        run: python -m experiments.run_kahip_validation
+
+      - name: Validate result
+        run: |
+          test -s results/generalization/kahip_validation.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/generalization/kahip_validation.json").read_text()
+          )
+          assert payload["kahip_strategy"] == "kahip_kaffpa_strong_balanced"
+          assert payload["kahip_mode"] == "STRONG"
+          assert payload["k"] == 2
+          assert payload["seeds"] == [42, 101, 2024]
+          assert payload["iterations"] == 25
+          total_graphs = sum(item["graphs"] for item in payload["corpora"].values())
+          assert total_graphs == 17
+
+          for study in payload["corpora"].values():
+              for graph in study["graphs"].values():
+                  assert graph["kahip_mean_edge_cut"] >= 0
+                  for seed_result in graph["kahip_seed_results"]:
+                      assert seed_result["balance_error"] == 0.0
+                      assert len(seed_result["vertex_part"]) == graph["nodes"]
+
+          print("validated KaHIP candidate comparison on", total_graphs, "graphs")
+          PY
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-kahip-validation
+          path: results/generalization/kahip_validation.json
