@@ -184,3 +184,57 @@ Run **35574236663** completed successfully on commit **f603429a0c485b8c6c9692bca
 The expanded routine corpus has six SNAP graphs and 17 graphs total. Macro transfer relative regret was **2.6916** for centroid, **0.7744** for 1-NN, **0.3242** for majority, and **6.2147** for the heuristic. Macro oracle agreement was **0.4444**, **0.4603**, **0.7381**, and **0.0833**, respectively.
 
 The added SNAP graphs do not diversify the SNAP oracle itself: all six SNAP graph-level oracles remain Kernighan-Lin. Their value is therefore primarily in stressing topology-space transfer rather than creating a heterogeneous SNAP oracle target.
+
+
+## Current 17-graph scaling ablation and confirmatory phase
+
+The routine SNAP tier was expanded to six graphs, bringing the empirical corpus to 17 graphs total. The expanded true leave-one-corpus-out transfer result (workflow **35574236663**) reports macro mean relative regret of **2.6916** for centroid, **0.7744** for 1-NN, **0.3242** for majority, and **6.2147** for the heuristic; macro oracle agreement is **0.4444**, **0.4603**, **0.7381**, and **0.0833**, respectively.
+
+A subsequent router-scaling ablation froze the 17-graph protocol while varying feature subsets, scaling modes, and distance metrics. The best observed centroid configuration was **global-path features + IQR scaling + L2**, with **0.4893** mean relative regret. The strongest observed 1-NN configurations in the tested family were **global-path + min-max/std + L2**, with **0.5757** mean relative regret. The majority control remained at **0.3242**.
+
+These values are exploratory candidates only. They are being evaluated by a locked three-way confirmatory workflow:
+
+1. all features + IQR + L2;
+2. global-path features + IQR + L2;
+3. global-path features + min-max + L2.
+
+In parallel, the oracle-stability workflow quantifies seed consensus, oracle margins, and oracle-strategy concentration across the same corpus. No public routing default is changed by the scaling ablation alone.
+
+
+## Oracle stability result
+
+GitHub Actions run **35580179658** completed successfully on commit **5c236f2b855b842519c5bc90d9ec5aac505362ea**.
+
+The 17-graph oracle-stability study found:
+
+| Corpus | Graphs | Unique oracles | Mean seed consensus | Mean relative margin | Median relative margin |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Development | 7 | 2 | 1.0000 | 0.2331 | 0.2692 |
+| External | 4 | 3 | 0.8333 | 0.0260 | 0.0000 |
+| SNAP | 6 | 1 | 1.0000 | 0.4991 | 0.4611 |
+
+Development and SNAP are fully seed-stable. External is less separated: its median oracle margin is zero because several candidate strategies tie or nearly tie on the small reference graphs. The oracle target is therefore usable, but external cases should be treated as lower-confidence labels.
+
+## Locked confirmatory result
+
+GitHub Actions run **35580437557** completed successfully on commit **0b0c57fc556c08cad840970438cf92dec54b354f**.
+
+| Configuration | Centroid regret | 1-NN regret | Majority regret |
+| --- | ---: | ---: | ---: |
+| all + IQR + L2 | 0.6408 | 0.6002 | 0.3242 |
+| global paths + IQR + L2 | **0.4673** | 0.6232 | 0.3242 |
+| global paths + minmax + L2 | 0.5649 | **0.5843** | 0.3242 |
+
+The locked confirmatory run confirms that feature representation and scaling materially affect topology-router transfer, but the majority control remains lower-regret than every learned configuration tested here.
+
+### Decision after the confirmatory phase
+
+The appropriate next step is **not another topology-feature sweep**. The current evidence supports three statements:
+
+1. the graph-level oracle is generally stable across seeds;
+2. routing performance is sensitive to representation/scaling choices;
+3. the current seven-strategy oracle is too concentrated—especially on SNAP—for adaptive routing to be a convincing improvement over a fixed majority strategy.
+
+The next research increment should therefore enlarge or diversify the **candidate strategy space** with additional strong, objective-aligned partitioning baselines, then rerun the same locked leave-one-corpus-out protocol. The majority control and per-corpus oracle distribution should remain mandatory controls.
+
+No public default-router change is justified by the current confirmatory evidence.

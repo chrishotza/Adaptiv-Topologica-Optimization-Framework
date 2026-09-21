@@ -12,7 +12,7 @@ The current corpus tiers are:
 | --- | --- | --- |
 | Development | seven synthetic topology families | regression and controlled development |
 | External | four standard NetworkX reference graphs | independent empirical reference surface |
-| Empirical | four routine SNAP graphs | independent real-network validation |
+| Empirical | six routine SNAP graphs | independent real-network validation |
 | Scalability | ca-GrQc, ca-HepTh, Wiki-Vote | larger optional stress/generalization tier |
 
 ## Aligned study
@@ -69,7 +69,7 @@ The current transfer study compares two low-complexity topology routers:
 
 Both use the same standardized topology feature vector and differ only in how training labels are represented. This isolates whether centroid aggregation itself is contributing to transfer error.
 
-The latest successful run reported macro relative regret of 1.2280 for centroid, 0.8171 for 1-NN, and 0.3242 for the majority control.
+The latest expanded 17-graph leave-one-corpus-out study reports macro relative regret of **2.6916** for centroid, **0.7744** for 1-NN, and **0.3242** for the majority control; oracle agreement is **0.4444**, **0.4603**, and **0.7381**, respectively.
 
 ## Interpretation discipline
 
@@ -105,23 +105,29 @@ The experiment compares:
 
 This is the actual leave-one-corpus-out transfer protocol. It is the appropriate next test for whether the routing signal transfers across corpus boundaries.
 
-## Next 0.6 tier
+## Current confirmatory phase
 
-After the aligned routine study is executed, the next research step is to run the larger SNAP scalability tier separately, then expand the number of heterogeneous unseen graphs before making stronger claims about routing generalization.
+The next phase freezes three configurations from the scaling ablation without additional tuning:
 
-## Topology feature ablation
+1. all features + IQR + L2;
+2. global-path features + IQR + L2;
+3. global-path features + min-max + L2.
 
-The reproducible ablation workflow is:
+The locked confirmatory workflow retains the majority control and the same 17-graph leave-one-corpus-out protocol. A parallel oracle-stability study tests whether graph-level strategy labels are themselves stable across the configured seeds. These two diagnostics are the decision gate before any further router tuning.
+
+## Router scaling ablation
+
+The reproducible scaling-ablation workflow is:
 
 ~~~bash
-python -m experiments.run_feature_ablation
+python -m experiments.run_router_scaling_ablation
 ~~~
 
-It preserves the same candidate strategies, objective, seeds, and leave-one-corpus-out split while changing only the topology features presented to the centroid and 1-NN routers.
+It preserves the same 17-graph leave-one-corpus-out split while varying feature subsets, scaling modes, and distance metrics.
 
-The latest run found that 1-NN reached mean relative regret **0.5565** with the global-path feature family alone, compared with **0.8171** using all features. The majority control remained at **0.3242** across feature sets.
+On the latest artifact, the strongest observed centroid configuration was **global-path features + IQR scaling + L2 distance**, with **0.4893** mean relative regret. The strongest observed 1-NN result in the tested family was **0.5757** with global-path features and min-max or standard-deviation scaling under L2 distance. The majority control remained at **0.3242**.
 
-This is not used to change the public default router. The result is treated as a hypothesis for the next, larger-corpus transfer study.
+These are evidence-guiding candidates, not a public default change. They were frozen into the subsequent three-way confirmatory comparison.
 
 
 ## Latest expanded-corpus run
