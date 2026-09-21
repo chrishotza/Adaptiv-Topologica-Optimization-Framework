@@ -83,6 +83,11 @@ def _balanced_spectral_order(
         adjacency = nx.to_scipy_sparse_array(
             graph, nodelist=nodes, dtype=float, format="csr"
         )
+        v0 = np.arange(1, node_count + 1, dtype=float)
+        v0 -= v0.mean()
+        if not np.any(v0):
+            v0 = np.ones(node_count, dtype=float)
+
         if modularity:
             degrees = np.asarray(adjacency.sum(axis=1)).ravel()
             edge_count = graph.number_of_edges()
@@ -105,7 +110,7 @@ def _balanced_spectral_order(
                     operator,
                     k=1,
                     which="LA",
-                    v0=np.ones(node_count, dtype=float),
+                    v0=v0,
                     tol=1e-8,
                     maxiter=max(1000, node_count * 10),
                 )
@@ -118,7 +123,7 @@ def _balanced_spectral_order(
                 laplacian,
                 k=2,
                 which="SM",
-                v0=np.ones(node_count, dtype=float),
+                v0=v0,
                 tol=1e-8,
                 maxiter=max(1000, node_count * 10),
             )
