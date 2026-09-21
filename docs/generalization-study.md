@@ -15,6 +15,25 @@ The current corpus tiers are:
 | Empirical | four routine SNAP graphs | independent real-network validation |
 | Scalability | ca-GrQc, ca-HepTh, Wiki-Vote | larger optional stress/generalization tier |
 
+## Aligned study
+
+~~~bash
+python -m experiments.run_generalization_study
+~~~
+
+The aligned study executes the same two-way routing protocol over the development, external, and routine SNAP corpora and creates:
+
+- results/generalization/latest.json
+- results/generalization/routing_development.json
+- results/generalization/routing_external.json
+- results/generalization/routing_snap.json
+
+The study is also available as the GitHub Actions workflow **Cross-corpus generalization validation**.
+
+The workflow uses live SNAP downloads, preserves SHA-256 dataset provenance, and uploads the manifests as an artifact.
+
+The larger SNAP scalability tier remains separate because its graph sizes materially change the computational regime.
+
 ## Unit of analysis
 
 Repeated seeds are aggregated within each graph before routing evaluation.
@@ -33,7 +52,7 @@ For each corpus ATOF can report:
 - the same metrics for the fixed global-strategy baseline;
 - the same metrics for the heuristic selector.
 
-The `atof.generalization` module provides two aggregate views:
+The atof.generalization module provides two aggregate views:
 
 - **micro** — every held-out graph receives equal weight;
 - **macro** — every corpus receives equal weight.
@@ -52,18 +71,8 @@ A stronger routing result requires:
 4. enough heterogeneous unseen graphs to make the generalization claim meaningful;
 5. direct comparison with fixed and heuristic controls.
 
-## Recommended 0.6 experiment
+A combined manifest must therefore always retain the per-corpus folds and provenance instead of publishing only a single aggregate value.
 
-The next empirical milestone is to execute the same two-way protocol across the development, external, and routine SNAP corpora, then run the larger SNAP scalability tier separately.
+## Next 0.6 tier
 
-The report should preserve:
-
-- repository commit SHA;
-- dataset SHA-256 where downloads are involved;
-- Python and NetworkX versions;
-- graph sizes;
-- seeds and iteration count;
-- per-graph routing folds;
-- micro and macro aggregates.
-
-A single aggregate number should never replace the per-corpus and per-graph evidence.
+After the aligned routine study is executed, the next research step is to run the larger SNAP scalability tier separately, then expand the number of heterogeneous unseen graphs before making stronger claims about routing generalization.
