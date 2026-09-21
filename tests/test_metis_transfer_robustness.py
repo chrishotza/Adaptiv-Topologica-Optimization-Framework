@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-
 RESULT = Path("research/metis-transfer-statistical-robustness.json")
 
 
@@ -27,6 +26,7 @@ def test_nearest_neighbor_improvement_is_consistent():
 
 def test_centroid_result_is_not_overstated():
     payload = json.loads(RESULT.read_text(encoding="utf-8"))
-    centroid = payload["paired_statistics"]
-    assert centroid["global_paths_iqr_l2"]["exact_sign_flip_p_one_sided"] > 0.05
-    assert centroid["global_paths_minmax_l2"]["exact_sign_flip_p_one_sided"] > 0.05
+    stats = payload["paired_statistics"]
+    assert stats["all_iqr_l2"]["centroid"]["exact_sign_flip_p_one_sided"] > 0.05
+    assert stats["global_paths_iqr_l2"]["centroid"]["exact_sign_flip_p_one_sided"] > 0.05
+    assert stats["global_paths_minmax_l2"]["centroid"]["exact_sign_flip_p_one_sided"] > 0.05
