@@ -1,0 +1,60 @@
+name: METIS strategy validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "experiments/run_metis_validation.py"
+      - "tests/test_metis_validation.py"
+      - ".github/workflows/metis-validation.yml"
+      - "pyproject.toml"
+
+jobs:
+  metis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python -m pip install -e ".[dev,metis]"
+      - name: Unit tests
+        run: pytest tests/test_metis_validation.py
+      - name: Run METIS validation
+        run: python -m experiments.run_metis_validation
+      - name: Validate result
+        run: |
+          test -s results/generalization/metis_validation.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/generalization/metis_validation.json").read_text()
+          )
+          assert payload["metis_strategy"] == "metis_multilevel_balanced"
+          assert set(payload["base_strategies"]) == {
+              "round_robin",
+              "random_balanced",
+              "bloc_reloc_baseline",
+              "bloc_reloc_affinity",
+              "spectral_bisection",
+              "spectral_modularity_bisection",
+              "kernighan_lin",
+          }
+          valid = set(payload["base_strategies"]) | {payload["metis_strategy"]}
+          for study in payload["corpora"].values():
+              for result in study["graphs"].values():
+                  assert result["oracle_strategy"] in valid
+                  for row in result["metis_seed_results"]:
+                      assert row["balance_error"] == 0.0
+          print("validated METIS strategy validation artifact")
+          PY
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-metis-validation
+          path: results/generalization/metis_validation.json
