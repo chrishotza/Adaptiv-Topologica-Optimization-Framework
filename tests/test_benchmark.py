@@ -3,7 +3,7 @@ import json
 import networkx as nx
 
 from atof.benchmark import benchmark_bloc
-from experiments.run_canonical import run_suite
+from experiments.run_canonical import run_suite, spectral_bisection
 
 
 def test_benchmark_records_are_serializable():
@@ -35,3 +35,11 @@ def test_canonical_suite_records_topology(tmp_path):
     assert "degree_gini" in row
     assert "modularity" in row
     assert json.loads(output.read_text(encoding="utf-8"))["rows"]
+
+
+def test_spectral_bisection_is_balanced_and_serializable():
+    graph = nx.path_graph(9)
+    result = spectral_bisection(graph)
+    assert result["edge_cut"] >= 0
+    assert result["balance_error"] == 0.0
+    assert result["weighted_cost"] == float(result["edge_cut"])
