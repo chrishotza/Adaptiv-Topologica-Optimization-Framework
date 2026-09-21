@@ -147,7 +147,7 @@ See docs/external-validation.md.
 python -m experiments.run_snap_validation
 ~~~
 
-ATOF 0.5.0 adds a live-data validation layer for four empirical SNAP graphs: C. elegans frontal, Florida Bay, S. cerevisiae transcriptional regulation, and email-Eu-core.
+ATOF 0.5.0 adds a live-data validation layer for six empirical SNAP graphs: C. elegans frontal, Florida Bay, S. cerevisiae transcriptional regulation, and email-Eu-core.
 
 The runner downloads the public gzip edge lists only when needed, caches them locally, records SHA-256 provenance, normalizes the source graph to the undirected connectivity used by the current partition objective, and writes results to results/snap/.
 

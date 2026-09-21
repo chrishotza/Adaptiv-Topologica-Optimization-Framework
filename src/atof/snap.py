@@ -152,6 +152,28 @@ def snap_reference_corpus() -> tuple[SnapDataset, ...]:
             description="Email communication network within a European research institution.",
             notes="Department labels are not used by the benchmark.",
         ),
+        SnapDataset(
+            name="college_msg",
+            source="Panzarasa, Opsahl & Carley (2009), SNAP",
+            reference_url="https://snap.stanford.edu/data/CollegeMsg.html",
+            download_url="https://snap.stanford.edu/data/CollegeMsg.txt.gz",
+            directed=True,
+            nodes=1899,
+            edges=59835,
+            description="UC Irvine online social-network private-message network.",
+            notes="The source is temporal; only the first two columns are used to form the static undirected connectivity graph.",
+        ),
+        SnapDataset(
+            name="reachability",
+            source="Benson et al.; Frey & Dueck, SNAP",
+            reference_url="https://snap.stanford.edu/data/reachability.html",
+            download_url="https://snap.stanford.edu/data/reachability.txt.gz",
+            directed=True,
+            nodes=456,
+            edges=71959,
+            description="Airline travel reachability network for cities in the United States and Canada.",
+            notes="The directed asymmetric reachability relation is normalized to undirected connectivity; edge weights and city metadata are not used.",
+        ),
     )
 
 
