@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "source_workflow_run": 35628301069,
+  "source_job": 106428005350,
+  "source_artifact_id": 10654092095,
+  "source_artifact_sha256": "da24794b66dfae15c0ecc02dffad0471d63100cc0f01d3a9f5db0635ab39a542",
+  "commit_sha": "68498c909c995d2155a8d6455b679729108e7eb4",
+  "protocol": "expanded four-corpus leave-one-corpus-out router transfer with nine partitioning strategies",
+  "total_graphs": 20,
+  "corpora": {
+    "development": 7,
+    "external": 4,
+    "snap": 6,
+    "snap_scalability": 3
+  },
+  "candidate_strategies": 9,
+  "seeds": [42, 101, 2024],
+  "bloc_reloc_iterations": 25,
+  "runtime_seconds": 796.43313514,
+  "oracle_distribution": {
+    "kahip_kaffpa_strong_balanced": 14,
+    "kernighan_lin": 4,
+    "metis_multilevel_balanced": 1,
+    "bloc_reloc_baseline": 1
+  },
+  "macro_results": {
+    "all_iqr_l2": {
+      "centroid_mean_relative_regret": 0.1374827293855654,
+      "nearest_mean_relative_regret": 0.6337532354228107,
+      "majority_mean_relative_regret": 0.2214029079406625,
+      "heuristic_mean_relative_regret": 6.816790041604662,
+      "centroid_oracle_agreement": 0.5654761904761905,
+      "nearest_oracle_agreement": 0.6577380952380953,
+      "majority_oracle_agreement": 0.6458333333333334
+    },
+    "global_paths_iqr_l2": {
+      "centroid_mean_relative_regret": 0.24838588013961244,
+      "nearest_mean_relative_regret": 0.2320903362497677,
+      "majority_mean_relative_regret": 0.2214029079406625,
+      "heuristic_mean_relative_regret": 6.816790041604662,
+      "centroid_oracle_agreement": 0.550595238095238,
+      "nearest_oracle_agreement": 0.6160714285714286,
+      "majority_oracle_agreement": 0.6458333333333334
+    },
+    "global_paths_minmax_l2": {
+      "centroid_mean_relative_regret": 0.17714004203743788,
+      "nearest_mean_relative_regret": 0.16645949027180054,
+      "majority_mean_relative_regret": 0.2214029079406625,
+      "heuristic_mean_relative_regret": 6.816790041604662,
+      "centroid_oracle_agreement": 0.5089285714285714,
+      "nearest_oracle_agreement": 0.6994047619047619,
+      "majority_oracle_agreement": 0.6458333333333334
+    }
+  },
+  "runtime_interpretation": "The optimized incremental BLOC-RELOC implementation completed the full 20-graph protocol in about 13.27 minutes; the previous unoptimized expanded run hit the 60-minute workflow timeout.",
+  "scientific_status": [
+    "This is a frozen corpus-expansion result, not a final router-selection claim.",
+    "The four-corpus protocol recomputes training sets and the majority control per held-out corpus, so the 20-graph values are not a simple before/after endpoint for the earlier 17-graph run.",
+    "No feature, scaler, metric, or router hyperparameter was tuned on the expanded run.",
+    "The result does not establish a score of 1.00; further independent validation and router analysis are required."
+  ]
+}
