@@ -85,6 +85,51 @@ def spectral_bisection(graph: nx.Graph) -> dict:
         "weighted_cost": float(cut),
     }
 
+
+def spectral_modularity_bisection(graph: nx.Graph) -> dict:
+    """Balanced bisection from the leading modularity-matrix eigenvector.
+
+    The sign cut of the modularity eigenvector is converted to a balanced
+    floor/ceil split by ranking its entries. This preserves the spectral
+    signal while keeping the benchmark's exact balance contract.
+    """
+    node_count = graph.number_of_nodes()
+    if node_count < 2:
+        raise ValueError("spectral modularity bisection requires at least two nodes")
+    if node_count > 2000:
+        raise ValueError(
+            "spectral modularity bisection dense reference baseline is limited to 2000 nodes"
+        )
+
+    nodes = list(graph.nodes())
+    adjacency = nx.to_numpy_array(graph, nodelist=nodes, dtype=float)
+    degrees = adjacency.sum(axis=1)
+    edge_count = graph.number_of_edges()
+    if edge_count == 0:
+        leading = degrees
+    else:
+        modularity_matrix = adjacency - np.outer(degrees, degrees) / (2.0 * edge_count)
+        eigenvalues, eigenvectors = np.linalg.eigh(modularity_matrix)
+        del eigenvalues
+        leading = eigenvectors[:, -1]
+
+    leading = eigenvectors[:, -1]
+    order = sorted(
+        range(node_count),
+        key=lambda index: (float(leading[index]), repr(nodes[index])),
+    )
+    left_size = node_count // 2
+    partition = {
+        nodes[index]: 0 if position < left_size else 1
+        for position, index in enumerate(order)
+    }
+    cut = sum(partition[u] != partition[v] for u, v in graph.edges())
+    return {
+        "edge_cut": int(cut),
+        "balance_error": 0.0,
+        "weighted_cost": float(cut),
+    }
+
 def _safe_profile(graph: nx.Graph) -> dict:
     profile = TopologyProfiler().profile(graph).to_dict()
     return {
@@ -178,6 +223,14 @@ def run_suite(
                         "strategy": "spectral_bisection",
                         "seed": seed,
                         **spectral_bisection(graph),
+                    }
+                )
+                rows.append(
+                    {
+                        **common,
+                        "strategy": "spectral_modularity_bisection",
+                        "seed": seed,
+                        **spectral_modularity_bisection(graph),
                     }
                 )
                 rows.append(

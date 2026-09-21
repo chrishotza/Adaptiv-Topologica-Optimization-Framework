@@ -25,6 +25,7 @@ from experiments.run_canonical import (
     kernighan_lin,
     random_balanced,
     spectral_bisection,
+    spectral_modularity_bisection,
 )
 
 
@@ -123,6 +124,12 @@ def run_snap_validation(
             })
             rows.append({
                 **common,
+                "strategy": "spectral_modularity_bisection",
+                "seed": seed,
+                **spectral_modularity_bisection(graph),
+            })
+            rows.append({
+                **common,
                 "strategy": "kernighan_lin",
                 "seed": seed,
                 **kernighan_lin(graph, seed),
@@ -196,6 +203,7 @@ def run_snap_validation(
             ("bloc_reloc_baseline", "random_balanced"),
             ("bloc_reloc_affinity", "kernighan_lin"),
             ("spectral_bisection", "kernighan_lin"),
+            ("spectral_modularity_bisection", "kernighan_lin"),
         )
     ]
 
