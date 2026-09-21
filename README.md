@@ -13,9 +13,9 @@ Rather than assuming one partitioning method is uniformly effective, ATOF profil
 - Profile graphs with interpretable structural descriptors.
 - Run BLOC-RELOC as a balanced local partition-refinement strategy.
 - Compare baseline and degree-affinity objectives explicitly.
-- Route strategies by topology with a transparent heuristic baseline.
-- Run reproducible multi-seed experiments.
-- Extend the framework with new strategies, regime detectors, and learned selectors.
+- Route strategies by topology with a transparent heuristic or graph-level learned baseline.
+- Inspect optimization dynamics from accepted/rejected move traces.
+- Run reproducible multi-seed experiments and held-out routing evaluations.
 
 ## Architecture
 
@@ -28,14 +28,21 @@ Topology Profiler
   v
 Structural Representation
   |
-  v
-Regime Detection / Strategy Selection
+  +--> Regime Detection
+  |
+  +--> Strategy Routing
+  |      +--> Heuristic selector
+  |      +--> Learned topology router
   |
   +--> BLOC-RELOC
-  +--> Future strategies
+  +--> Other benchmark strategies
   |
   v
-Validation & Benchmarking
+Validation
+  |
+  +--> Canonical benchmark
+  +--> Dynamics observatory
+  +--> Graph-level holdout
   |
   v
 Results + Metadata
@@ -76,14 +83,44 @@ The benchmark compares balanced baselines, BLOC-RELOC variants, and NetworkX Ker
 
 See docs/benchmark-protocol.md for the exact protocol.
 
+## Run the dynamics observatory
+
+~~~bash
+python -m experiments.run_observatory
+~~~
+
+The observatory preserves topology, regime, strategy, seed, final metrics, and trace-derived activity statistics under results/observatory/.
+
+See docs/dynamics.md and docs/statistical-analysis.md.
+
+## Run graph-level routing evaluation
+
+~~~bash
+python -m experiments.run_routing_evaluation
+~~~
+
+The routing evaluation uses **leave-one-graph-out** validation. The held-out graph's seeds are not used to train the topology router.
+
+It compares:
+
+- a fixed global-strategy baseline;
+- the transparent heuristic selector;
+- the learned topology router;
+- the post-hoc graph-level oracle.
+
+Primary routing metrics are oracle agreement and graph-level regret.
+
+See docs/routing-evaluation.md.
+
 ## Example
 
 ~~~python
 import networkx as nx
 
+from atof.routing import LearnedTopologyRouter
+from atof.topology import TopologyProfiler
 from atof.selector import HeuristicRegimeSelector
 from atof.strategies import BLOCReloc
-from atof.topology import TopologyProfiler
 
 graph = nx.barabasi_albert_graph(100, 3, seed=42)
 
@@ -112,17 +149,21 @@ ATOF deliberately separates:
 
 Historical experiments are therefore labeled as historical rather than silently presented as validation of the cleaned public implementation.
 
-Read the architecture, methodology, benchmark protocol, reproducibility, provenance, and legacy findings documents before interpreting historical results.
+Routing is evaluated at the graph level so that repeated seeds from one graph do not become artificial independent training examples.
 
 ## Status
 
-The repository is the beginning of the canonical public ATOF codebase.
+Version 0.2.0 is the current public research baseline.
 
-The immediate research milestone is a fresh benchmark campaign generated from this repository itself, using a fixed protocol, explicit baselines, multiple seeds, statistical analysis, and commit-level provenance.
+The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, and a graph-level held-out routing protocol.
+
+Further research should expand the external graph corpus, add stronger canonical baselines, and quantify uncertainty before making broad generalization claims.
 
 ## Limitations
 
-Regime-aware selection is not assumed to be universally optimal. The included selector is a transparent heuristic baseline and must be evaluated on held-out benchmark data before being treated as a validated adaptive policy.
+The learned router is a transparent nearest-centroid baseline, not a final meta-learning architecture.
+
+The synthetic benchmark suite is a development and regression suite, not evidence of universal superiority over graph-partitioning literature.
 
 Historical benchmark numbers are not automatically equivalent to results from the cleaned public implementation.
 
