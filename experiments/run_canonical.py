@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import platform
 import random
 import sys
@@ -10,7 +11,9 @@ from pathlib import Path
 
 import networkx as nx
 
+from atof.selector import HeuristicRegimeSelector
 from atof.strategies import BLOCReloc
+from atof.topology import TopologyProfiler
 
 
 def balanced_round_robin(graph: nx.Graph, k: int) -> dict:
@@ -41,6 +44,14 @@ def kernighan_lin(graph: nx.Graph, seed: int) -> dict:
     return {"edge_cut": int(cut), "balance_error": 0.0, "weighted_cost": float(cut)}
 
 
+def _safe_profile(graph: nx.Graph) -> dict:
+    profile = TopologyProfiler().profile(graph).to_dict()
+    return {
+        key: (None if isinstance(value, float) and math.isnan(value) else value)
+        for key, value in profile.items()
+    }
+
+
 def run_suite(
     output_path: str | Path = "results/canonical/latest.json",
     *,
@@ -48,30 +59,54 @@ def run_suite(
     seeds: tuple[int, ...] = (42, 101, 2024),
     iterations: int = 25,
 ) -> dict:
+    """Run the canonical topology-aware development benchmark."""
     from experiments.generate_suite import build_suite
 
     started = time.perf_counter()
     graphs = build_suite()
+    selector = HeuristicRegimeSelector()
     rows: list[dict] = []
 
     for name, graph in graphs.items():
+        topology = _safe_profile(graph)
+        regime = selector.classify(
+            TopologyProfiler().profile(graph)
+        )
+
+        common = {
+            "graph": name,
+            "regime": regime,
+            **topology,
+        }
+
         for seed in seeds:
             rows.append(
-                {"graph": name, "strategy": "round_robin", "seed": seed,
-                 **balanced_round_robin(graph, k)}
+                {
+                    **common,
+                    "strategy": "round_robin",
+                    "seed": seed,
+                    **balanced_round_robin(graph, k),
+                }
             )
             rows.append(
-                {"graph": name, "strategy": "random_balanced", "seed": seed,
-                 **random_balanced(graph, k, seed)}
+                {
+                    **common,
+                    "strategy": "random_balanced",
+                    "seed": seed,
+                    **random_balanced(graph, k, seed),
+                }
             )
 
             for variant in ("baseline", "affinity"):
                 result = BLOCReloc(
-                    graph, k=k, seed=seed, variant=variant
+                    graph,
+                    k=k,
+                    seed=seed,
+                    variant=variant,
                 ).refine(iterations=iterations)
                 rows.append(
                     {
-                        "graph": name,
+                        **common,
                         "strategy": f"bloc_reloc_{variant}",
                         "seed": seed,
                         "edge_cut": result.edge_cut,
@@ -83,12 +118,16 @@ def run_suite(
 
             if k == 2:
                 rows.append(
-                    {"graph": name, "strategy": "kernighan_lin", "seed": seed,
-                     **kernighan_lin(graph, seed)}
+                    {
+                        **common,
+                        "strategy": "kernighan_lin",
+                        "seed": seed,
+                        **kernighan_lin(graph, seed),
+                    }
                 )
 
     payload = {
-        "schema_version": "0.1",
+        "schema_version": "0.2",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "python": sys.version,
         "platform": platform.platform(),
