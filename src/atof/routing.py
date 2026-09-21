@@ -122,6 +122,58 @@ class LearnedTopologyRouter:
         )
 
 
+class NearestTopologyRouter:
+    """1-nearest-neighbor router in standardized topology-feature space."""
+
+    def __init__(self) -> None:
+        self._training: tuple[tuple[str, str, tuple[float, ...]], ...] = ()
+        self._scale: tuple[float, ...] = ()
+
+    @property
+    def strategies(self) -> tuple[str, ...]:
+        return tuple(sorted({item[1] for item in self._training}))
+
+    def fit(self, training_graphs: Sequence[Mapping]) -> "NearestTopologyRouter":
+        if not training_graphs:
+            raise ValueError("training_graphs must not be empty")
+
+        vectors = [topology_vector(row["topology"]) for row in training_graphs]
+        width = len(vectors[0])
+        mins = [min(vector[i] for vector in vectors) for i in range(width)]
+        maxs = [max(vector[i] for vector in vectors) for i in range(width)]
+        scale = [maxs[i] - mins[i] for i in range(width)]
+        scale = [value if value > 0 else 1.0 for value in scale]
+
+        self._scale = tuple(scale)
+        self._training = tuple(
+            sorted(
+                (
+                    str(row.get("graph", "")),
+                    str(row["oracle_strategy"]),
+                    vector,
+                )
+                for row, vector in zip(training_graphs, vectors)
+            )
+        )
+        return self
+
+    def predict(self, topology: Mapping) -> str:
+        if not self._training:
+            raise RuntimeError("router must be fitted before predict()")
+
+        vector = topology_vector(topology)
+        graph, strategy, _ = min(
+            self._training,
+            key=lambda item: (
+                _distance(vector, item[2], self._scale),
+                item[1],
+                item[0],
+            ),
+        )
+        del graph
+        return strategy
+
+
 def graph_oracle(rows: Iterable[Mapping]) -> dict[str, str]:
     """Compute one oracle strategy per graph from its available seeds."""
     grouped: dict[str, list[Mapping]] = defaultdict(list)

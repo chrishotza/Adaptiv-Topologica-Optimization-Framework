@@ -163,26 +163,33 @@ def summarize_transfer_folds(
             "oracle_strategy_counts": {},
             "unique_oracle_strategies": 0,
             "learned_oracle_agreement": 0.0,
+            "nearest_oracle_agreement": 0.0,
             "majority_oracle_agreement": 0.0,
             "heuristic_oracle_agreement": 0.0,
             "learned_mean_absolute_regret": 0.0,
+            "nearest_mean_absolute_regret": 0.0,
             "majority_mean_absolute_regret": 0.0,
             "heuristic_mean_absolute_regret": 0.0,
             "learned_mean_relative_regret": 0.0,
+            "nearest_mean_relative_regret": 0.0,
             "majority_mean_relative_regret": 0.0,
             "heuristic_mean_relative_regret": 0.0,
             "learned_minus_majority_mean_relative_regret": 0.0,
+            "nearest_minus_majority_mean_relative_regret": 0.0,
         }
 
     required = {
         "oracle_strategy",
         "learned_strategy",
+        "nearest_strategy",
         "majority_strategy",
         "heuristic_strategy",
         "learned_absolute_regret",
+        "nearest_absolute_regret",
         "majority_absolute_regret",
         "heuristic_absolute_regret",
         "learned_relative_regret",
+        "nearest_relative_regret",
         "majority_relative_regret",
         "heuristic_relative_regret",
     }
@@ -200,6 +207,7 @@ def summarize_transfer_folds(
         "oracle_strategy_counts": diagnostics["oracle_strategy_counts"],
         "unique_oracle_strategies": diagnostics["unique_oracle_strategies"],
         "learned_oracle_agreement": _agreement(rows, "learned_strategy"),
+        "nearest_oracle_agreement": _agreement(rows, "nearest_strategy"),
         "majority_oracle_agreement": _agreement(
             rows, "majority_strategy"
         ),
@@ -208,6 +216,9 @@ def summarize_transfer_folds(
         ),
         "learned_mean_absolute_regret": _mean(
             row["learned_absolute_regret"] for row in rows
+        ),
+        "nearest_mean_absolute_regret": _mean(
+            row["nearest_absolute_regret"] for row in rows
         ),
         "majority_mean_absolute_regret": _mean(
             row["majority_absolute_regret"] for row in rows
@@ -218,6 +229,9 @@ def summarize_transfer_folds(
         "learned_mean_relative_regret": _mean(
             row["learned_relative_regret"] for row in rows
         ),
+        "nearest_mean_relative_regret": _mean(
+            row["nearest_relative_regret"] for row in rows
+        ),
         "majority_mean_relative_regret": _mean(
             row["majority_relative_regret"] for row in rows
         ),
@@ -226,6 +240,11 @@ def summarize_transfer_folds(
         ),
         "learned_minus_majority_mean_relative_regret": _mean(
             float(row["learned_relative_regret"])
+            - float(row["majority_relative_regret"])
+            for row in rows
+        ),
+        "nearest_minus_majority_mean_relative_regret": _mean(
+            float(row["nearest_relative_regret"])
             - float(row["majority_relative_regret"])
             for row in rows
         ),

@@ -12,7 +12,7 @@ from pathlib import Path
 import networkx as nx
 
 from atof.generalization import summarize_transfer_folds
-from atof.routing import LearnedTopologyRouter
+from atof.routing import LearnedTopologyRouter, NearestTopologyRouter
 from atof.selector import HeuristicRegimeSelector
 from atof.snap import download_snap_dataset, snap_reference_corpus
 from atof.strategies import BLOCReloc
@@ -204,11 +204,13 @@ def _transfer_folds(records: dict[str, dict[str, dict]]) -> dict[str, list[dict]
             for record in graphs.values()
         ]
         router = LearnedTopologyRouter().fit(training_graphs)
+        nearest_router = NearestTopologyRouter().fit(training_graphs)
         majority_strategy = _choose_majority_strategy(training_graphs)
 
         folds: list[dict] = []
         for record in test_graphs.values():
             learned_strategy = router.predict(record["topology"])
+            nearest_strategy = nearest_router.predict(record["topology"])
             heuristic_strategy = selector_map[record["regime"]]
             oracle_strategy = record["oracle_strategy"]
 
@@ -217,6 +219,12 @@ def _transfer_folds(records: dict[str, dict[str, dict]]) -> dict[str, list[dict]
                 strategy_means=record["strategy_means"],
                 oracle_strategy=oracle_strategy,
             )
+            nearest_abs, nearest_rel = _relative_metrics(
+                nearest_strategy,
+                strategy_means=record["strategy_means"],
+                oracle_strategy=oracle_strategy,
+            )
+
             majority_abs, majority_rel = _relative_metrics(
                 majority_strategy,
                 strategy_means=record["strategy_means"],
@@ -238,12 +246,15 @@ def _transfer_folds(records: dict[str, dict[str, dict]]) -> dict[str, list[dict]
                     "training_graphs": len(training_graphs),
                     "oracle_strategy": oracle_strategy,
                     "learned_strategy": learned_strategy,
+                    "nearest_strategy": nearest_strategy,
                     "majority_strategy": majority_strategy,
                     "heuristic_strategy": heuristic_strategy,
                     "learned_absolute_regret": learned_abs,
+                    "nearest_absolute_regret": nearest_abs,
                     "majority_absolute_regret": majority_abs,
                     "heuristic_absolute_regret": heuristic_abs,
                     "learned_relative_regret": learned_rel,
+                    "nearest_relative_regret": nearest_rel,
                     "majority_relative_regret": majority_rel,
                     "heuristic_relative_regret": heuristic_rel,
                 }
@@ -297,6 +308,9 @@ def run_cross_corpus_transfer(
         "learned_oracle_agreement": _mean(
             [value["learned_oracle_agreement"] for value in nonempty]
         ),
+        "nearest_oracle_agreement": _mean(
+            [value["nearest_oracle_agreement"] for value in nonempty]
+        ),
         "majority_oracle_agreement": _mean(
             [value["majority_oracle_agreement"] for value in nonempty]
         ),
@@ -305,6 +319,9 @@ def run_cross_corpus_transfer(
         ),
         "learned_mean_relative_regret": _mean(
             [value["learned_mean_relative_regret"] for value in nonempty]
+        ),
+        "nearest_mean_relative_regret": _mean(
+            [value["nearest_mean_relative_regret"] for value in nonempty]
         ),
         "majority_mean_relative_regret": _mean(
             [value["majority_mean_relative_regret"] for value in nonempty]
@@ -315,6 +332,12 @@ def run_cross_corpus_transfer(
         "learned_minus_majority_mean_relative_regret": _mean(
             [
                 value["learned_minus_majority_mean_relative_regret"]
+                for value in nonempty
+            ]
+        ),
+        "nearest_minus_majority_mean_relative_regret": _mean(
+            [
+                value["nearest_minus_majority_mean_relative_regret"]
                 for value in nonempty
             ]
         ),
