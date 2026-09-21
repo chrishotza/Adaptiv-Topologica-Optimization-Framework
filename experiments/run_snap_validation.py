@@ -124,6 +124,12 @@ def run_snap_validation(
             })
             rows.append({
                 **common,
+                "strategy": "spectral_modularity_bisection",
+                "seed": seed,
+                **spectral_modularity_bisection(graph),
+            })
+            rows.append({
+                **common,
                 "strategy": "kernighan_lin",
                 "seed": seed,
                 **kernighan_lin(graph, seed),
