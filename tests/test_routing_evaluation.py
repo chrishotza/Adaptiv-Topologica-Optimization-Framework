@@ -15,3 +15,4 @@ def test_routing_evaluation_graph_level(tmp_path):
     assert payload["summary"]["graphs"] == 7
     assert all(row["training_graphs"] == 6 for row in payload["folds"])
     assert all("oracle_strategy" in row for row in payload["folds"])
+    assert "spectral_bisection" in payload["candidate_strategies"]
