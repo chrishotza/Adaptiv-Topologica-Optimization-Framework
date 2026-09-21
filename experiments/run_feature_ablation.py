@@ -17,7 +17,6 @@ from experiments.run_cross_corpus_transfer import (
     _benchmark_graph,
     _choose_majority_strategy,
     _load_corpora,
-    _mean,
     _relative_metrics,
 )
 
@@ -31,6 +30,11 @@ def _commit_sha() -> str | None:
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return None
+
+
+def _mean(values) -> float:
+    values = list(values)
+    return sum(values) / len(values) if values else 0.0
 
 
 def _run_feature_set(

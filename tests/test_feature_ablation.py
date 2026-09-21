@@ -17,3 +17,9 @@ def test_feature_ablation_sets_are_valid_and_distinct():
     assert NearestTopologyRouter(
         features=FEATURE_ABLATIONS["without_mesoscopic"]
     ).features == FEATURE_ABLATIONS["without_mesoscopic"]
+
+
+def test_feature_set_aggregation_accepts_iterables():
+    from experiments.run_feature_ablation import _mean
+
+    assert _mean(value for value in (1.0, 2.0, 3.0)) == 2.0
