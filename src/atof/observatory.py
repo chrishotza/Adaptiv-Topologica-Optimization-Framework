@@ -8,24 +8,27 @@ from typing import Iterable, Mapping, Sequence
 
 @dataclass(frozen=True)
 class TraceSurvival:
-    """Descriptive survival/extinction statistics for one optimization trace."""
+    """Descriptive activity persistence statistics for one optimization trace."""
 
     iterations: int
     active_iterations: int
+    activity_fraction: float
     extinction_iteration: int | None
-    survival_25: int
-    survival_50: int
-    survival_75: int
     total_accepted: int
+    time_to_25_activity: int
+    time_to_50_activity: int
+    time_to_75_activity: int
 
     def to_dict(self) -> dict:
         return {
             "iterations": self.iterations,
             "active_iterations": self.active_iterations,
+            "activity_fraction": self.activity_fraction,
             "extinction_iteration": self.extinction_iteration,
-            "survival_25": self.survival_25,
-            "survival_50": self.survival_50,
-            "survival_75": self.survival_75,
+            "total_accepted": self.total_accepted,
+            "time_to_25_activity": self.time_to_25_activity,
+            "time_to_50_activity": self.time_to_50_activity,
+            "time_to_75_activity": self.time_to_75_activity,
             "total_accepted": self.total_accepted,
         }
 
@@ -53,6 +56,12 @@ class RegimeComparison:
 
 
 def summarize_survival(trace: Sequence[Mapping]) -> TraceSurvival:
+    """Summarize persistence of accepted-move activity.
+
+    Extinction means the last iteration with at least one accepted move.
+    Time-to-activity metrics describe when cumulative accepted moves reach a
+    fraction of all accepted moves. They are not survival probabilities.
+    """
     if not trace:
         raise ValueError("trace must contain at least one row")
 
@@ -62,10 +71,10 @@ def summarize_survival(trace: Sequence[Mapping]) -> TraceSurvival:
     active = [i + 1 for i, value in enumerate(accepted) if value > 0]
     extinction = active[-1] if active else None
 
-    def survival_at_fraction(fraction: float) -> int:
-        threshold = total * fraction
-        if threshold <= 0:
+    def time_to_fraction(fraction: float) -> int:
+        if total <= 0:
             return 0
+        threshold = total * fraction
         cumulative = 0
         for i, value in enumerate(accepted, start=1):
             cumulative += value
@@ -76,12 +85,35 @@ def summarize_survival(trace: Sequence[Mapping]) -> TraceSurvival:
     return TraceSurvival(
         iterations=iterations,
         active_iterations=len(active),
+        activity_fraction=len(active) / iterations,
         extinction_iteration=extinction,
-        survival_25=survival_at_fraction(0.25),
-        survival_50=survival_at_fraction(0.50),
-        survival_75=survival_at_fraction(0.75),
         total_accepted=total,
+        time_to_25_activity=time_to_fraction(0.25),
+        time_to_50_activity=time_to_fraction(0.50),
+        time_to_75_activity=time_to_fraction(0.75),
     )
+
+
+def survival_curve(traces: Sequence[Sequence[Mapping]]) -> list[float]:
+    """Fraction of traces still active at each iteration.
+
+    A trace is active at iteration t when it has at least one accepted move
+    at t or at a later iteration. This is a descriptive persistence curve,
+    not a fitted survival model.
+    """
+    if not traces:
+        return []
+
+    horizon = max(len(trace) for trace in traces)
+    curve = []
+    for t in range(horizon):
+        alive = 0
+        for trace in traces:
+            accepted = [int(row["accepted"]) for row in trace]
+            if any(value > 0 for value in accepted[t:]):
+                alive += 1
+        curve.append(alive / len(traces))
+    return curve
 
 
 def _mean(values: Iterable[float]) -> float:
