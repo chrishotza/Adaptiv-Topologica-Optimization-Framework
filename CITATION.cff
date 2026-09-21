@@ -6,6 +6,6 @@ authors:
   - family-names: Mendoza
     given-names: Christian Marcelo
     affiliation: "Investigador Independiente"
-version: 0.2.0
+version: 0.3.0
 license: MIT
 repository-code: "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework"

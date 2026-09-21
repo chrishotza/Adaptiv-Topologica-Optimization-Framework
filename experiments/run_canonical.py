@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import platform
 import random
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
@@ -50,6 +52,20 @@ def _safe_profile(graph: nx.Graph) -> dict:
         key: (None if isinstance(value, float) and math.isnan(value) else value)
         for key, value in profile.items()
     }
+
+
+def _commit_sha() -> str | None:
+    value = os.getenv("GITHUB_SHA")
+    if value:
+        return value
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
 
 
 def run_suite(
@@ -132,6 +148,7 @@ def run_suite(
         "python": sys.version,
         "platform": platform.platform(),
         "networkx": nx.__version__,
+        "commit_sha": _commit_sha(),
         "k": k,
         "seeds": list(seeds),
         "iterations": iterations,

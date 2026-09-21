@@ -93,7 +93,7 @@ class BLOCReloc:
         upper_size = math.ceil(node_count / self.k)
         # Keep partitions exactly balanced when n is divisible by k and
         # otherwise allow only floor(n/k) or ceil(n/k) nodes per block.
-        del ideal, tolerance
+        del ideal  # The canonical movement rule uses exact floor/ceil sizes.
 
         for iteration in range(iterations):
             nodes = list(self.graph.nodes())
