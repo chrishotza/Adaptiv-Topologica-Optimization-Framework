@@ -19,11 +19,50 @@ FEATURES = (
     "modularity",
 )
 
+FEATURE_GROUPS = {
+    "all": FEATURES,
+    "degree_hub": (
+        "density",
+        "avg_degree",
+        "degree_std",
+        "hub_ratio",
+        "degree_gini",
+    ),
+    "mesoscopic": (
+        "clustering",
+        "transitivity",
+        "modularity",
+    ),
+    "global_paths": (
+        "core_number",
+        "diameter",
+        "avg_path_length",
+    ),
+}
 
-def topology_vector(profile: Mapping) -> tuple[float, ...]:
-    """Convert a topology profile mapping into a finite numeric feature vector."""
+
+def resolve_features(features: Sequence[str] | None = None) -> tuple[str, ...]:
+    """Validate and normalize an explicit topology-feature subset."""
+    selected = FEATURES if features is None else tuple(features)
+    if not selected:
+        raise ValueError("features must contain at least one topology feature")
+    unknown = sorted(set(selected).difference(FEATURES))
+    if unknown:
+        raise ValueError(
+            "unknown topology features: " + ", ".join(unknown)
+        )
+    if len(set(selected)) != len(selected):
+        raise ValueError("features must not contain duplicates")
+    return selected
+
+
+def topology_vector(
+    profile: Mapping,
+    features: Sequence[str] | None = None,
+) -> tuple[float, ...]:
+    """Convert a topology profile into a finite vector for selected features."""
     values: list[float] = []
-    for name in FEATURES:
+    for name in resolve_features(features):
         value = profile.get(name, 0.0)
         try:
             value = float(value)
@@ -71,7 +110,8 @@ class RoutingEvaluation:
 class LearnedTopologyRouter:
     """Centroid router trained on graph-level oracle labels."""
 
-    def __init__(self) -> None:
+    def __init__(self, features: Sequence[str] | None = None) -> None:
+        self.features = resolve_features(features)
         self._centroids: dict[str, tuple[float, ...]] = {}
         self._scale: tuple[float, ...] = ()
 
@@ -83,7 +123,10 @@ class LearnedTopologyRouter:
         if not training_graphs:
             raise ValueError("training_graphs must not be empty")
 
-        vectors = [topology_vector(row["topology"]) for row in training_graphs]
+        vectors = [
+            topology_vector(row["topology"], self.features)
+            for row in training_graphs
+        ]
         width = len(vectors[0])
 
         mins = [min(vector[i] for vector in vectors) for i in range(width)]
@@ -112,7 +155,7 @@ class LearnedTopologyRouter:
         if not self._centroids:
             raise RuntimeError("router must be fitted before predict()")
 
-        vector = topology_vector(topology)
+        vector = topology_vector(topology, self.features)
         return min(
             self._centroids,
             key=lambda strategy: (
@@ -125,7 +168,8 @@ class LearnedTopologyRouter:
 class NearestTopologyRouter:
     """1-nearest-neighbor router in standardized topology-feature space."""
 
-    def __init__(self) -> None:
+    def __init__(self, features: Sequence[str] | None = None) -> None:
+        self.features = resolve_features(features)
         self._training: tuple[tuple[str, str, tuple[float, ...]], ...] = ()
         self._scale: tuple[float, ...] = ()
 
@@ -137,7 +181,10 @@ class NearestTopologyRouter:
         if not training_graphs:
             raise ValueError("training_graphs must not be empty")
 
-        vectors = [topology_vector(row["topology"]) for row in training_graphs]
+        vectors = [
+            topology_vector(row["topology"], self.features)
+            for row in training_graphs
+        ]
         width = len(vectors[0])
         mins = [min(vector[i] for vector in vectors) for i in range(width)]
         maxs = [max(vector[i] for vector in vectors) for i in range(width)]
@@ -161,7 +208,7 @@ class NearestTopologyRouter:
         if not self._training:
             raise RuntimeError("router must be fitted before predict()")
 
-        vector = topology_vector(topology)
+        vector = topology_vector(topology, self.features)
         graph, strategy, _ = min(
             self._training,
             key=lambda item: (
