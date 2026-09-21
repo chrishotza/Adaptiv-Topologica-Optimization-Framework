@@ -15,7 +15,7 @@ Rather than assuming one partitioning method is uniformly effective, ATOF profil
 - Compare baseline and degree-affinity objectives explicitly.
 - Route strategies by topology with a transparent heuristic or graph-level learned baseline.
 - Inspect optimization dynamics from accepted/rejected move traces.
-- Run reproducible multi-seed experiments, held-out routing evaluations, and graph-aware uncertainty analysis.
+- Run reproducible multi-seed experiments, held-out routing evaluations, graph-aware uncertainty analysis, and external reference-corpus validation.
 
 ## Architecture
 
@@ -125,6 +125,20 @@ This is uncertainty quantification for the current synthetic development suite, 
 
 See docs/statistical-analysis.md.
 
+## Run external reference validation
+
+~~~bash
+python -m experiments.run_external_validation
+~~~
+
+This runs the same two-way benchmark protocol over four standard reference graphs exposed by NetworkX: Zachary's Karate Club, Davis Southern Women, Florentine Families, and Les Misérables.
+
+The experiment records dataset provenance, topology, benchmark rows, graph-level paired bootstrap comparisons, and leave-one-graph-out routing regret under results/external/.
+
+This corpus is an **external reference validation layer**, not a representative sample of all graph populations. The graphs are small and heterogeneous, and the unweighted edge-cut metric is used consistently for cross-strategy comparison.
+
+See docs/external-validation.md.
+
 ## Example
 
 ~~~python
@@ -168,11 +182,11 @@ Statistical uncertainty is also evaluated at graph level, preserving the unit on
 
 ## Status
 
-Version 0.3.0 is the current public research baseline.
+Version 0.4.0 is the current public research baseline.
 
-The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, and a graph-aware statistical layer with deterministic bootstrap uncertainty.
+The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, graph-aware statistical uncertainty, and an external reference validation layer.
 
-Further research should expand the external graph corpus, add stronger canonical baselines, pre-specify comparison families, and quantify uncertainty on external graphs before making broad generalization claims.
+Further research should expand the external corpus substantially, add stronger canonical baselines, pre-specify comparison families, and quantify routing generalization on larger unseen graph populations.
 
 ## Limitations
 
@@ -180,7 +194,7 @@ The learned router is a transparent nearest-centroid baseline, not a final meta-
 
 The synthetic benchmark suite is a development and regression suite, not evidence of universal superiority over graph-partitioning literature.
 
-The bootstrap intervals are conditional on this seven-graph synthetic suite and should not be interpreted as population-level confidence for arbitrary graphs.
+The bootstrap intervals on the synthetic suite and the external reference corpus are conditional on those small corpora and should not be interpreted as population-level confidence for arbitrary graphs.
 
 Historical benchmark numbers are not automatically equivalent to results from the cleaned public implementation.
 

@@ -41,6 +41,9 @@ jobs:
       - name: Statistical benchmark smoke test
         run: python -m experiments.run_statistical_analysis
 
+      - name: External validation smoke test
+        run: python -m experiments.run_external_validation
+
       - name: Validate benchmark output
         run: |
           test -s results/canonical/latest.json
@@ -48,3 +51,4 @@ jobs:
           test -s results/observatory/latest.json
           test -s results/routing/latest.json
           test -s results/statistics/latest.json
+          test -s results/external/latest.json
