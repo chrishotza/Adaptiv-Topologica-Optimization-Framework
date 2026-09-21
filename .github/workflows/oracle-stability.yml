@@ -1,0 +1,51 @@
+name: Oracle stability analysis
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "experiments/run_oracle_stability.py"
+      - "tests/test_oracle_stability.py"
+      - "experiments/run_cross_corpus_transfer.py"
+      - "experiments/run_canonical.py"
+      - "src/atof/strategies.py"
+      - "src/atof/snap.py"
+      - ".github/workflows/oracle-stability.yml"
+
+jobs:
+  stability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Unit tests
+        run: pytest tests/test_oracle_stability.py
+      - name: Run oracle stability analysis
+        run: python -m experiments.run_oracle_stability
+      - name: Validate result
+        run: |
+          test -s results/generalization/oracle_stability.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("results/generalization/oracle_stability.json").read_text())
+          assert payload["protocol"] == "graph-oracle seed stability and strategy-diversity analysis"
+          assert set(payload["corpora"]) == {"development", "external", "snap"}
+          assert sum(item["summary"]["graphs"] for item in payload["corpora"].values()) >= 17
+          assert len(payload["strategies"]) == 7
+          print("validated oracle stability across", sum(
+              item["summary"]["graphs"] for item in payload["corpora"].values()
+          ), "graphs")
+          PY
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-oracle-stability
+          path: results/generalization/oracle_stability.json
