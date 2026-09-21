@@ -74,3 +74,7 @@ GitHub Actions also exposes a manual live-data workflow named `SNAP validation` 
 Adding this corpus does not by itself establish broad generalization. The routine corpus is still small and domain-specific, and the current objective deliberately discards source direction/sign semantics.
 
 The purpose of 0.5 is to create a clean bridge from synthetic development graphs and tiny built-in empirical references toward a traceable, externally sourced validation surface.
+
+## Expanded routine corpus
+
+The routine empirical tier now contains two additional moderate-size SNAP graphs: **CollegeMsg** (1,899 nodes; 20,296 static edges after source temporal normalization) and **reachability** (456 nodes; 71,959 source edges). Both are retained as directed-source metadata and normalized to the current simple undirected connectivity objective.
