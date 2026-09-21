@@ -1,0 +1,124 @@
+{
+  "schema_version": "0.1",
+  "protocol": "paired graph-level robustness analysis of locked seven- versus eight-strategy leave-one-corpus-out transfer",
+  "n_graphs": 17,
+  "corpora": {
+    "development": 7,
+    "external": 4,
+    "snap": 6
+  },
+  "added_strategy": "metis_multilevel_balanced",
+  "inputs": {
+    "seven_strategy": {
+      "run_id": 35580437557,
+      "artifact_id": 10630387720,
+      "sha256": "edfeac72be0bc066c70f549fd07c53bb1b94adbd173c2922de45cd4a45286dd3"
+    },
+    "eight_strategy": {
+      "run_id": 35584123689,
+      "artifact_id": 10632280359,
+      "sha256": "2344b22654a3c91ccaa13bb2e9660bdf7732b2f3b6a89fbcfb841d1806544d5c"
+    }
+  },
+  "paired_statistics": {
+    "all_iqr_l2": {
+      "centroid": {
+        "old": 0.7796719457,
+        "new": 0.3833127657,
+        "mean_delta": -0.39635918,
+        "improved": 5,
+        "worsened": 2,
+        "exact_sign_flip_p_one_sided": 0.0546875,
+        "bootstrap_95_ci": [
+          -0.9498885918,
+          -0.0052941176
+        ]
+      },
+      "nearest": {
+        "old": 0.6835264429,
+        "new": 0.0885282053,
+        "mean_delta": -0.5949982376,
+        "improved": 9,
+        "worsened": 3,
+        "exact_sign_flip_p_one_sided": 0.0029296875,
+        "bootstrap_95_ci": [
+          -1.1351436609,
+          -0.1517035564
+        ]
+      }
+    },
+    "global_paths_iqr_l2": {
+      "centroid": {
+        "old": 0.5629432793,
+        "new": 0.4076495592,
+        "mean_delta": -0.15529372,
+        "improved": 3,
+        "worsened": 4,
+        "exact_sign_flip_p_one_sided": 0.453125,
+        "bootstrap_95_ci": [
+          -0.7660197587,
+          0.4527630242
+        ]
+      },
+      "nearest": {
+        "old": 0.7119955228,
+        "new": 0.0919218705,
+        "mean_delta": -0.6200736524,
+        "improved": 9,
+        "worsened": 4,
+        "exact_sign_flip_p_one_sided": 0.0037841796875,
+        "bootstrap_95_ci": [
+          -1.1538982911,
+          -0.1757164806
+        ]
+      }
+    },
+    "global_paths_minmax_l2": {
+      "centroid": {
+        "old": 0.6662478988,
+        "new": 0.4076495592,
+        "mean_delta": -0.2585983396,
+        "improved": 4,
+        "worsened": 4,
+        "exact_sign_flip_p_one_sided": 0.2890625,
+        "bootstrap_95_ci": [
+          -0.9273923077,
+          0.4240324722
+        ]
+      },
+      "nearest": {
+        "old": 0.6639185997,
+        "new": 0.0907906487,
+        "mean_delta": -0.573127951,
+        "improved": 8,
+        "worsened": 4,
+        "exact_sign_flip_p_one_sided": 0.007568359375,
+        "bootstrap_95_ci": [
+          -1.1154599166,
+          -0.1221612672
+        ]
+      }
+    }
+  },
+  "oracle_counts_eight_strategy": {
+    "development": {
+      "metis_multilevel_balanced": 6,
+      "kernighan_lin": 1
+    },
+    "external": {
+      "bloc_reloc_baseline": 1,
+      "kernighan_lin": 2,
+      "metis_multilevel_balanced": 1
+    },
+    "snap": {
+      "kernighan_lin": 5,
+      "metis_multilevel_balanced": 1
+    }
+  },
+  "notes": [
+    "Negative deltas indicate lower relative regret after adding METIS.",
+    "Bootstrap intervals use 20,000 deterministic graph-level resamples.",
+    "Exact sign-flip p-values test the paired mean delta under a symmetric sign-randomization null.",
+    "The 17 graphs are not treated as an iid universal graph population."
+  ]
+}
