@@ -56,12 +56,11 @@ def _balanced_spectral_order(graph: nx.Graph, *, modularity: bool = False) -> tu
     remains defined on the expanded scalability corpus without changing the
     balanced ranking contract.
     """
-    from scipy.sparse import csr_matrix
-    from scipy.sparse.linalg import LinearOperator, eigsh
-
     node_count = graph.number_of_nodes()
     nodes = list(graph.nodes())
-    adjacency = nx.to_scipy_sparse_array(graph, nodelist=nodes, dtype=float, format="csr")
+    adjacency = nx.to_scipy_sparse_array(
+        graph, nodelist=nodes, dtype=float, format="csr"
+    )
 
     if node_count <= 2000:
         dense = adjacency.toarray()
