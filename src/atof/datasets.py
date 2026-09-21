@@ -44,7 +44,7 @@ def standard_reference_corpus() -> tuple[GraphDataset, ...]:
             source="Davis (1941), exposed by NetworkX",
             reference_url="https://networkx.org/documentation/stable/reference/generated/networkx.generators.social.davis_southern_women_graph.html",
             loader=nx.davis_southern_women_graph,
-            notes="Empirical bipartite social network; benchmark uses the undirected one-mode edge structure as provided.",
+            notes="Empirical bipartite social network; benchmark partitions the full undirected bipartite edge structure as provided.",
         ),
         GraphDataset(
             name="florentine_families",
