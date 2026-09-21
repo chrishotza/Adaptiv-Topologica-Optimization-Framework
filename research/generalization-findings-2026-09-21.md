@@ -292,3 +292,18 @@ The evidence has moved the research question forward. The seven-strategy oracle 
 The next priority is therefore **not another feature/scaler sweep**. The immediate scientific task is to test whether the 1-NN improvement survives additional graph diversity and independent strategy families while keeping the protocol locked.
 
 No public/default router change is made by these results alone.
+
+
+## KaHIP 8→9 locked transfer and paired robustness
+
+GitHub Actions run 35590899534 completed successfully on commit c66dfeabc7bdada28129233b317cea296698c6ac. Artifact 10634279155 has SHA-256 b184eb4012aceec4dfe36cac99531250a89f43f152a176c864f812e26519bb9f9.
+
+The valid KaHIP candidate was added to the METIS-expanded eight-strategy candidate set, preserving the same 17-graph true leave-one-corpus-out protocol, k=2, seeds 42/101/2024, 25 refinement iterations, and three locked routing configurations.
+
+Adding KaHIP changes the graph-level oracle on 13 of 17 graphs. The eight-strategy oracle distribution was METIS 8, Kernighan-Lin 8, BLOC-RELOC baseline 1; the nine-strategy distribution becomes KaHIP 13, Kernighan-Lin 3, BLOC-RELOC baseline 1. KaHIP is a strict minimum on 7 graphs, ties on 6, and loses on 4.
+
+The paired 8→9 endpoint deltas do not show a robust systematic improvement of the topology-conditioned router. For 1-NN, mean relative-regret deltas are -0.0097, +0.0033, and +0.0044 across the three locked configurations; all 95% bootstrap intervals include zero and exact one-sided sign-flip p-values are 0.3555, 0.5508, and 0.5723. Centroid deltas are negative (-0.2482, -0.2725, -0.2725) but their paired intervals also include zero and p-values remain above 0.05.
+
+The majority control falls from 0.3787 to 0.0814, but this is a re-baselining effect because the majority training-corpus strategy changes after KaHIP enters the candidate set. It is therefore not treated as an isolated fixed-policy treatment effect.
+
+The current evidence supports the conclusion that KaHIP materially redefines the oracle landscape, but does not establish a statistically robust router improvement from the 8→9 expansion alone. No public/default router change is made. The exact paired statistics are frozen in research/kahip-transfer-robustness.json, with protocol details in docs/kahip-transfer-robustness.md.
