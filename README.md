@@ -15,7 +15,7 @@ Rather than assuming one partitioning method is uniformly effective, ATOF profil
 - Compare baseline and degree-affinity objectives explicitly.
 - Route strategies by topology with a transparent heuristic or graph-level learned baseline.
 - Inspect optimization dynamics from accepted/rejected move traces.
-- Run reproducible multi-seed experiments, held-out routing evaluations, graph-aware uncertainty analysis, and external reference-corpus validation.
+- Run reproducible multi-seed experiments, held-out routing evaluations, graph-aware uncertainty analysis, external reference-corpus validation, and cross-corpus routing summaries.
 
 ## Architecture
 
@@ -44,6 +44,8 @@ Validation
   +--> Dynamics observatory
   +--> Graph-level holdout
   +--> Graph-level uncertainty
+  +--> External reference corpora
+  +--> Cross-corpus generalization summary
   |
   v
 Results + Metadata
@@ -155,6 +157,21 @@ The live SNAP workflow is manually triggerable from GitHub Actions.
 
 See docs/snap-corpus.md.
 
+## Cross-corpus generalization
+
+The atof.generalization layer aggregates graph-level routing folds from independent corpora.
+
+It preserves the same unit of analysis used by the routing evaluator and reports both:
+
+- **micro** summaries, where each held-out graph has equal weight;
+- **macro** summaries, where each corpus has equal weight.
+
+This prevents the size of one corpus from silently determining the interpretation of a cross-corpus result.
+
+The layer is intentionally descriptive. It does not turn a small heterogeneous collection into a universal generalization claim.
+
+See docs/generalization-study.md.
+
 ## Example
 
 ~~~python
@@ -200,7 +217,7 @@ Statistical uncertainty is also evaluated at graph level, preserving the unit on
 
 Version 0.5.0 is the current public research baseline.
 
-The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, graph-aware statistical uncertainty, NetworkX reference validation, and a reproducible SNAP empirical corpus.
+The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, graph-aware statistical uncertainty, NetworkX reference validation, a reproducible SNAP empirical corpus, and cross-corpus routing aggregation infrastructure.
 
 Further research should expand the SNAP routine corpus, run the larger scalability tier, add stronger canonical baselines, pre-specify comparison families, and quantify routing generalization on larger unseen graph populations.
 
