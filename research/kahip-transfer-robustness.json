@@ -1,0 +1,55 @@
+{
+  "schema_version": "0.1",
+  "protocol": "paired graph-level robustness analysis of locked eight- versus nine-strategy leave-one-corpus-out transfer",
+  "n_graphs": 17,
+  "corpora": {"development": 7, "external": 4, "snap": 6},
+  "added_strategy": "kahip_kaffpa_strong_balanced",
+  "inputs": {
+    "eight_strategy": {
+      "run_id": 35584123689,
+      "artifact_id": 10632280359,
+      "sha256": "2344b22654a3c91ccaa13bb2e9660bdf7732b2f3b6a89fbcfb841d1806544d5c",
+      "commit": "8f13bb1dc3d35548352f8a6fe8be498369498ad3"
+    },
+    "nine_strategy": {
+      "run_id": 35590899534,
+      "artifact_id": 10634279155,
+      "sha256": "b184eb4012aceec4dfe36cac99531250a89f43f152a176c864f812e26519bb9f9",
+      "commit": "c66dfeabc7bdada28129233b317cea296698c6ac"
+    }
+  },
+  "oracle_transition": {
+    "graphs_changed_oracle": 13,
+    "graphs_unchanged_oracle": 4,
+    "old_distribution": {"metis_multilevel_balanced": 8, "kernighan_lin": 8, "bloc_reloc_baseline": 1},
+    "new_distribution": {"kahip_kaffpa_strong_balanced": 13, "kernighan_lin": 3, "bloc_reloc_baseline": 1},
+    "kahip_graph_outcomes": {"strict_win": 7, "tie_min": 6, "loss": 4}
+  },
+  "paired_statistics": {
+    "all_iqr_l2": {
+      "nearest": {"old": 0.0899616538, "new": 0.0813738431, "mean_delta": -0.0097206067, "improved": 5, "worsened": 3, "ties": 9, "exact_sign_flip_p_one_sided": 0.35546875, "bootstrap_95_ci": [-0.0537625077, 0.0363405461]},
+      "centroid": {"old": 0.3103008103, "new": 0.1269665482, "mean_delta": -0.2481847666, "improved": 2, "worsened": 5, "ties": 10, "exact_sign_flip_p_one_sided": 0.328125, "bootstrap_95_ci": [-0.8559257949, 0.1320727614]},
+      "majority": {"old": 0.3787446028, "new": 0.0813738431, "mean_delta": -0.3773521390, "improved": 8, "worsened": 3, "ties": 6, "exact_sign_flip_p_one_sided": 0.1044921875, "bootstrap_95_ci": [-0.9442823065, 0.0102002968]}
+    },
+    "global_paths_iqr_l2": {
+      "nearest": {"old": 0.0927089065, "new": 0.0946522314, "mean_delta": 0.0032884430, "improved": 5, "worsened": 5, "ties": 7, "exact_sign_flip_p_one_sided": 0.55078125, "bootstrap_95_ci": [-0.0456871115, 0.0518454762]},
+      "centroid": {"old": 0.3447779345, "new": 0.1269665482, "mean_delta": -0.2725215601, "improved": 3, "worsened": 5, "ties": 9, "exact_sign_flip_p_one_sided": 0.25, "bootstrap_95_ci": [-0.8749815293, 0.1079080534]},
+      "majority": {"old": 0.3787446028, "new": 0.0813738431, "mean_delta": -0.3773521390, "improved": 8, "worsened": 3, "ties": 6, "exact_sign_flip_p_one_sided": 0.1044921875, "bootstrap_95_ci": [-0.9442823065, 0.0102002968]}
+    },
+    "global_paths_minmax_l2": {
+      "nearest": {"old": 0.0917931556, "new": 0.0946522314, "mean_delta": 0.0044196648, "improved": 4, "worsened": 5, "ties": 8, "exact_sign_flip_p_one_sided": 0.572265625, "bootstrap_95_ci": [-0.0444312610, 0.0527237326]},
+      "centroid": {"old": 0.3447779345, "new": 0.1269665482, "mean_delta": -0.2725215601, "improved": 3, "worsened": 5, "ties": 9, "exact_sign_flip_p_one_sided": 0.25, "bootstrap_95_ci": [-0.8749815293, 0.1079080534]},
+      "majority": {"old": 0.3787446028, "new": 0.0813738431, "mean_delta": -0.3773521390, "improved": 8, "worsened": 3, "ties": 6, "exact_sign_flip_p_one_sided": 0.1044921875, "bootstrap_95_ci": [-0.9442823065, 0.0102002968]}
+    }
+  },
+  "notes": [
+    "Negative deltas indicate lower relative regret after adding KaHIP.",
+    "The paired endpoint uses the identical 17 held-out graphs, seeds, k=2, refinement iterations, and locked routing configurations.",
+    "Exact sign-flip p-values use the paired mean delta under a symmetric sign-randomization null; they are sensitivity statistics on this finite 17-graph corpus.",
+    "Bootstrap intervals use 20,000 deterministic graph-level resamples with seed 12345.",
+    "The majority-control delta is descriptive of endpoint re-baselining: adding KaHIP changes the majority training-corpus strategy itself, so it is not an isolated effect of changing a fixed policy.",
+    "Across all three locked configurations, the 1-NN intervals include zero and one-sided sign-flip p-values exceed 0.05.",
+    "The centroid mean delta is negative in all three locked configurations, but its paired intervals include zero and the sign-flip p-values exceed 0.05.",
+    "No public/default router change is justified by this paired 8-to-9 comparison alone."
+  ]
+}
