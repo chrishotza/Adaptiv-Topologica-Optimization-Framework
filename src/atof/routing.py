@@ -40,6 +40,10 @@ FEATURE_GROUPS = {
     ),
 }
 
+SCALERS = ("minmax", "std", "iqr")
+METRICS = ("l2", "l1")
+
+
 FEATURE_ABLATIONS = {
     "all": FEATURES,
     "without_degree_hub": tuple(
@@ -110,10 +114,54 @@ def _mean(values: Iterable[float]) -> float:
     return sum(values) / len(values) if values else 0.0
 
 
-def _distance(a: Sequence[float], b: Sequence[float], scale: Sequence[float]) -> float:
-    return sqrt(
-        sum(((x - y) / s) ** 2 for x, y, s in zip(a, b, scale) if s > 0)
-    )
+def _distance(
+    a: Sequence[float],
+    b: Sequence[float],
+    scale: Sequence[float],
+    metric: str = "l2",
+) -> float:
+    deltas = [
+        abs((x - y) / s)
+        for x, y, s in zip(a, b, scale)
+        if s > 0
+    ]
+    if metric == "l1":
+        return sum(deltas)
+    if metric == "l2":
+        return sqrt(sum(delta * delta for delta in deltas))
+    raise ValueError("metric must be 'l1' or 'l2'")
+
+
+def _feature_scales(
+    vectors: Sequence[Sequence[float]],
+    mode: str,
+) -> tuple[float, ...]:
+    if mode not in SCALERS:
+        raise ValueError("scale mode must be one of: " + ", ".join(SCALERS))
+    width = len(vectors[0])
+    scales: list[float] = []
+    for i in range(width):
+        values = sorted(float(vector[i]) for vector in vectors)
+        if mode == "minmax":
+            scale = values[-1] - values[0]
+        elif mode == "std":
+            mean = sum(values) / len(values)
+            scale = sqrt(
+                sum((value - mean) ** 2 for value in values) / len(values)
+            )
+        else:
+            if len(values) == 1:
+                scale = 0.0
+            else:
+                q1_index = 0.25 * (len(values) - 1)
+                q3_index = 0.75 * (len(values) - 1)
+                lo0, lo1 = int(q1_index), min(int(q1_index) + 1, len(values) - 1)
+                hi0, hi1 = int(q3_index), min(int(q3_index) + 1, len(values) - 1)
+                q1 = values[lo0] + (values[lo1] - values[lo0]) * (q1_index - lo0)
+                q3 = values[hi0] + (values[hi1] - values[hi0]) * (q3_index - hi0)
+                scale = q3 - q1
+        scales.append(scale if scale > 0 else 1.0)
+    return tuple(scales)
 
 
 @dataclass(frozen=True)
@@ -141,8 +189,19 @@ class RoutingEvaluation:
 class LearnedTopologyRouter:
     """Centroid router trained on graph-level oracle labels."""
 
-    def __init__(self, features: Sequence[str] | None = None) -> None:
+    def __init__(
+        self,
+        features: Sequence[str] | None = None,
+        scale_mode: str = "minmax",
+        metric: str = "l2",
+    ) -> None:
         self.features = resolve_features(features)
+        self.scale_mode = scale_mode
+        self.metric = metric
+        if scale_mode not in SCALERS:
+            raise ValueError("scale mode must be one of: " + ", ".join(SCALERS))
+        if metric not in METRICS:
+            raise ValueError("metric must be one of: " + ", ".join(METRICS))
         self._centroids: dict[str, tuple[float, ...]] = {}
         self._scale: tuple[float, ...] = ()
 
@@ -160,10 +219,7 @@ class LearnedTopologyRouter:
         ]
         width = len(vectors[0])
 
-        mins = [min(vector[i] for vector in vectors) for i in range(width)]
-        maxs = [max(vector[i] for vector in vectors) for i in range(width)]
-        scale = [maxs[i] - mins[i] for i in range(width)]
-        scale = [value if value > 0 else 1.0 for value in scale]
+        scale = _feature_scales(vectors, self.scale_mode)
 
         groups: dict[str, list[tuple[float, ...]]] = defaultdict(list)
         for row, vector in zip(training_graphs, vectors):
@@ -190,7 +246,12 @@ class LearnedTopologyRouter:
         return min(
             self._centroids,
             key=lambda strategy: (
-                _distance(vector, self._centroids[strategy], self._scale),
+                _distance(
+                    vector,
+                    self._centroids[strategy],
+                    self._scale,
+                    self.metric,
+                ),
                 strategy,
             ),
         )
@@ -199,8 +260,19 @@ class LearnedTopologyRouter:
 class NearestTopologyRouter:
     """1-nearest-neighbor router in standardized topology-feature space."""
 
-    def __init__(self, features: Sequence[str] | None = None) -> None:
+    def __init__(
+        self,
+        features: Sequence[str] | None = None,
+        scale_mode: str = "minmax",
+        metric: str = "l2",
+    ) -> None:
         self.features = resolve_features(features)
+        self.scale_mode = scale_mode
+        self.metric = metric
+        if scale_mode not in SCALERS:
+            raise ValueError("scale mode must be one of: " + ", ".join(SCALERS))
+        if metric not in METRICS:
+            raise ValueError("metric must be one of: " + ", ".join(METRICS))
         self._training: tuple[tuple[str, str, tuple[float, ...]], ...] = ()
         self._scale: tuple[float, ...] = ()
 
@@ -217,10 +289,7 @@ class NearestTopologyRouter:
             for row in training_graphs
         ]
         width = len(vectors[0])
-        mins = [min(vector[i] for vector in vectors) for i in range(width)]
-        maxs = [max(vector[i] for vector in vectors) for i in range(width)]
-        scale = [maxs[i] - mins[i] for i in range(width)]
-        scale = [value if value > 0 else 1.0 for value in scale]
+        scale = _feature_scales(vectors, self.scale_mode)
 
         self._scale = tuple(scale)
         self._training = tuple(
@@ -243,7 +312,12 @@ class NearestTopologyRouter:
         graph, strategy, _ = min(
             self._training,
             key=lambda item: (
-                _distance(vector, item[2], self._scale),
+                _distance(
+                    vector,
+                    item[2],
+                    self._scale,
+                    self.metric,
+                ),
                 item[1],
                 item[0],
             ),
