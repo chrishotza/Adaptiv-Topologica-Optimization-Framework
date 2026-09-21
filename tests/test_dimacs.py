@@ -40,14 +40,14 @@ def test_parse_metis_edge_weights_ignores_weights():
 
 def test_parse_metis_preserves_isolated_vertex_lines():
     payload = _bz2_graph(
-        "3 1\n"
+        "3 2\n"
         "2\n"
         "\n"
         "1\n"
     )
     graph = _parse_metis_graph(payload)
     assert graph.number_of_nodes() == 3
-    assert graph.number_of_edges() == 1
+    assert graph.number_of_edges() == 2
     assert list(graph.neighbors(1)) == []
 
 
