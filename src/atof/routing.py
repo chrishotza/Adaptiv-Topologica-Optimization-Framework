@@ -40,6 +40,19 @@ FEATURE_GROUPS = {
     ),
 }
 
+FEATURE_ABLATIONS = {
+    "all": FEATURES,
+    "without_degree_hub": tuple(
+        feature for feature in FEATURES if feature not in FEATURE_GROUPS["degree_hub"]
+    ),
+    "without_mesoscopic": tuple(
+        feature for feature in FEATURES if feature not in FEATURE_GROUPS["mesoscopic"]
+    ),
+    "without_global_paths": tuple(
+        feature for feature in FEATURES if feature not in FEATURE_GROUPS["global_paths"]
+    ),
+}
+
 
 def resolve_features(features: Sequence[str] | None = None) -> tuple[str, ...]:
     """Validate and normalize an explicit topology-feature subset."""
