@@ -100,7 +100,10 @@ class LearnedTopologyRouter:
 
         self._scale = tuple(scale)
         self._centroids = {
-            strategy: tuple(_mean(vector[i] for vector in vectors_for_strategy))
+            strategy: tuple(
+                _mean(vector[i] for vector in vectors_for_strategy)
+                for i in range(width)
+            )
             for strategy, vectors_for_strategy in groups.items()
         }
         return self
