@@ -38,9 +38,13 @@ jobs:
       - name: Routing benchmark smoke test
         run: python -m experiments.run_routing_evaluation
 
+      - name: Statistical benchmark smoke test
+        run: python -m experiments.run_statistical_analysis
+
       - name: Validate benchmark output
         run: |
           test -s results/canonical/latest.json
           test -s results/canonical/summary.csv
           test -s results/observatory/latest.json
           test -s results/routing/latest.json
+          test -s results/statistics/latest.json
