@@ -9,7 +9,7 @@ from experiments.run_expanded_20graph_statistical_robustness import (
 def test_exact_sign_test_handles_ties_and_is_bounded():
     assert exact_sign_test([0.0, 0.0, 0.0]) == 1.0
     assert 0.0 <= exact_sign_test([-1.0, 1.0]) <= 1.0
-    assert exact_sign_test([-1.0, -1.0]) == 1.0
+    assert exact_sign_test([-1.0, -1.0]) == 0.5
 
 
 def test_bootstrap_is_deterministic_for_seed():
