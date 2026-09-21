@@ -1,4 +1,7 @@
+import pytest
 import networkx as nx
+
+kahip = pytest.importorskip("kahip")
 
 from experiments.run_kahip_validation import kahip_balanced_partition
 
