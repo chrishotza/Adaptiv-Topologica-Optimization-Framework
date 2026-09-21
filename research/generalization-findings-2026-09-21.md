@@ -171,3 +171,8 @@ Interpretation: for the current corpus, the 1-NN router is most competitive when
 These results are an evidence-guiding ablation, not evidence that any feature family is universally causal or optimal. The majority control remains lower-regret than every topology-conditioned configuration in this corpus.
 
 The practical implication is to test a **global-path-only 1-NN transfer candidate** on a larger and more heterogeneous empirical corpus before changing the public default router.
+
+
+## Routine SNAP corpus expansion
+
+The routine empirical tier was expanded from four to six graphs by adding **CollegeMsg** and **reachability**. CollegeMsg is a temporal messaging network from UC Irvine; reachability is an asymmetric airline-travel reachability network. The benchmark uses their edge endpoints as static connectivity and does not use temporal, weight, or metadata semantics.
