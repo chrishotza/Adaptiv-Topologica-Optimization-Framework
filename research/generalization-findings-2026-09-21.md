@@ -184,3 +184,18 @@ Run **35574236663** completed successfully on commit **f603429a0c485b8c6c9692bca
 The expanded routine corpus has six SNAP graphs and 17 graphs total. Macro transfer relative regret was **2.6916** for centroid, **0.7744** for 1-NN, **0.3242** for majority, and **6.2147** for the heuristic. Macro oracle agreement was **0.4444**, **0.4603**, **0.7381**, and **0.0833**, respectively.
 
 The added SNAP graphs do not diversify the SNAP oracle itself: all six SNAP graph-level oracles remain Kernighan-Lin. Their value is therefore primarily in stressing topology-space transfer rather than creating a heterogeneous SNAP oracle target.
+
+
+## Current 17-graph scaling ablation and confirmatory phase
+
+The routine SNAP tier was expanded to six graphs, bringing the empirical corpus to 17 graphs total. The expanded true leave-one-corpus-out transfer result (workflow **35574236663**) reports macro mean relative regret of **2.6916** for centroid, **0.7744** for 1-NN, **0.3242** for majority, and **6.2147** for the heuristic; macro oracle agreement is **0.4444**, **0.4603**, **0.7381**, and **0.0833**, respectively.
+
+A subsequent router-scaling ablation froze the 17-graph protocol while varying feature subsets, scaling modes, and distance metrics. The best observed centroid configuration was **global-path features + IQR scaling + L2**, with **0.4893** mean relative regret. The strongest observed 1-NN configurations in the tested family were **global-path + min-max/std + L2**, with **0.5757** mean relative regret. The majority control remained at **0.3242**.
+
+These values are exploratory candidates only. They are being evaluated by a locked three-way confirmatory workflow:
+
+1. all features + IQR + L2;
+2. global-path features + IQR + L2;
+3. global-path features + min-max + L2.
+
+In parallel, the oracle-stability workflow quantifies seed consensus, oracle margins, and oracle-strategy concentration across the same corpus. No public routing default is changed by the scaling ablation alone.
