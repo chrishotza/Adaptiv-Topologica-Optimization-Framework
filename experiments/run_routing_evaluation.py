@@ -8,21 +8,11 @@ from atof.routing import (
     evaluate_holdout_predictions,
     global_strategy_oracle,
     graph_oracle,
-    routing_summary,
 )
 from atof.selector import HeuristicRegimeSelector
 from atof.topology import TopologyProfiler
 from experiments.generate_suite import build_suite
 from experiments.run_canonical import run_suite
-
-
-def _heuristic_strategy(graph_name: str, profiles: dict[str, dict]) -> str:
-    """Map the public heuristic selector to benchmark strategy names."""
-    profile_data = profiles[graph_name]
-    raise RuntimeError(
-        "Heuristic routing requires a TopologyProfile object; use "
-        "run_routing_evaluation(), not this helper directly."
-    )
 
 
 def run_routing_evaluation(
