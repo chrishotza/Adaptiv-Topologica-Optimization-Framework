@@ -51,6 +51,24 @@ FEATURE_ABLATIONS = {
     "without_global_paths": tuple(
         feature for feature in FEATURES if feature not in FEATURE_GROUPS["global_paths"]
     ),
+    "without_degree_hub_mesoscopic": tuple(
+        feature
+        for feature in FEATURES
+        if feature not in FEATURE_GROUPS["degree_hub"]
+        and feature not in FEATURE_GROUPS["mesoscopic"]
+    ),
+    "without_degree_hub_global_paths": tuple(
+        feature
+        for feature in FEATURES
+        if feature not in FEATURE_GROUPS["degree_hub"]
+        and feature not in FEATURE_GROUPS["global_paths"]
+    ),
+    "without_mesoscopic_global_paths": tuple(
+        feature
+        for feature in FEATURES
+        if feature not in FEATURE_GROUPS["mesoscopic"]
+        and feature not in FEATURE_GROUPS["global_paths"]
+    ),
 }
 
 
