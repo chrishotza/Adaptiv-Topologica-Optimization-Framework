@@ -20,7 +20,12 @@ from atof.snap import download_snap_dataset, snap_reference_corpus
 from atof.statistics import paired_summary
 from atof.strategies import BLOCReloc
 from atof.topology import TopologyProfiler
-from experiments.run_canonical import balanced_round_robin, kernighan_lin, random_balanced
+from experiments.run_canonical import (
+    balanced_round_robin,
+    kernighan_lin,
+    random_balanced,
+    spectral_bisection,
+)
 
 
 def _commit_sha() -> str | None:
@@ -184,6 +189,7 @@ def run_snap_validation(
             ("bloc_reloc_affinity", "random_balanced"),
             ("bloc_reloc_baseline", "random_balanced"),
             ("bloc_reloc_affinity", "kernighan_lin"),
+            ("spectral_bisection", "kernighan_lin"),
         )
     ]
 
