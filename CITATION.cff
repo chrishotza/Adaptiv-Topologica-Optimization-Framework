@@ -1,17 +1,11 @@
 cff-version: 1.2.0
 title: "Adaptive Topological Optimization Framework"
-message: "If you use ATOF, please cite this repository."
+message: "If you use this software, please cite it."
 type: software
 authors:
-  - family-names: "Hotza"
-    given-names: "Chris"
+  - family-names: Mendoza
+    given-names: Christian Marcelo
+    affiliation: "Investigador Independiente"
+version: 0.2.0
+license: MIT
 repository-code: "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework"
-license: "MIT"
-version: "0.1.0"
-date-released: "2026-09-21"
-keywords:
-  - graph partitioning
-  - graph optimization
-  - topology-aware optimization
-  - adaptive algorithms
-  - regime detection
