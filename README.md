@@ -2,24 +2,24 @@
 
 ATOF is a research framework for topology-aware graph optimization, regime detection, adaptive strategy selection, and reproducible benchmarking.
 
-The project is built around a practical idea:
+The central idea is practical:
 
-> graph structure should inform which optimization strategy is applied.
+> **Graph structure should inform which optimization strategy is applied.**
 
-Rather than assuming one partitioning method is uniformly effective, ATOF profiles a graph, characterizes its structural regime, evaluates candidate strategies, and records the evidence needed to compare them.
+Rather than assuming one partitioning method is uniformly effective, ATOF profiles a graph, characterizes its structural regime, evaluates candidate strategies, and preserves the evidence needed to compare them.
 
-## What this repository provides
+## What you can do with ATOF
 
-- **Topology profiling** — structural descriptors such as degree heterogeneity, clustering, assortativity, core structure, path metrics, and community structure.
-- **BLOC-RELOC strategy** — a clean, reusable local partition-refinement implementation derived from the research prototype.
-- **Adaptive selection** — transparent regime-aware strategy routing that can be extended with learned selectors.
-- **Benchmarking utilities** — deterministic experiments, explicit objectives, and machine-readable results.
-- **Reproducibility** — seeds, configuration, environment metadata, and experiment records are treated as first-class outputs.
-- **Research archive** — selected results and findings from the predecessor research repositories are retained with provenance and limitations.
+- Profile graphs with interpretable structural descriptors.
+- Run BLOC-RELOC as a balanced local partition-refinement strategy.
+- Compare baseline and degree-affinity objectives explicitly.
+- Route strategies by topology with a transparent heuristic baseline.
+- Run reproducible multi-seed experiments.
+- Extend the framework with new strategies, regime detectors, and learned selectors.
 
 ## Architecture
 
-```
+~~~text
 Graph
   |
   v
@@ -32,52 +32,104 @@ Structural Representation
 Regime Detection / Strategy Selection
   |
   +--> BLOC-RELOC
-  +--> Other strategies
+  +--> Future strategies
   |
   v
 Validation & Benchmarking
   |
   v
 Results + Metadata
-```
+~~~
 
-## Status
+## Public core
 
-The public repository is a clean consolidation of three research predecessors:
+The first public release is a curated consolidation of the shared graph-optimization research line.
 
-- `adaptive-topological-optimization`
-- `bloc-reloc-v2`
-- `cov-ia`
+The topology profiling layer comes from the former adaptive-topological-optimization repository.
 
-Only components that contribute to the framework's long-term utility are being migrated. Historical experiments remain explicitly identified as historical evidence rather than being presented as the current canonical implementation.
+The BLOC-RELOC refinement engine and dynamics-analysis lessons come from bloc-reloc-v2.
+
+Reproducibility and provenance rules were extracted from the broader research archive.
+
+COV-IA remains a separate prototype. Its adaptive-control ideas are documented as a boundary case rather than mixed into the graph-optimization core.
 
 ## Quick start
 
-```bash
+~~~bash
 python -m pip install -e ".[dev]"
 pytest
 python examples/basic_usage.py
-```
+~~~
 
-## Research principles
+## Run the canonical benchmark
 
-ATOF separates:
+~~~bash
+python -m experiments.run_canonical
+python -m experiments.summarize_results
+~~~
 
-1. **method** — what the algorithm does;
+This generates raw benchmark records, environment metadata, and a grouped edge-cut summary under results/canonical/.
+
+The initial development suite contains seven deterministic synthetic topology families.
+
+The benchmark compares balanced baselines, BLOC-RELOC variants, and NetworkX Kernighan-Lin for two-way partitions.
+
+See docs/benchmark-protocol.md for the exact protocol.
+
+## Example
+
+~~~python
+import networkx as nx
+
+from atof.selector import HeuristicRegimeSelector
+from atof.strategies import BLOCReloc
+from atof.topology import TopologyProfiler
+
+graph = nx.barabasi_albert_graph(100, 3, seed=42)
+
+profile = TopologyProfiler().profile(graph)
+recommendation = HeuristicRegimeSelector().recommend(profile)
+
+result = BLOCReloc(
+    graph,
+    k=4,
+    seed=42,
+    variant="affinity",
+).refine(iterations=10)
+
+print(recommendation.regime)
+print(result.edge_cut)
+~~~
+
+## Research discipline
+
+ATOF deliberately separates:
+
+1. **method** — what the implementation does;
 2. **measurement** — how performance is evaluated;
-3. **evidence** — which experiment produced the result;
+3. **evidence** — which experiment generated a result;
 4. **interpretation** — what the result may mean.
 
-This prevents exploratory results, implementation history, and formal validation from being silently mixed.
+Historical experiments are therefore labeled as historical rather than silently presented as validation of the cleaned public implementation.
+
+Read the architecture, methodology, benchmark protocol, reproducibility, provenance, and legacy findings documents before interpreting historical results.
+
+## Status
+
+The repository is the beginning of the canonical public ATOF codebase.
+
+The immediate research milestone is a fresh benchmark campaign generated from this repository itself, using a fixed protocol, explicit baselines, multiple seeds, statistical analysis, and commit-level provenance.
 
 ## Limitations
 
-ATOF is an active research project. Regime-aware selection is not assumed to be universally optimal, and historical benchmark results are not automatically treated as validation of the cleaned implementation. Every reported result should be read together with its benchmark protocol, data scope, seeds, and implementation version.
+Regime-aware selection is not assumed to be universally optimal. The included selector is a transparent heuristic baseline and must be evaluated on held-out benchmark data before being treated as a validated adaptive policy.
+
+Historical benchmark numbers are not automatically equivalent to results from the cleaned public implementation.
 
 ## Citation
 
-See [CITATION.cff](CITATION.cff).
+See CITATION.cff.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See LICENSE.
