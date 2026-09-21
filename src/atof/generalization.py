@@ -314,8 +314,10 @@ def summarize_generalization(
             )
             for row in all_folds
         ),
-        "learned_minus_global_mean_relative_regret": mean_field(
-            "learned_minus_global_mean_relative_regret"
+        "learned_minus_global_mean_relative_regret": _mean(
+            float(row["learned_relative_regret"])
+            - float(row["global_relative_regret"])
+            for row in all_folds
         ),
     }
 
