@@ -164,15 +164,15 @@ def snap_reference_corpus() -> tuple[SnapDataset, ...]:
             notes="The source is temporal; only the first two columns are used to form the static undirected connectivity graph.",
         ),
         SnapDataset(
-            name="congress_twitter",
-            source="SNAP Congress Twitter interaction network",
-            reference_url="https://snap.stanford.edu/data/congress-twitter.html",
-            download_url="https://snap.stanford.edu/data/congress-twitter.tar.gz",
+            name="reachability",
+            source="Benson et al.; Frey & Dueck, SNAP",
+            reference_url="https://snap.stanford.edu/data/reachability.html",
+            download_url="https://snap.stanford.edu/data/reachability.txt.gz",
             directed=True,
-            nodes=475,
-            edges=13289,
-            description="Twitter interaction network for members of the US Congress.",
-            notes="Direction is normalized to undirected connectivity for the current partitioning objective.",
+            nodes=456,
+            edges=71959,
+            description="Airline travel reachability network for cities in the United States and Canada.",
+            notes="The directed asymmetric reachability relation is normalized to undirected connectivity; edge weights and city metadata are not used.",
         ),
     )
 
