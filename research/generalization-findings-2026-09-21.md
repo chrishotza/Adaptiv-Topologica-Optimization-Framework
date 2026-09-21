@@ -176,3 +176,11 @@ The practical implication is to test a **global-path-only 1-NN transfer candidat
 ## Routine SNAP corpus expansion
 
 The routine empirical tier was expanded from four to six graphs by adding **CollegeMsg** and **reachability**. CollegeMsg is a temporal messaging network from UC Irvine; reachability is an asymmetric airline-travel reachability network. The benchmark uses their edge endpoints as static connectivity and does not use temporal, weight, or metadata semantics.
+
+## Expanded six-SNAP transfer result
+
+Run **35574236663** completed successfully on commit **f603429a0c485b8c6c9692bca7c223f75cfce64e** with artifact SHA-256 **4a2cc793189902ecd5e217f6ffd6b880d9d0c9ad8039f674ce13284da9a2e6b8**.
+
+The expanded routine corpus has six SNAP graphs and 17 graphs total. Macro transfer relative regret was **2.6916** for centroid, **0.7744** for 1-NN, **0.3242** for majority, and **6.2147** for the heuristic. Macro oracle agreement was **0.4444**, **0.4603**, **0.7381**, and **0.0833**, respectively.
+
+The added SNAP graphs do not diversify the SNAP oracle itself: all six SNAP graph-level oracles remain Kernighan-Lin. Their value is therefore primarily in stressing topology-space transfer rather than creating a heterogeneous SNAP oracle target.

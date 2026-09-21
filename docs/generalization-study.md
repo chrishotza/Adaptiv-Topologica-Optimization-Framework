@@ -122,3 +122,19 @@ It preserves the same candidate strategies, objective, seeds, and leave-one-corp
 The latest run found that 1-NN reached mean relative regret **0.5565** with the global-path feature family alone, compared with **0.8171** using all features. The majority control remained at **0.3242** across feature sets.
 
 This is not used to change the public default router. The result is treated as a hypothesis for the next, larger-corpus transfer study.
+
+
+## Latest expanded-corpus run
+
+The routine SNAP corpus now contains six empirical graphs, bringing the aligned study to **17 graphs** across development, external, and SNAP tiers. GitHub Actions run **35574236663** completed successfully on commit **f603429a0c485b8c6c9692bca7c223f75cfce64e**.
+
+The true leave-one-corpus-out macro transfer on the expanded corpus was:
+
+| Router/control | Mean relative regret | Oracle agreement |
+| --- | ---: | ---: |
+| Centroid | 2.6916 | 0.4444 |
+| 1-NN | 0.7744 | 0.4603 |
+| Majority | 0.3242 | 0.7381 |
+| Heuristic | 6.2147 | 0.0833 |
+
+The expanded corpus confirms that 1-NN is materially more stable than the centroid router, but the majority control remains lower-regret. The 1-NN and feature-ablation studies must therefore be rerun on the expanded 17-graph corpus before selecting a public router configuration.
