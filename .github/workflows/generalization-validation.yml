@@ -11,6 +11,13 @@ on:
       - "experiments/run_canonical.py"
       - "experiments/run_external_validation.py"
       - "experiments/run_snap_validation.py"
+      - "experiments/run_cross_corpus_transfer.py"
+      - "src/atof/snap.py"
+      - "src/atof/routing.py"
+      - "src/atof/strategies.py"
+      - "src/atof/topology.py"
+      - "docs/generalization-study.md"
+      - "docs/snap-corpus.md"
       - ".github/workflows/generalization-validation.yml"
       - "docs/generalization-study.md"
 
