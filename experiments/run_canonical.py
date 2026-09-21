@@ -77,7 +77,7 @@ def _balanced_spectral_order(
             _, eigenvectors = np.linalg.eigh(laplacian)
             leading = eigenvectors[:, 1]
     else:
-        from scipy.sparse import csr_matrix
+        from scipy.sparse import diags
         from scipy.sparse.linalg import LinearOperator, eigsh
 
         adjacency = nx.to_scipy_sparse_array(
@@ -111,9 +111,9 @@ def _balanced_spectral_order(
                 )
                 leading = eigenvectors[:, 0]
         else:
-            laplacian = csr_matrix(
-                np.diag(np.asarray(adjacency.sum(axis=1)).ravel())
-            ) - adjacency
+            laplacian = diags(
+                np.asarray(adjacency.sum(axis=1)).ravel()
+            ).tocsr() - adjacency
             _, eigenvectors = eigsh(
                 laplacian,
                 k=2,
