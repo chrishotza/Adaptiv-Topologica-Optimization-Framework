@@ -147,7 +147,7 @@ See docs/external-validation.md.
 python -m experiments.run_snap_validation
 ~~~
 
-ATOF 0.5.0 adds a live-data validation layer for six empirical SNAP graphs: C. elegans frontal, Florida Bay, S. cerevisiae transcriptional regulation, and email-Eu-core.
+ATOF 0.5.0 adds a live-data validation layer for six empirical SNAP graphs: C. elegans frontal, Florida Bay, S. cerevisiae transcriptional regulation, email-Eu-core, CollegeMsg, and reachability.
 
 The runner downloads the public gzip edge lists only when needed, caches them locally, records SHA-256 provenance, normalizes the source graph to the undirected connectivity used by the current partition objective, and writes results to results/snap/.
 
@@ -194,7 +194,7 @@ The common seven-strategy candidate set is:
 - balanced spectral-modularity bisection;
 - NetworkX Kernighan-Lin.
 
-Latest successful transfer results (workflow `35570306006`) give macro mean relative regret of **1.2280** for centroid, **0.8171** for 1-NN, **0.3242** for majority, and **6.2860** for the heuristic.
+The latest expanded 17-graph leave-one-corpus-out transfer (workflow `35574236663`) gives macro mean relative regret of **2.6916** for centroid, **0.7744** for 1-NN, **0.3242** for majority, and **6.2147** for the heuristic. Macro oracle agreement is **0.4444**, **0.4603**, **0.7381**, and **0.0833**, respectively.
 
 These are descriptive results on the current corpus, not a universal routing claim.
 
@@ -208,7 +208,7 @@ ATOF includes a reproducible leave-one-corpus-out feature ablation:
 python -m experiments.run_feature_ablation
 ~~~
 
-The current evidence identifies the global-path feature family as a promising low-dimensional input for the 1-NN transfer router (mean relative regret 0.5565 versus 0.8171 with all features on the current 15-graph corpus). This does **not** change the default router or establish universal feature importance; it defines the next transfer hypothesis.
+The current 17-graph scaling ablation shows that topology representation and distance scaling materially change transfer performance. The best observed centroid configuration was **global-path features + IQR scaling + L2 distance (0.4893 mean relative regret)**. The best observed 1-NN configurations were global-path + min-max/std + L2 (**0.5757**). The majority control remained at **0.3242**, so these are locked confirmatory candidates rather than a new default router.
 
 See `docs/generalization-study.md` and `research/generalization-findings-2026-09-21.md`.
 
@@ -259,7 +259,7 @@ Version 0.5.0 is the current public research baseline.
 
 The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, graph-aware statistical uncertainty, NetworkX reference validation, a reproducible SNAP empirical corpus, and cross-corpus routing aggregation infrastructure.
 
-Further research should expand the SNAP routine corpus, run the larger scalability tier, add stronger canonical baselines, pre-specify comparison families, and quantify routing generalization on larger unseen graph populations.
+The current research phase is focused on oracle-label stability and locked confirmation of the pre-specified routing candidates. The next decision should depend on those results rather than additional post-hoc feature tuning. Larger SNAP scalability studies and stronger canonical baselines remain separate future evidence tiers.
 
 ## Limitations
 
