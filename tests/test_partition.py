@@ -24,3 +24,18 @@ def test_bloc_preserves_floor_ceil_balance():
     result = BLOCReloc(nx.cycle_graph(21), k=4, seed=42).refine(iterations=5)
     counts = [list(result.partition.values()).count(block) for block in range(4)]
     assert sorted(counts) == [5, 5, 5, 6]
+
+
+def test_bloc_move_delta_matches_full_objective():
+    graph = nx.gnp_random_graph(30, 0.15, seed=7)
+    for variant in ("baseline", "affinity"):
+        bloc = BLOCReloc(graph, k=2, seed=42, variant=variant)
+        partition = initialize_balanced_partition(graph, 2)
+        node = next(iter(graph.nodes()))
+        source = partition[node]
+        target = 1 - source
+        before = bloc._objective(partition)
+        partition[node] = target
+        after = bloc._objective(partition)
+        partition[node] = source
+        assert abs((after - before) - bloc._move_delta(node, source, target, partition)) < 1e-12

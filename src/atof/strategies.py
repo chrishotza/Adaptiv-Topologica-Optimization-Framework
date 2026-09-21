@@ -117,9 +117,12 @@ class BLOCReloc:
                     if not (lower_size <= target_after <= upper_size):
                         continue
 
-                    partition[node] = target
-                    candidate = self._objective(partition)
-                    partition[node] = source
+                    candidate = best + self._move_delta(
+                        node,
+                        source,
+                        target,
+                        partition,
+                    )
 
                     if candidate < current - 1e-12:
                         current = candidate
@@ -166,6 +169,28 @@ class BLOCReloc:
             rejected_moves=rejected,
             trace=tuple(trace),
         )
+
+    def _move_delta(
+        self,
+        node: Hashable,
+        source: int,
+        target: int,
+        partition: Mapping[Hashable, int],
+    ) -> float:
+        """Return the exact objective change for moving one node.
+
+        Only edges incident to the moved node can change crossing status, so
+        this computes the same weighted-cut delta as a full objective scan in
+        O(deg(node)) time.
+        """
+        delta = 0.0
+        for neighbor in self.graph.neighbors(node):
+            cost = self.edge_cost(node, neighbor)
+            if partition[neighbor] == source:
+                delta += cost
+            elif partition[neighbor] == target:
+                delta -= cost
+        return delta
 
     def _two_swap(
         self,
