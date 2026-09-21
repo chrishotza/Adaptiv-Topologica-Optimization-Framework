@@ -28,5 +28,6 @@ def test_nearest_neighbor_improvement_is_consistent():
 def test_centroid_result_is_not_overstated():
     payload = json.loads(RESULT.read_text(encoding="utf-8"))
     centroid = payload["paired_statistics"]
-    assert centroid["global_paths_iqr_l2"]["exact_sign_flip_p_one_sided"] > 0.05
-    assert centroid["global_paths_minmax_l2"]["exact_sign_flip_p_one_sided"] > 0.05
+    for config in centroid.values():
+        p = config["centroid"]["exact_sign_flip_p_one_sided"]
+        assert p > 0.05
