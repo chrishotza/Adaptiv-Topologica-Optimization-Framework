@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.0 — 2026-09-21
+
+### Added
+
+- Standard external reference graph corpus using four empirical graphs exposed by NetworkX.
+- External validation runner with the same two-way benchmark protocol used by the canonical suite.
+- External graph-level paired bootstrap comparisons.
+- External leave-one-graph-out routing evaluation with regret and oracle agreement.
+- Explicit dataset provenance metadata and external result manifest.
+- CI coverage for the external validation experiment.
+
+### Methodology
+
+- Synthetic development graphs and external reference graphs are kept as separate evidence layers.
+- Repeated seeds remain aggregated within graph before bootstrap resampling.
+- Edge weights are ignored in the external cross-strategy metric so that all compared methods share unweighted edge cut.
+- The four-graph external corpus is treated as a reference test surface, not as a representative population sample.
+
 ## 0.3.0 — 2026-09-21
 
 ### Added
