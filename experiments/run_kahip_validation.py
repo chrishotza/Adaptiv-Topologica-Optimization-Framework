@@ -10,8 +10,9 @@ from pathlib import Path
 
 import networkx as nx
 
-from experiments.run_cross_corpus_transfer import _load_corpora
-from experiments.run_router_scaling_ablation import _benchmark_graph, _mean
+from experiments.run_cross_corpus_transfer import _benchmark_graph, _load_corpora
+from experiments.run_metis_validation import STRATEGY as METIS_STRATEGY, metis_balanced_partition
+from experiments.run_router_scaling_ablation import _mean
 
 
 STRATEGY = "kahip_kaffpa_strong_balanced"
@@ -168,6 +169,13 @@ def summarize_graph(
         seeds=seeds,
         iterations=iterations,
     )
+    metis_rows = [
+        {
+            "seed": seed,
+            **metis_balanced_partition(graph, seed=seed),
+        }
+        for seed in seeds
+    ]
     kahip_rows = [
         {
             "seed": seed,
@@ -177,9 +185,15 @@ def summarize_graph(
     ]
 
     strategy_means = dict(baseline["strategy_means"])
+    strategy_means[METIS_STRATEGY] = _mean(
+        row["edge_cut"] for row in metis_rows
+    )
     strategy_means[STRATEGY] = _mean(
         row["edge_cut"] for row in kahip_rows
     )
+    expected = set(BASE_STRATEGIES) | {STRATEGY}
+    if set(strategy_means) != expected:
+        raise AssertionError(f"unexpected strategy set: {sorted(strategy_means)}")
     ranked = sorted(strategy_means.items(), key=lambda item: (item[1], item[0]))
     oracle_strategy = ranked[0][0]
 
@@ -192,6 +206,8 @@ def summarize_graph(
         "oracle_strategy": oracle_strategy,
         "oracle_runner_up_strategy": ranked[1][0],
         "oracle_absolute_margin": ranked[1][1] - ranked[0][1],
+        "metis_seed_results": metis_rows,
+        "metis_mean_edge_cut": strategy_means[METIS_STRATEGY],
         "kahip_seed_results": kahip_rows,
         "kahip_mean_edge_cut": strategy_means[STRATEGY],
         "kahip_wins_graph": oracle_strategy == STRATEGY,
@@ -246,8 +262,8 @@ def run_kahip_validation(
         }
 
     payload = {
-        "schema_version": "0.1",
-        "protocol": "independent KaHIP KaFFPa Strong partitioning baseline with exact-balance repair",
+        "schema_version": "0.2",
+        "protocol": "independent KaHIP KaFFPa Strong partitioning baseline with exact-balance repair evaluated against the full METIS-expanded eight-strategy candidate set",
         "unit_of_analysis": "graph-level candidate-strategy comparison",
         "commit_sha": _commit_sha(),
         "python": sys.version,
@@ -256,14 +272,17 @@ def run_kahip_validation(
         "k": 2,
         "seeds": list(seeds),
         "iterations": iterations,
+        "base_strategy_count": len(BASE_STRATEGIES),
         "base_strategies": list(BASE_STRATEGIES),
+        "expanded_strategy_count": len(BASE_STRATEGIES) + 1,
         "kahip_strategy": STRATEGY,
         "kahip_mode": "STRONG",
         "kahip_imbalance": KAFFPA_IMBALANCE,
         "corpora": studies,
         "interpretation": [
             "KaHIP is evaluated as an independent multilevel partitioning family after METIS.",
-            "KaFFPa Strong uses a 3% imbalance tolerance, followed by the same deterministic exact-balance repair principle used for ATOF's METIS validation.",
+            "The comparison contains the full eight-strategy candidate set validated by the METIS transfer experiment, then adds KaHIP as the ninth candidate.",
+            "KaFFPa Strong uses a 3% imbalance tolerance, followed by the same deterministic exact-balance repair principle used for the METIS validation.",
             "The repaired edge cut, not the raw KaHIP objective, is the comparable benchmark metric.",
             "KaHIP is not inserted into the routing model by this experiment; the purpose is to test further oracle diversification independently of METIS.",
         ],
