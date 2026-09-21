@@ -73,6 +73,26 @@ A stronger routing result requires:
 
 A combined manifest must therefore always retain the per-corpus folds and provenance instead of publishing only a single aggregate value.
 
+## True cross-corpus transfer
+
+The aligned study above aggregates independent within-corpus leave-one-graph-out evaluations.
+
+A separate experiment now performs the stricter test:
+
+~~~bash
+python -m experiments.run_cross_corpus_transfer
+~~~
+
+For each test corpus, the topology router is trained only on graph-level oracle labels from the other corpora. The entire test corpus is excluded from training.
+
+The experiment compares:
+
+- learned topology router;
+- majority-oracle strategy from the training corpora;
+- transparent heuristic selector.
+
+This is the actual leave-one-corpus-out transfer protocol. It is the appropriate next test for whether the routing signal transfers across corpus boundaries.
+
 ## Next 0.6 tier
 
 After the aligned routine study is executed, the next research step is to run the larger SNAP scalability tier separately, then expand the number of heterogeneous unseen graphs before making stronger claims about routing generalization.

@@ -31,6 +31,9 @@ jobs:
       - name: Run aligned cross-corpus study
         run: python -m experiments.run_generalization_study
 
+      - name: Run true leave-one-corpus-out transfer
+        run: python -m experiments.run_cross_corpus_transfer
+
       - name: Validate manifest
         run: |
           test -s results/generalization/latest.json
@@ -47,6 +50,20 @@ jobs:
           print("graphs", payload["summary"]["graph_count"])
           PY
 
+      - name: Validate transfer manifest
+        run: |
+          test -s results/generalization/cross_corpus_transfer.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("results/generalization/cross_corpus_transfer.json").read_text())
+          assert payload["protocol"] == "leave-one-corpus-out routing transfer"
+          assert set(payload["transfer"]["summaries"]) == {"development", "external", "snap"}
+          assert payload["transfer"]["macro"]["learned_mean_relative_regret"] >= 0
+          print(json.dumps(payload["transfer"]["macro"], indent=2))
+          PY
+
       - name: Upload generalization artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -56,3 +73,4 @@ jobs:
             results/generalization/routing_development.json
             results/generalization/routing_external.json
             results/generalization/routing_snap.json
+            results/generalization/cross_corpus_transfer.json
