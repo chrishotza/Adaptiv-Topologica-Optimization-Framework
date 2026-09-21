@@ -42,6 +42,9 @@ jobs:
               "without_degree_hub",
               "without_mesoscopic",
               "without_global_paths",
+              "without_degree_hub_mesoscopic",
+              "without_degree_hub_global_paths",
+              "without_mesoscopic_global_paths",
           }
           assert set(payload["feature_sets"]) == expected
           for study in payload["feature_sets"].values():
