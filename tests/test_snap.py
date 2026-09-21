@@ -23,7 +23,7 @@ def test_snap_parser_normalizes_to_simple_undirected():
     assert nx.number_of_selfloops(graph) == 0
 
 
-def test_snap_reference_registry_has_four_empirical_graphs():
+def test_snap_reference_registry_has_six_empirical_graphs():
     datasets = snap_reference_corpus()
 
     assert [item.name for item in datasets] == [
@@ -31,6 +31,8 @@ def test_snap_reference_registry_has_four_empirical_graphs():
         "florida_bay",
         "s_cerevisiae",
         "email_eu_core",
+        "college_msg",
+        "reachability",
     ]
     assert all(item.download_url.endswith(".txt.gz") for item in datasets)
     assert all(item.reference_url.startswith("https://snap.stanford.edu/") for item in datasets)
