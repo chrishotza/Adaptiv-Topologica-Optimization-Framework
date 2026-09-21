@@ -1,5 +1,6 @@
 from atof.routing import (
     LearnedTopologyRouter,
+    NearestTopologyRouter,
     evaluate_holdout_predictions,
     graph_oracle,
     routing_summary,
@@ -46,3 +47,22 @@ def test_graph_oracle_and_holdout_evaluation():
     assert summary["graphs"] == 2
     assert summary["oracle_agreement_rate"] == 1.0
     assert summary["mean_absolute_regret"] == 0.0
+
+
+def test_nearest_router_fits_and_predicts():
+    training = [
+        {
+            "graph": "hub",
+            "topology": {"density": 0.1, "avg_degree": 10, "hub_ratio": 4},
+            "oracle_strategy": "bloc_reloc_affinity",
+        },
+        {
+            "graph": "regular",
+            "topology": {"density": 0.5, "avg_degree": 4, "hub_ratio": 1},
+            "oracle_strategy": "kernighan_lin",
+        },
+    ]
+    router = NearestTopologyRouter().fit(training)
+    assert router.predict(
+        {"density": 0.11, "avg_degree": 9.8, "hub_ratio": 3.9}
+    ) == "bloc_reloc_affinity"
