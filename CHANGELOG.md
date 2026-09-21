@@ -4,6 +4,8 @@
 
 ### Added
 
+- Deterministic Fiedler-vector spectral bisection reference baseline across canonical, external, and routine SNAP benchmarks.
+
 - Cross-corpus routing aggregation utilities in atof.generalization.
 - Separate micro and macro summaries so large corpora cannot silently dominate a combined routing report.
 - Research protocol documentation for the next generalization milestone.
@@ -14,6 +16,7 @@
 
 ### Methodology
 
+- The spectral baseline is a bounded dense reference method and is not a scalability claim.
 - Cross-corpus summaries preserve held-out graphs as the unit of routing analysis.
 - The aggregation layer is descriptive infrastructure and does not claim universal generalization.
 
