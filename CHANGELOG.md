@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.0 — 2026-09-21
+
+### Added
+
+- Reproducible SNAP dataset registry with explicit source and download provenance.
+- Gzip edge-list parser with directed-to-undirected normalization for the current partitioning objective.
+- Local dataset cache with SHA-256 provenance recorded in validation results.
+- Four routine SNAP empirical reference graphs: C. elegans frontal, Florida Bay, S. cerevisiae, and email-Eu-core.
+- Separate scalability registry for ca-GrQc, ca-HepTh, and Wiki-Vote.
+- SNAP validation experiment with graph-level paired bootstrap analysis and leave-one-graph-out routing.
+- Unit coverage for the SNAP parser, registries, and validation protocol without requiring network access.
+- Manual live-data validation workflow under .github/workflows/snap-validation.yml.
+
+### Methodology
+
+- Third-party graph files are not vendored into the repository.
+- The routine SNAP corpus and larger scalability corpus remain explicitly separated.
+- Direction and signed semantics are normalized only for the current unweighted undirected partitioning objective; those original semantics are retained in dataset metadata.
+- Downloaded dataset SHA-256 values are recorded in result manifests.
+
 ## 0.4.0 — 2026-09-21
 
 ### Added
