@@ -15,7 +15,7 @@ Rather than assuming one partitioning method is uniformly effective, ATOF profil
 - Compare baseline and degree-affinity objectives explicitly.
 - Route strategies by topology with a transparent heuristic or graph-level learned baseline.
 - Inspect optimization dynamics from accepted/rejected move traces.
-- Run reproducible multi-seed experiments and held-out routing evaluations.
+- Run reproducible multi-seed experiments, held-out routing evaluations, and graph-aware uncertainty analysis.
 
 ## Architecture
 
@@ -43,6 +43,7 @@ Validation
   +--> Canonical benchmark
   +--> Dynamics observatory
   +--> Graph-level holdout
+  +--> Graph-level uncertainty
   |
   v
 Results + Metadata
@@ -50,7 +51,7 @@ Results + Metadata
 
 ## Public core
 
-The first public release is a curated consolidation of the shared graph-optimization research line.
+The public repository is a curated consolidation of the shared graph-optimization research line.
 
 The topology profiling layer comes from the former adaptive-topological-optimization repository.
 
@@ -75,7 +76,7 @@ python -m experiments.run_canonical
 python -m experiments.summarize_results
 ~~~
 
-This generates raw benchmark records, environment metadata, and a grouped edge-cut summary under results/canonical/.
+This generates raw benchmark records, environment metadata, benchmark commit provenance when available, and a grouped edge-cut summary under results/canonical/.
 
 The initial development suite contains seven deterministic synthetic topology families.
 
@@ -111,6 +112,18 @@ It compares:
 Primary routing metrics are oracle agreement and graph-level regret.
 
 See docs/routing-evaluation.md.
+
+## Run graph-aware statistical analysis
+
+~~~bash
+python -m experiments.run_statistical_analysis
+~~~
+
+The statistical layer aggregates repeated seeds within each graph and then bootstraps the graph-level paired differences. It reports mean differences, 95% percentile bootstrap intervals, graph-level wins/losses/ties, and a standardized paired effect.
+
+This is uncertainty quantification for the current synthetic development suite, not evidence of universal generalization.
+
+See docs/statistical-analysis.md.
 
 ## Example
 
@@ -151,19 +164,23 @@ Historical experiments are therefore labeled as historical rather than silently 
 
 Routing is evaluated at the graph level so that repeated seeds from one graph do not become artificial independent training examples.
 
+Statistical uncertainty is also evaluated at graph level, preserving the unit on which topology generalization is actually claimed.
+
 ## Status
 
-Version 0.2.0 is the current public research baseline.
+Version 0.3.0 is the current public research baseline.
 
-The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, and a graph-level held-out routing protocol.
+The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, and a graph-aware statistical layer with deterministic bootstrap uncertainty.
 
-Further research should expand the external graph corpus, add stronger canonical baselines, and quantify uncertainty before making broad generalization claims.
+Further research should expand the external graph corpus, add stronger canonical baselines, pre-specify comparison families, and quantify uncertainty on external graphs before making broad generalization claims.
 
 ## Limitations
 
 The learned router is a transparent nearest-centroid baseline, not a final meta-learning architecture.
 
 The synthetic benchmark suite is a development and regression suite, not evidence of universal superiority over graph-partitioning literature.
+
+The bootstrap intervals are conditional on this seven-graph synthetic suite and should not be interpreted as population-level confidence for arbitrary graphs.
 
 Historical benchmark numbers are not automatically equivalent to results from the cleaned public implementation.
 
