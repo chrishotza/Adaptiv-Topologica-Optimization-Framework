@@ -48,7 +48,9 @@ def kernighan_lin(graph: nx.Graph, seed: int) -> dict:
 
 
 
-def _balanced_spectral_order(graph: nx.Graph, *, modularity: bool = False) -> tuple[list, list]:
+def _balanced_spectral_order(
+    graph: nx.Graph, *, modularity: bool = False
+) -> tuple[list, list]:
     """Return nodes and a deterministic spectral ranking.
 
     Graphs up to 2000 nodes use the historical dense NumPy implementation.
@@ -58,69 +60,70 @@ def _balanced_spectral_order(graph: nx.Graph, *, modularity: bool = False) -> tu
     """
     node_count = graph.number_of_nodes()
     nodes = list(graph.nodes())
-    adjacency = nx.to_scipy_sparse_array(
-        graph, nodelist=nodes, dtype=float, format="csr"
-    )
 
     if node_count <= 2000:
-        dense = adjacency.toarray()
+        adjacency = nx.to_numpy_array(graph, nodelist=nodes, dtype=float)
         if modularity:
-            degrees = dense.sum(axis=1)
+            degrees = adjacency.sum(axis=1)
             edge_count = graph.number_of_edges()
             if edge_count == 0:
                 leading = degrees
             else:
-                matrix = dense - np.outer(degrees, degrees) / (2.0 * edge_count)
+                matrix = adjacency - np.outer(degrees, degrees) / (2.0 * edge_count)
                 _, eigenvectors = np.linalg.eigh(matrix)
                 leading = eigenvectors[:, -1]
         else:
-            laplacian = np.diag(dense.sum(axis=1)) - dense
+            laplacian = np.diag(adjacency.sum(axis=1)) - adjacency
             _, eigenvectors = np.linalg.eigh(laplacian)
             leading = eigenvectors[:, 1]
-    elif modularity:
-        degrees = np.asarray(adjacency.sum(axis=1)).ravel()
-        edge_count = graph.number_of_edges()
-        if edge_count == 0:
-            leading = degrees
-        else:
-            degree_column = degrees
-            def matvec(vector: np.ndarray) -> np.ndarray:
-                return adjacency @ vector - degree_column * (
-                    float(degree_column @ vector) / (2.0 * edge_count)
+    else:
+        from scipy.sparse import csr_matrix
+        from scipy.sparse.linalg import LinearOperator, eigsh
+
+        adjacency = nx.to_scipy_sparse_array(
+            graph, nodelist=nodes, dtype=float, format="csr"
+        )
+        if modularity:
+            degrees = np.asarray(adjacency.sum(axis=1)).ravel()
+            edge_count = graph.number_of_edges()
+            if edge_count == 0:
+                leading = degrees
+            else:
+                degree_column = degrees
+
+                def matvec(vector: np.ndarray) -> np.ndarray:
+                    return adjacency @ vector - degree_column * (
+                        float(degree_column @ vector) / (2.0 * edge_count)
+                    )
+
+                operator = LinearOperator(
+                    shape=(node_count, node_count),
+                    matvec=matvec,
+                    dtype=float,
                 )
-            operator = LinearOperator(
-                shape=(node_count, node_count),
-                matvec=matvec,
-                dtype=float,
-            )
+                _, eigenvectors = eigsh(
+                    operator,
+                    k=1,
+                    which="LA",
+                    v0=np.ones(node_count, dtype=float),
+                    tol=1e-8,
+                    maxiter=max(1000, node_count * 10),
+                )
+                leading = eigenvectors[:, 0]
+        else:
+            laplacian = csr_matrix(
+                np.diag(np.asarray(adjacency.sum(axis=1)).ravel())
+            ) - adjacency
             _, eigenvectors = eigsh(
-                operator,
-                k=1,
-                which="LA",
+                laplacian,
+                k=2,
+                which="SM",
                 v0=np.ones(node_count, dtype=float),
                 tol=1e-8,
                 maxiter=max(1000, node_count * 10),
             )
-            leading = eigenvectors[:, 0]
-    else:
-        laplacian = csr_matrix(
-            np.diag(np.asarray(adjacency.sum(axis=1)).ravel())
-        ) - adjacency
-        # Ask for the two smallest eigenpairs; the second eigenvector is the
-        # Fiedler vector for connected graphs and remains a valid spectral
-        # ranking for the disconnected reference case.
-        _, eigenvectors = eigsh(
-            laplacian,
-            k=2,
-            which="SM",
-            v0=np.ones(node_count, dtype=float),
-            tol=1e-8,
-            maxiter=max(1000, node_count * 10),
-        )
-        order_eigenvalues = np.argsort(
-            np.asarray(_)
-        )
-        leading = eigenvectors[:, int(order_eigenvalues[1])]
+            order_eigenvalues = np.argsort(np.asarray(_))
+            leading = eigenvectors[:, int(order_eigenvalues[1])]
 
     order = sorted(
         range(node_count),
