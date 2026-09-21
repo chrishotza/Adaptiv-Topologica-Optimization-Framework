@@ -1,4 +1,8 @@
+import pytest
 import networkx as nx
+
+pytest.importorskip("kahip")
+pytest.importorskip("pymetis")
 
 from experiments.run_kahip_validation import (
     BASE_STRATEGIES,
@@ -32,7 +36,7 @@ def test_kahip_partition_uses_two_blocks():
 
     assert set(result["vertex_part"]) == {0, 1}
 
-    
+
 def test_kahip_comparison_includes_metis_expanded_candidate_set():
     graph = nx.cycle_graph(20)
     result = summarize_graph(
