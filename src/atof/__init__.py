@@ -13,6 +13,12 @@ from .routing import (
     routing_summary,
     topology_vector,
 )
+from .statistics import (
+    bootstrap_mean_ci,
+    graph_metric_means,
+    paired_graph_differences,
+    paired_summary,
+)
 
 __all__ = [
     "BLOCReloc", "PartitionResult",
@@ -21,8 +27,10 @@ __all__ = [
     "LearnedTopologyRouter", "RoutingEvaluation",
     "evaluate_holdout_predictions", "global_strategy_oracle",
     "graph_oracle", "routing_summary", "topology_vector",
+    "bootstrap_mean_ci", "graph_metric_means",
+    "paired_graph_differences", "paired_summary",
     "balance_error", "edge_cut", "initialize_balanced_partition",
     "weighted_cut",
 ]
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
