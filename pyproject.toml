@@ -24,6 +24,9 @@ analysis = [
   "scipy>=1.10",
   "scikit-learn>=1.3",
 ]
+metis = [
+  "pymetis>=2025.2.2,<2026",
+]
 dev = [
   "pytest>=8.0",
 ]
