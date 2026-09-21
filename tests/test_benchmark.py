@@ -30,6 +30,7 @@ def test_canonical_suite_records_topology(tmp_path):
     assert payload["schema_version"] == "0.2"
     assert len(payload["graphs"]) == 7
     assert payload["rows"]
+    assert "spectral_bisection" in {row["strategy"] for row in payload["rows"]}
     row = payload["rows"][0]
     assert "regime" in row
     assert "degree_gini" in row
