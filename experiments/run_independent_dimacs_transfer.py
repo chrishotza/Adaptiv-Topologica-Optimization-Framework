@@ -133,8 +133,8 @@ def run_independent_transfer(
     payload = {
         "schema_version": "1.0",
         "protocol": (
-            "five-corpus leave-one-corpus-out transfer with a prespecified "
-            "independent DIMACS clustering testbed"
+            "five-corpus leave-one-corpus-out transfer with the prior SNAP scalability fold "
+            "plus a prespecified independent DIMACS clustering testbed"
         ),
         "unit_of_analysis": "held-out graph",
         "commit_sha": _commit_sha(),
@@ -170,7 +170,7 @@ def run_independent_transfer(
             "The three locked routing configurations remain unchanged from the prior confirmatory protocol.",
             "Seeds remain 42, 101, and 2024; k=2; BLOC-RELOC refinement iterations remain 25.",
             "The DIMACS subset was prespecified by application diversity and availability from the 10th DIMACS clustering testbed; no graph was selected using its ATOF oracle outcome.",
-            "The DIMACS corpus is held out as a complete fifth fold.",
+            "The SNAP scalability corpus remains a distinct fourth fold; the DIMACS corpus is added as a complete fifth fold.",
             "For each held-out corpus, graph-level oracle labels are learned only from the other four corpora.",
             "The majority control is recomputed per held-out corpus.",
             "No feature, scaler, metric, or router hyperparameter is tuned on the independent run.",
