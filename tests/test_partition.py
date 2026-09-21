@@ -18,3 +18,9 @@ def test_bloc_returns_balanced_partition():
 
 def test_invalid_k():
     with pytest.raises(ValueError): BLOCReloc(nx.path_graph(3),k=4)
+
+
+def test_bloc_preserves_floor_ceil_balance():
+    result = BLOCReloc(nx.cycle_graph(21), k=4, seed=42).refine(iterations=5)
+    counts = [list(result.partition.values()).count(block) for block in range(4)]
+    assert sorted(counts) == [5, 5, 5, 6]
