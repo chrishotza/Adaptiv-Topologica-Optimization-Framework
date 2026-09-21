@@ -138,6 +138,21 @@ def graph_oracle(rows: Iterable[Mapping]) -> dict[str, str]:
     return result
 
 
+def global_strategy_oracle(rows: Iterable[Mapping]) -> str:
+    """Choose one fixed strategy using only the supplied training graphs."""
+    by_strategy: dict[str, list[float]] = defaultdict(list)
+    for row in rows:
+        by_strategy[str(row["strategy"])].append(float(row["edge_cut"]))
+
+    if not by_strategy:
+        raise ValueError("rows must contain at least one strategy result")
+
+    means = {
+        strategy: _mean(values) for strategy, values in by_strategy.items()
+    }
+    return min(means, key=lambda strategy: (means[strategy], strategy))
+
+
 def evaluate_holdout_predictions(
     rows: Iterable[Mapping],
     predictions: Mapping[str, str],
