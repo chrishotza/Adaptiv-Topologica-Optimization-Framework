@@ -112,7 +112,6 @@ def spectral_modularity_bisection(graph: nx.Graph) -> dict:
         eigenvalues, eigenvectors = np.linalg.eigh(modularity_matrix)
         del eigenvalues
         leading = eigenvectors[:, -1]
-    del eigenvalues
 
     leading = eigenvectors[:, -1]
     order = sorted(
