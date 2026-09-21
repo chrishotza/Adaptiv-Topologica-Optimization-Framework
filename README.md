@@ -82,7 +82,7 @@ This generates raw benchmark records, environment metadata, benchmark commit pro
 
 The initial development suite contains seven deterministic synthetic topology families.
 
-The benchmark compares balanced baselines, BLOC-RELOC variants, and NetworkX Kernighan-Lin for two-way partitions.
+The benchmark compares balanced baselines, BLOC-RELOC variants, a deterministic spectral bisection reference, and NetworkX Kernighan-Lin for two-way partitions.
 
 See docs/benchmark-protocol.md for the exact protocol.
 
