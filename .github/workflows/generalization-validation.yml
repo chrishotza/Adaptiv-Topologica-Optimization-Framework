@@ -8,6 +8,7 @@ on:
       - "experiments/run_generalization_study.py"
       - "src/atof/generalization.py"
       - "experiments/run_routing_evaluation.py"
+      - "experiments/run_canonical.py"
       - "experiments/run_external_validation.py"
       - "experiments/run_snap_validation.py"
       - ".github/workflows/generalization-validation.yml"
