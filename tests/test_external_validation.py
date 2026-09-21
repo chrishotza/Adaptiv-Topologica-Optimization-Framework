@@ -13,6 +13,6 @@ def test_external_validation(tmp_path):
     assert output.exists()
     assert payload["corpus_type"] == "standard_reference_graphs"
     assert len(payload["graphs"]) == 4
-    assert len(payload["rows"]) == 20
+    assert len(payload["rows"]) == 24
     assert payload["routing"]["graphs"] == 4
     assert 0.0 <= payload["routing"]["learned_oracle_agreement"] <= 1.0

@@ -22,6 +22,7 @@ from experiments.run_canonical import (
     balanced_round_robin,
     kernighan_lin,
     random_balanced,
+    spectral_bisection,
 )
 
 
@@ -89,6 +90,9 @@ def _benchmark_graph(
                 }
             )
 
+        rows.append(
+            {"strategy": "spectral_bisection", "seed": seed, **spectral_bisection(graph)}
+        )
         rows.append(
             {"strategy": "kernighan_lin", "seed": seed, **kernighan_lin(graph, seed)}
         )

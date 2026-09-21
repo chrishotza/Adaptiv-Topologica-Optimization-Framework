@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import networkx as nx
+import numpy as np
 
 from atof.selector import HeuristicRegimeSelector
 from atof.strategies import BLOCReloc
@@ -45,6 +46,44 @@ def kernighan_lin(graph: nx.Graph, seed: int) -> dict:
     cut = sum(partition[u] != partition[v] for u, v in graph.edges())
     return {"edge_cut": int(cut), "balance_error": 0.0, "weighted_cost": float(cut)}
 
+
+
+def spectral_bisection(graph: nx.Graph) -> dict:
+    """Deterministic balanced spectral bisection using the Fiedler vector.
+
+    This dense implementation is intentionally bounded to moderate graphs.
+    It is a reference baseline, not a scalability solver.
+    """
+    node_count = graph.number_of_nodes()
+    if node_count < 2:
+        raise ValueError("spectral bisection requires at least two nodes")
+    if node_count > 2000:
+        raise ValueError(
+            "spectral bisection dense reference baseline is limited to 2000 nodes"
+        )
+
+    nodes = list(graph.nodes())
+    adjacency = nx.to_numpy_array(graph, nodelist=nodes, dtype=float)
+    laplacian = np.diag(adjacency.sum(axis=1)) - adjacency
+    eigenvalues, eigenvectors = np.linalg.eigh(laplacian)
+    del eigenvalues
+
+    fiedler = eigenvectors[:, 1]
+    order = sorted(
+        range(node_count),
+        key=lambda index: (float(fiedler[index]), repr(nodes[index])),
+    )
+    left_size = node_count // 2
+    partition = {
+        nodes[index]: 0 if position < left_size else 1
+        for position, index in enumerate(order)
+    }
+    cut = sum(partition[u] != partition[v] for u, v in graph.edges())
+    return {
+        "edge_cut": int(cut),
+        "balance_error": 0.0,
+        "weighted_cost": float(cut),
+    }
 
 def _safe_profile(graph: nx.Graph) -> dict:
     profile = TopologyProfiler().profile(graph).to_dict()

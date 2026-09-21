@@ -38,6 +38,6 @@ def test_snap_validation_with_injected_cache_guard(tmp_path, monkeypatch):
 
     assert output.exists()
     assert len(payload["datasets"]) == 4
-    assert len(payload["rows"]) == 20
+    assert len(payload["rows"]) == 24
     assert payload["routing"]["graphs"] == 4
     assert 0.0 <= payload["routing"]["learned_oracle_agreement"] <= 1.0

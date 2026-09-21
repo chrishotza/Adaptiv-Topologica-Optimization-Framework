@@ -24,7 +24,8 @@ The initial protocol compares:
 2. random balanced assignment;
 3. BLOC-RELOC baseline;
 4. BLOC-RELOC degree-affinity;
-5. NetworkX Kernighan–Lin for a 2-way partition.
+5. deterministic spectral bisection using the Fiedler vector for a 2-way partition;
+6. NetworkX Kernighan–Lin for a 2-way partition.
 
 The names describe the actual implementations used. No method is labeled “SOTA” or “Louvain” unless the corresponding implementation is actually being run.
 
@@ -63,3 +64,12 @@ For a research release, the benchmark should additionally record the repository 
 A small synthetic suite cannot establish general superiority over graph-partitioning literature. It is the canonical regression and development benchmark for the public implementation.
 
 External datasets, stronger baselines, solver versions, statistical tests, and ablations should be added in later benchmark releases without changing the interpretation of this initial suite.
+
+
+## Spectral reference baseline
+
+The spectral baseline constructs the unnormalized graph Laplacian, computes its second eigenvector, orders nodes by that Fiedler coordinate, and assigns the ordered nodes to two balanced blocks.
+
+The public implementation uses NumPy only and a dense eigensolver. To avoid silently turning the reference baseline into a scalability bottleneck, it is limited to graphs with at most 2000 nodes.
+
+This is an interpretable classical reference baseline. It is not presented as a state-of-the-art partitioner and is not included in the larger SNAP scalability tier.
