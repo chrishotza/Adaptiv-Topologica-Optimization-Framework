@@ -7,6 +7,9 @@ def test_feature_ablation_sets_are_valid_and_distinct():
         "without_degree_hub",
         "without_mesoscopic",
         "without_global_paths",
+        "without_degree_hub_mesoscopic",
+        "without_degree_hub_global_paths",
+        "without_mesoscopic_global_paths",
     }
     assert FEATURE_ABLATIONS["all"]
     assert all(FEATURE_ABLATIONS[name] for name in FEATURE_ABLATIONS)
