@@ -9,6 +9,7 @@ on:
       - "tests/test_expanded_20graph_kahip_transfer.py"
       - ".github/workflows/expanded-20graph-kahip-transfer.yml"
       - "src/atof/snap.py"
+      - "src/atof/strategies.py"
       - "experiments/run_router_kahip_confirmatory.py"
       - "experiments/run_router_scaling_ablation.py"
       - "experiments/run_router_confirmatory.py"
