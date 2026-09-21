@@ -159,45 +159,46 @@ See docs/snap-corpus.md.
 
 ## Cross-corpus generalization
 
-The atof.generalization layer aggregates graph-level routing folds from independent corpora.
+The `atof.generalization` layer provides graph-level routing summaries across independent corpora.
 
-The executable study
+### Run the aligned study
 
 ~~~bash
 python -m experiments.run_generalization_study
 ~~~
 
-runs the aligned two-way protocol over the development, external, and routine SNAP corpora and writes a combined manifest under results/generalization/.
+This evaluates the common k=2 candidate set across development, external, and routine SNAP corpora.
 
-It preserves:
+### Run true corpus transfer
 
-- per-corpus held-out folds;
-- graph-level routing metrics;
-- micro summaries weighted by held-out graph;
-- macro summaries weighted by corpus;
-- SNAP SHA-256 provenance from the live-data validation run.
+~~~bash
+python -m experiments.run_cross_corpus_transfer
+~~~
 
-The GitHub Actions workflow **Cross-corpus generalization validation** runs the same aligned study on Ubuntu with live SNAP downloads and uploads the manifests as an artifact.
+This excludes the complete test corpus from router training.
 
-The scalability tier remains separate because its larger graphs represent a different computational regime.
+The transfer study compares:
 
-The layer is intentionally descriptive. It does not turn a small heterogeneous collection into a universal generalization claim.
+- nearest-centroid topology router;
+- 1-nearest-neighbor topology router;
+- majority-oracle control;
+- transparent heuristic selector.
 
-See docs/generalization-study.md.
+The common seven-strategy candidate set is:
 
+- round-robin balanced;
+- random balanced;
+- BLOC-RELOC baseline;
+- BLOC-RELOC affinity;
+- spectral bisection;
+- balanced spectral-modularity bisection;
+- NetworkX Kernighan-Lin.
 
-The atof.generalization layer aggregates graph-level routing folds from independent corpora.
+Latest successful transfer results (workflow `35570306006`) give macro mean relative regret of **1.2280** for centroid, **0.8171** for 1-NN, **0.3242** for majority, and **6.2860** for the heuristic.
 
-It preserves the same unit of analysis used by the routing evaluator and reports both:
+These are descriptive results on the current corpus, not a universal routing claim.
 
-- **micro** summaries, where each held-out graph has equal weight;
-- **macro** summaries, where each corpus has equal weight.
-
-This prevents the size of one corpus from silently determining the interpretation of a cross-corpus result.
-
-The layer is intentionally descriptive. It does not turn a small heterogeneous collection into a universal generalization claim.
-
-See docs/generalization-study.md.
+See `docs/generalization-study.md` and `research/generalization-findings-2026-09-21.md`.
 
 ## Example
 
