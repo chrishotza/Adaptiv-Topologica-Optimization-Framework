@@ -1,0 +1,63 @@
+name: Expanded 20-graph KaHIP transfer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "experiments/run_expanded_20graph_kahip_transfer.py"
+      - "tests/test_expanded_20graph_kahip_transfer.py"
+      - ".github/workflows/expanded-20graph-kahip-transfer.yml"
+      - "src/atof/snap.py"
+      - "experiments/run_router_kahip_confirmatory.py"
+      - "experiments/run_router_scaling_ablation.py"
+      - "experiments/run_router_confirmatory.py"
+
+jobs:
+  expanded-transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python -m pip install -e ".[dev,kahip,metis]"
+      - name: Unit tests
+        run: pytest tests/test_expanded_20graph_kahip_transfer.py
+      - name: Run expanded transfer
+        run: python -m experiments.run_expanded_20graph_kahip_transfer
+      - name: Validate result
+        run: |
+          test -s results/generalization/expanded_20graph_kahip_transfer.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/generalization/expanded_20graph_kahip_transfer.json").read_text()
+          )
+          assert payload["candidate_strategy_count"] == 9
+          assert payload["total_graphs"] == 20
+          assert set(payload["corpora"]) == {
+              "development",
+              "external",
+              "snap",
+              "snap_scalability",
+          }
+          assert sum(item["graphs"] for item in payload["corpora"].values()) == 20
+          assert "metis_multilevel_balanced" in payload["candidate_strategies"]
+          assert "kahip_kaffpa_strong_balanced" in payload["candidate_strategies"]
+          assert set(payload["configs"]) == {
+              "all_iqr_l2",
+              "global_paths_iqr_l2",
+              "global_paths_minmax_l2",
+          }
+          print("validated expanded transfer:", payload["total_graphs"], "graphs")
+          PY
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-expanded-20graph-kahip-transfer
+          path: results/generalization/expanded_20graph_kahip_transfer.json
