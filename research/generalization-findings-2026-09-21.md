@@ -1,0 +1,105 @@
+# ATOF generalization findings — 2026-09-21
+
+## Reproducible execution
+
+The first live multi-corpus study completed successfully as GitHub Actions run **35564691090** on commit **fa3e35967f3d66e249215dc867d67dc2663d80a8**.
+
+It evaluated 15 held-out graphs:
+
+- 7 development graphs;
+- 4 external reference graphs;
+- 4 routine SNAP graphs.
+
+The result artifact 'atof-generalization-results' had SHA-256:
+
+~~~text
+8af6a0417449e4b38c38e7fab4969b5101b934965c0fbeee18e574b16beea5a2
+~~~
+
+The stricter leave-one-corpus-out transfer study completed successfully as GitHub Actions run **35565310315** on commit **641bcb17fc9e564d057c39d971d952e7ebaf8cfd**.
+
+Its result artifact 'atof-generalization-results' had SHA-256:
+
+~~~text
+801cabec2dbafd7635750659ba8bdd617423a4aa23ba5235fbcf955fdfed087b
+~~~
+
+Both the ordinary CI run and the generalization workflow were successful on commit 641bcb17fc9e564d057c39d971d952e7ebaf8cfd.
+
+## Within-corpus held-out routing
+
+The aligned 15-graph study produced:
+
+| Corpus | Graphs | Learned agreement | Global agreement | Learned mean relative regret | Global mean relative regret |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Development | 7 | 1.0000 | 1.0000 | 0.0000 | 0.0000 |
+| External | 4 | 0.5000 | 0.7500 | 0.4792 | 0.0417 |
+| SNAP | 4 | 1.0000 | 1.0000 | 0.0000 | 0.0000 |
+
+The combined micro summary was 0.8667 learned oracle agreement versus 0.9333 for the fixed global control. The macro summary was 0.8333 versus 0.9167.
+
+These aggregates are descriptive only.
+
+## Oracle-distribution diagnostic
+
+The routing target is not equally diverse across corpora.
+
+### Development
+
+All seven graph-level oracles were 'kernighan_lin'.
+
+### External
+
+Three of four graph-level oracles were 'kernighan_lin'; one was 'bloc_reloc_baseline'.
+
+### SNAP
+
+All four graph-level oracles were 'kernighan_lin'.
+
+Therefore, 100% learned agreement on SNAP is not evidence by itself that topology-conditioned routing was learned. A fixed 'kernighan_lin' strategy receives the same 100% agreement on that corpus.
+
+## True leave-one-corpus-out transfer
+
+The stricter experiment trains the topology router only on graph-level oracle labels from the other two corpora and tests it on the entire held-out corpus.
+
+| Test corpus | Graphs | Learned agreement | Majority-control agreement | Heuristic agreement | Learned mean relative regret | Majority mean relative regret |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Development | 7 | 0.1429 | 1.0000 | 0.0000 | 3.4738 | 0.0000 |
+| External | 4 | 0.7500 | 0.7500 | 0.2500 | 0.0417 | 0.0417 |
+| SNAP | 4 | 1.0000 | 1.0000 | 0.0000 | 0.0000 | 0.0000 |
+
+The macro transfer summary was:
+
+- learned oracle agreement: **0.6310**
+- majority-control agreement: **0.9167**
+- heuristic agreement: **0.0833**
+- learned mean relative regret: **1.1718**
+- majority-control mean relative regret: **0.0139**
+- heuristic mean relative regret: **2.8215**
+- learned minus majority mean relative regret: **+1.1579**
+
+## Interpretation
+
+The current evidence does **not** support treating the nearest-centroid topology router as a robust cross-corpus transfer policy.
+
+The clearest negative signal is the held-out development corpus: the learned router matched only 1 of 7 graph-level oracles while the majority-control matched all 7.
+
+The external corpus shows parity between the learned router and the majority-control on this small four-graph sample.
+
+The SNAP result is structurally non-diagnostic for adaptive routing because all four SNAP graph-level oracles were the same strategy, 'kernighan_lin'.
+
+The transparent heuristic selector also does not currently provide a reliable routing policy on these corpora. Its agreement is low and its relative regret is substantially larger in the reported experiments.
+
+## What this changes
+
+The next research target is no longer “add more routing code.” It is to increase the amount and diversity of evidence before changing the model.
+
+The strongest next experiments are:
+
+1. expand the empirical corpus so that graph-level oracle labels are not dominated by one candidate strategy;
+2. add additional strong, canonical partitioning baselines so the oracle has a genuinely heterogeneous strategy set;
+3. keep leave-one-corpus-out evaluation as the primary transfer test;
+4. compare the learned router against fixed and majority controls before introducing more complex meta-learning;
+5. preserve per-corpus oracle distributions so aggregate agreement can never hide a degenerate target.
+
+No universal generalization claim is made from these runs.
