@@ -152,6 +152,28 @@ def snap_reference_corpus() -> tuple[SnapDataset, ...]:
             description="Email communication network within a European research institution.",
             notes="Department labels are not used by the benchmark.",
         ),
+        SnapDataset(
+            name="college_msg",
+            source="Panzarasa, Opsahl & Carley (2009), SNAP",
+            reference_url="https://snap.stanford.edu/data/CollegeMsg.html",
+            download_url="https://snap.stanford.edu/data/CollegeMsg.txt.gz",
+            directed=True,
+            nodes=1899,
+            edges=59835,
+            description="UC Irvine online social-network private-message network.",
+            notes="The source is temporal; only the first two columns are used to form the static undirected connectivity graph.",
+        ),
+        SnapDataset(
+            name="congress_twitter",
+            source="SNAP Congress Twitter interaction network",
+            reference_url="https://snap.stanford.edu/data/congress-twitter.html",
+            download_url="https://snap.stanford.edu/data/congress-twitter.tar.gz",
+            directed=True,
+            nodes=475,
+            edges=13289,
+            description="Twitter interaction network for members of the US Congress.",
+            notes="Direction is normalized to undirected connectivity for the current partitioning objective.",
+        ),
     )
 
 
