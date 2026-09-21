@@ -87,8 +87,11 @@ class BLOCReloc:
         rejected = 0
         trace: list[dict[str, float | int]] = []
 
-        ideal = self.graph.number_of_nodes() / self.k
-        allowed_deviation = max(1.0, ideal * tolerance)
+        node_count = self.graph.number_of_nodes()
+        ideal = node_count / self.k
+        lower_size = node_count // self.k
+        upper_size = math.ceil(node_count / self.k)
+        del ideal, tolerance
 
         for iteration in range(iterations):
             nodes = list(self.graph.nodes())
@@ -107,9 +110,9 @@ class BLOCReloc:
 
                     source_after = counts[source] - 1
                     target_after = counts[target] + 1
-                    if abs(source_after - ideal) > allowed_deviation:
+                    if not (lower_size <= source_after <= upper_size):
                         continue
-                    if abs(target_after - ideal) > allowed_deviation:
+                    if not (lower_size <= target_after <= upper_size):
                         continue
 
                     partition[node] = target
