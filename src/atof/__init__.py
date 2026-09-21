@@ -7,6 +7,7 @@ from .selector import HeuristicRegimeSelector, StrategyRecommendation
 from .snap import SnapDataset, download_snap_dataset, snap_reference_corpus, snap_scalability_corpus
 from .routing import (
     LearnedTopologyRouter,
+    NearestTopologyRouter,
     RoutingEvaluation,
     evaluate_holdout_predictions,
     global_strategy_oracle,
@@ -31,7 +32,7 @@ __all__ = [
     "BLOCReloc", "PartitionResult",
     "TopologyProfiler", "TopologyProfile",
     "HeuristicRegimeSelector", "StrategyRecommendation",
-    "LearnedTopologyRouter", "RoutingEvaluation",
+    "LearnedTopologyRouter", "NearestTopologyRouter", "RoutingEvaluation",
     "evaluate_holdout_predictions", "global_strategy_oracle",
     "graph_oracle", "routing_summary", "topology_vector",
     "summarize_generalization", "summarize_routing_folds", "summarize_transfer_folds",
