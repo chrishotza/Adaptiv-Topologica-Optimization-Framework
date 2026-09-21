@@ -102,10 +102,16 @@ def spectral_modularity_bisection(graph: nx.Graph) -> dict:
         )
 
     nodes = list(graph.nodes())
-    modularity_matrix = nx.modularity_matrix(graph, nodelist=nodes)
-    eigenvalues, eigenvectors = np.linalg.eigh(
-        np.asarray(modularity_matrix, dtype=float)
-    )
+    adjacency = nx.to_numpy_array(graph, nodelist=nodes, dtype=float)
+    degrees = adjacency.sum(axis=1)
+    edge_count = graph.number_of_edges()
+    if edge_count == 0:
+        leading = degrees
+    else:
+        modularity_matrix = adjacency - np.outer(degrees, degrees) / (2.0 * edge_count)
+        eigenvalues, eigenvectors = np.linalg.eigh(modularity_matrix)
+        del eigenvalues
+        leading = eigenvectors[:, -1]
     del eigenvalues
 
     leading = eigenvectors[:, -1]
