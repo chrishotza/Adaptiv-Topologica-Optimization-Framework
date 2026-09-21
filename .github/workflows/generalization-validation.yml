@@ -1,0 +1,58 @@
+name: Cross-corpus generalization validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "experiments/run_generalization_study.py"
+      - "src/atof/generalization.py"
+      - "experiments/run_routing_evaluation.py"
+      - "experiments/run_external_validation.py"
+      - "experiments/run_snap_validation.py"
+      - ".github/workflows/generalization-validation.yml"
+      - "docs/generalization-study.md"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run aligned cross-corpus study
+        run: python -m experiments.run_generalization_study
+
+      - name: Validate manifest
+        run: |
+          test -s results/generalization/latest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("results/generalization/latest.json").read_text())
+          assert payload["summary"]["corpus_count"] == 3
+          assert payload["summary"]["graph_count"] >= 12
+          assert payload["summary"]["micro"]["learned_mean_relative_regret"] >= 0
+          assert payload["summary"]["macro"]["learned_mean_relative_regret"] >= 0
+          print("validated", payload["summary"]["corpus_count"], "corpora")
+          print("graphs", payload["summary"]["graph_count"])
+          PY
+
+      - name: Upload generalization artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-generalization-results
+          path: |
+            results/generalization/latest.json
+            results/generalization/routing_development.json
+            results/generalization/routing_external.json
+            results/generalization/routing_snap.json

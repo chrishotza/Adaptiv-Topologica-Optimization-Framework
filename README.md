@@ -161,6 +161,33 @@ See docs/snap-corpus.md.
 
 The atof.generalization layer aggregates graph-level routing folds from independent corpora.
 
+The executable study
+
+~~~bash
+python -m experiments.run_generalization_study
+~~~
+
+runs the aligned two-way protocol over the development, external, and routine SNAP corpora and writes a combined manifest under results/generalization/.
+
+It preserves:
+
+- per-corpus held-out folds;
+- graph-level routing metrics;
+- micro summaries weighted by held-out graph;
+- macro summaries weighted by corpus;
+- SNAP SHA-256 provenance from the live-data validation run.
+
+The GitHub Actions workflow **Cross-corpus generalization validation** runs the same aligned study on Ubuntu with live SNAP downloads and uploads the manifests as an artifact.
+
+The scalability tier remains separate because its larger graphs represent a different computational regime.
+
+The layer is intentionally descriptive. It does not turn a small heterogeneous collection into a universal generalization claim.
+
+See docs/generalization-study.md.
+
+
+The atof.generalization layer aggregates graph-level routing folds from independent corpora.
+
 It preserves the same unit of analysis used by the routing evaluator and reports both:
 
 - **micro** summaries, where each held-out graph has equal weight;

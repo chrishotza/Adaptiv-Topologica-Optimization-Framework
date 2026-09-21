@@ -7,6 +7,8 @@
 - Cross-corpus routing aggregation utilities in atof.generalization.
 - Separate micro and macro summaries so large corpora cannot silently dominate a combined routing report.
 - Research protocol documentation for the next generalization milestone.
+- Executable aligned study across development, external, and routine SNAP routing corpora.
+- GitHub Actions workflow that runs the aligned study against live SNAP data and uploads provenance-bearing manifests.
 
 ### Methodology
 
