@@ -95,6 +95,13 @@ def _benchmark_graph(
             {"strategy": "spectral_bisection", "seed": seed, **spectral_bisection(graph)}
         )
         rows.append(
+            {
+                "strategy": "spectral_modularity_bisection",
+                "seed": seed,
+                **spectral_modularity_bisection(graph),
+            }
+        )
+        rows.append(
             {"strategy": "kernighan_lin", "seed": seed, **kernighan_lin(graph, seed)}
         )
 
