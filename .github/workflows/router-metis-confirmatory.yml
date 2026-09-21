@@ -1,0 +1,71 @@
+name: Router confirmatory with METIS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "experiments/run_router_metis_confirmatory.py"
+      - "experiments/run_metis_validation.py"
+      - "experiments/run_router_scaling_ablation.py"
+      - "experiments/run_router_confirmatory.py"
+      - "experiments/run_cross_corpus_transfer.py"
+      - "tests/test_router_metis_confirmatory.py"
+      - ".github/workflows/router-metis-confirmatory.yml"
+
+jobs:
+  confirmatory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: python -m pip install -e ".[dev,metis]"
+
+      - name: Unit tests
+        run: pytest tests/test_router_metis_confirmatory.py
+
+      - name: Run eight-strategy confirmatory comparison
+        run: python -m experiments.run_router_metis_confirmatory
+
+      - name: Validate result
+        run: |
+          test -s results/generalization/router_metis_confirmatory.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/generalization/router_metis_confirmatory.json").read_text()
+          )
+          expected = {
+              "all_iqr_l2",
+              "global_paths_iqr_l2",
+              "global_paths_minmax_l2",
+          }
+          assert payload["base_strategy_count"] == 7
+          assert payload["expanded_strategy_count"] == 8
+          assert payload["added_strategy"] == "metis_multilevel_balanced"
+          assert set(payload["locked_configs"]) == expected
+          assert set(payload["configs"]) == expected
+
+          total_graphs = sum(
+              item["graphs"] for item in payload["corpora"].values()
+          )
+          assert total_graphs == 17
+
+          for config in payload["configs"].values():
+              assert config["macro"]["majority_mean_relative_regret"] >= 0
+          print("validated eight-strategy transfer:", total_graphs, "graphs")
+          PY
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-router-metis-confirmatory
+          path: results/generalization/router_metis_confirmatory.json
