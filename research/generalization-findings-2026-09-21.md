@@ -238,3 +238,57 @@ The appropriate next step is **not another topology-feature sweep**. The current
 The next research increment should therefore enlarge or diversify the **candidate strategy space** with additional strong, objective-aligned partitioning baselines, then rerun the same locked leave-one-corpus-out protocol. The majority control and per-corpus oracle distribution should remain mandatory controls.
 
 No public default-router change is justified by the current confirmatory evidence.
+
+
+## METIS strategy validation
+
+GitHub Actions run **35582563274** completed successfully on commit **c8a64d306ac860e5e5a8f9fe4aa35140b2ad29e0**, producing artifact **10631785520** with SHA-256 `b3392794de28f5af25e7a3c9e10ca31a057bd9e5a561353a8dbd1878ff055fbf`.
+
+Adding the independently validated METIS multilevel family changed the 17-graph oracle distribution to:
+
+| Corpus | Graphs | Oracle distribution |
+| --- | ---: | --- |
+| Development | 7 | METIS: 6; Kernighan-Lin: 1 |
+| External | 4 | METIS: 1; Kernighan-Lin: 2; BLOC-RELOC baseline: 1 |
+| SNAP | 6 | METIS: 1; Kernighan-Lin: 5 |
+
+This is the intended diversification result: METIS contributes a distinct set of graph-level winners rather than simply reproducing Kernighan-Lin.
+
+## Eight-strategy locked transfer
+
+PR **#31** merged successfully as commit **8f13bb1dc3d35548352f8a6fe8be498369498ad3**. GitHub Actions run **35584123689** completed successfully with artifact **10632280359**, SHA-256 `2344b22654a3c91ccaa13bb2e9660bdf7732b2f3b6a89fbcfb841d1806544d5c`.
+
+The protocol held the three locked configurations, seeds (42, 101, 2024), k=2, 25 refinement iterations, true leave-one-corpus-out evaluation, and majority control unchanged. Only the candidate strategy set changed from seven to eight by adding METIS.
+
+| Configuration | Centroid regret | 1-NN regret | Majority regret |
+| --- | ---: | ---: | ---: |
+| all + IQR + L2 | **0.3103** | **0.0900** | 0.3787 |
+| global paths + IQR + L2 | 0.3448 | **0.0927** | 0.3787 |
+| global paths + minmax + L2 | 0.3448 | **0.0918** | 0.3787 |
+
+The eight-strategy candidate space therefore produces learned routing regret below the majority control on the reported macro corpus aggregate, with the largest change appearing in 1-NN.
+
+## Paired 7→8 robustness analysis
+
+A paired graph-level analysis was then performed using the 17 identical held-out graphs from the seven-strategy artifact and the eight-strategy artifact. The endpoint is relative regret, with delta defined as new minus old.
+
+| Configuration | Router | Mean delta | Improved / worsened | Exact one-sided sign-flip p |
+| --- | --- | ---: | ---: | ---: |
+| all + IQR + L2 | centroid | -0.3964 | 5 / 2 | 0.054688 |
+| all + IQR + L2 | 1-NN | **-0.5950** | 9 / 3 | **0.002930** |
+| global paths + IQR + L2 | centroid | -0.1553 | 3 / 4 | 0.453125 |
+| global paths + IQR + L2 | 1-NN | **-0.6201** | 9 / 4 | **0.003784** |
+| global paths + minmax + L2 | centroid | -0.2586 | 4 / 4 | 0.289062 |
+| global paths + minmax + L2 | 1-NN | **-0.5731** | 8 / 4 | **0.007568** |
+
+The paired bootstrap 95% confidence intervals for the 1-NN mean deltas are all below zero. The centroid comparisons are directionally negative but do not show the same consistency across the three locked configurations.
+
+This is a robustness/sensitivity result on the current 17-graph study, not a universal population claim. The detailed paired analysis is recorded in docs/metis-transfer-robustness.md and research/metis-transfer-statistical-robustness.json.
+
+### Updated interpretation
+
+The evidence has moved the research question forward. The seven-strategy oracle was concentrated enough that adaptive routing was difficult to distinguish from a fixed majority control. Adding METIS materially diversifies the oracle, and the same locked transfer protocol now produces substantially lower 1-NN regret across all three locked configurations.
+
+The next priority is therefore **not another feature/scaler sweep**. The immediate scientific task is to test whether the 1-NN improvement survives additional graph diversity and independent strategy families while keeping the protocol locked.
+
+No public/default router change is made by these results alone.
