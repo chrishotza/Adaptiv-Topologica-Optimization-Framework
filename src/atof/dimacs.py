@@ -31,36 +31,49 @@ class DimacsDataset:
 def _parse_metis_graph(payload: bytes) -> nx.Graph:
     with bz2.BZ2File(io.BytesIO(payload), mode="rb") as stream:
         lines = [
-            line.decode("utf-8", errors="replace").strip()
+            line.decode("utf-8", errors="replace").rstrip("\r\n")
             for line in stream
         ]
 
-    data = []
-    for line in lines:
-        if not line or line.startswith("%"):
+    header_index = None
+    header = None
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("%"):
             continue
-        data.append(line)
+        header_index = index
+        header = stripped.split()
+        break
 
-    if not data:
+    if header_index is None or header is None:
         raise ValueError("DIMACS graph is empty")
 
-    header = data[0].split()
     if len(header) < 2:
-        raise ValueError(f"invalid METIS header: {data[0]!r}")
+        raise ValueError(f"invalid METIS header: {' '.join(header)!r}")
 
     n = int(header[0])
     fmt = int(header[2]) if len(header) >= 3 else 0
     has_vertex_weights = bool(fmt % 100 >= 10)
     has_edge_weights = bool(fmt % 10 == 1)
 
-    if len(data) < n + 1:
-        raise ValueError(f"expected {n} adjacency lines, got {len(data) - 1}")
+    adjacency_lines = []
+    for line in lines[header_index + 1 :]:
+        if line.lstrip().startswith("%"):
+            continue
+        adjacency_lines.append(line.strip())
+        if len(adjacency_lines) == n:
+            break
+
+    if len(adjacency_lines) != n:
+        raise ValueError(
+            f"expected {n} adjacency lines, got {len(adjacency_lines)}"
+        )
 
     graph = nx.Graph()
     graph.add_nodes_from(range(n))
 
-    for idx in range(n):
-        tokens = data[idx + 1].split()
+    for idx, adjacency in enumerate(adjacency_lines):
+        tokens = adjacency.split()
         start = 1 if has_vertex_weights else 0
         tokens = tokens[start:]
 
