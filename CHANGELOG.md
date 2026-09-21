@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Cross-corpus routing aggregation utilities in atof.generalization.
+- Separate micro and macro summaries so large corpora cannot silently dominate a combined routing report.
+- Research protocol documentation for the next generalization milestone.
+
+### Methodology
+
+- Cross-corpus summaries preserve held-out graphs as the unit of routing analysis.
+- The aggregation layer is descriptive infrastructure and does not claim universal generalization.
+
 ## 0.5.0 — 2026-09-21
 
 ### Added

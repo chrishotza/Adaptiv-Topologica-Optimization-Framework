@@ -14,6 +14,7 @@ from .routing import (
     routing_summary,
     topology_vector,
 )
+from .generalization import summarize_generalization, summarize_routing_folds
 from .datasets import GraphDataset, standard_reference_corpus
 from .statistics import (
     bootstrap_mean_ci,
@@ -29,6 +30,7 @@ __all__ = [
     "LearnedTopologyRouter", "RoutingEvaluation",
     "evaluate_holdout_predictions", "global_strategy_oracle",
     "graph_oracle", "routing_summary", "topology_vector",
+    "summarize_generalization", "summarize_routing_folds",
     "GraphDataset", "standard_reference_corpus",
     "SnapDataset", "download_snap_dataset", "snap_reference_corpus", "snap_scalability_corpus",
     "bootstrap_mean_ci", "graph_metric_means",
