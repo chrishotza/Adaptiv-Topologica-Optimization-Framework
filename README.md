@@ -200,6 +200,18 @@ These are descriptive results on the current corpus, not a universal routing cla
 
 See `docs/generalization-study.md` and `research/generalization-findings-2026-09-21.md`.
 
+## Topology feature ablation
+
+ATOF includes a reproducible leave-one-corpus-out feature ablation:
+
+~~~bash
+python -m experiments.run_feature_ablation
+~~~
+
+The current evidence identifies the global-path feature family as a promising low-dimensional input for the 1-NN transfer router (mean relative regret 0.5565 versus 0.8171 with all features on the current 15-graph corpus). This does **not** change the default router or establish universal feature importance; it defines the next transfer hypothesis.
+
+See `docs/generalization-study.md` and `research/generalization-findings-2026-09-21.md`.
+
 ## Example
 
 ~~~python
