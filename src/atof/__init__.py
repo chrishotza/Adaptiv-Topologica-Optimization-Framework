@@ -4,6 +4,7 @@ from .partition import balance_error, edge_cut, initialize_balanced_partition, w
 from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfiler, TopologyProfile
 from .selector import HeuristicRegimeSelector, StrategyRecommendation
+from .snap import SnapDataset, download_snap_dataset, snap_reference_corpus, snap_scalability_corpus
 from .routing import (
     LearnedTopologyRouter,
     RoutingEvaluation,
@@ -29,10 +30,11 @@ __all__ = [
     "evaluate_holdout_predictions", "global_strategy_oracle",
     "graph_oracle", "routing_summary", "topology_vector",
     "GraphDataset", "standard_reference_corpus",
+    "SnapDataset", "download_snap_dataset", "snap_reference_corpus", "snap_scalability_corpus",
     "bootstrap_mean_ci", "graph_metric_means",
     "paired_graph_differences", "paired_summary",
     "balance_error", "edge_cut", "initialize_balanced_partition",
     "weighted_cut",
 ]
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"

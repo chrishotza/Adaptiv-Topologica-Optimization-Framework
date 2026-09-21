@@ -17,4 +17,4 @@ def test_cli_profile(tmp_path, capsys):
 
 def test_cli_version(capsys):
     assert main(["--version"]) == 0
-    assert capsys.readouterr().out.strip() == "0.4.0"
+    assert capsys.readouterr().out.strip() == "0.5.0"

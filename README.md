@@ -139,6 +139,22 @@ This corpus is an **external reference validation layer**, not a representative 
 
 See docs/external-validation.md.
 
+## Run SNAP empirical validation
+
+~~~bash
+python -m experiments.run_snap_validation
+~~~
+
+ATOF 0.5.0 adds a live-data validation layer for four empirical SNAP graphs: C. elegans frontal, Florida Bay, S. cerevisiae transcriptional regulation, and email-Eu-core.
+
+The runner downloads the public gzip edge lists only when needed, caches them locally, records SHA-256 provenance, normalizes the source graph to the undirected connectivity used by the current partition objective, and writes results to results/snap/.
+
+A separate registry exposes larger graphs for scalability studies: ca-GrQc, ca-HepTh, and Wiki-Vote. These are intentionally excluded from the routine corpus because they are materially larger and should be treated as a distinct scalability/generalization tier.
+
+The live SNAP workflow is manually triggerable from GitHub Actions.
+
+See docs/snap-corpus.md.
+
 ## Example
 
 ~~~python
@@ -182,11 +198,11 @@ Statistical uncertainty is also evaluated at graph level, preserving the unit on
 
 ## Status
 
-Version 0.4.0 is the current public research baseline.
+Version 0.5.0 is the current public research baseline.
 
-The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, graph-aware statistical uncertainty, and an external reference validation layer.
+The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, graph-aware statistical uncertainty, NetworkX reference validation, and a reproducible SNAP empirical corpus.
 
-Further research should expand the external corpus substantially, add stronger canonical baselines, pre-specify comparison families, and quantify routing generalization on larger unseen graph populations.
+Further research should expand the SNAP routine corpus, run the larger scalability tier, add stronger canonical baselines, pre-specify comparison families, and quantify routing generalization on larger unseen graph populations.
 
 ## Limitations
 
