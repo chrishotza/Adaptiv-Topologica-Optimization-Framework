@@ -59,6 +59,18 @@ The atof.generalization module provides two aggregate views:
 
 The macro view prevents a larger corpus from silently dominating a cross-corpus summary.
 
+
+### Dual-router transfer comparison
+
+The current transfer study compares two low-complexity topology routers:
+
+- nearest-centroid;
+- 1-nearest-neighbor.
+
+Both use the same standardized topology feature vector and differ only in how training labels are represented. This isolates whether centroid aggregation itself is contributing to transfer error.
+
+The latest successful run reported macro relative regret of 1.2280 for centroid, 0.8171 for 1-NN, and 0.3242 for the majority control.
+
 ## Interpretation discipline
 
 The aggregate layer is descriptive infrastructure. It does not by itself establish universal superiority or causal benefit.
