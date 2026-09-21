@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0",
+  "protocol": "expanded 20-graph paired statistical robustness",
+  "source": {
+    "workflow_run": 35628301069,
+    "job": 106428005350,
+    "artifact_id": 10654092095,
+    "artifact_sha256": "da24794b66dfae15c0ecc02dffad0471d63100cc0f01d3a9f5db0635ab39a542",
+    "commit_sha": "68498c909c995d2155a8d6455b679729108e7eb4"
+  },
+  "bootstrap": {"resamples": 20000, "confidence": 0.95, "seed": 2024},
+  "configs": {
+    "all_iqr_l2": {
+      "centroid": {
+        "protocol_macro_regret": 0.1374827293855654,
+        "majority_protocol_macro_regret": 0.2214029079406625,
+        "graph_mean_regret": 0.17054358088181176,
+        "graph_mean_majority": 0.1632099741515035,
+        "mean_delta": 0.007333606730308265,
+        "ci95": [-0.24873311763942987, 0.2263412981426426],
+        "better": 3, "worse": 5, "ties": 12, "sign_p": 0.7265625
+      },
+      "nearest": {
+        "graph_mean_regret": 0.7420576200243599,
+        "graph_mean_majority": 0.1632099741515035,
+        "mean_delta": 0.5788476458728564,
+        "ci95": [-0.11006659001780884, 1.4919624126813735],
+        "better": 3, "worse": 4, "ties": 13, "sign_p": 1.0
+      },
+      "corpus_centroid_delta": {
+        "development": 0.30249240121580545,
+        "external": 0.012345679012345664,
+        "snap": -0.022867002202745734,
+        "snap_scalability": -0.6276517922457937
+      }
+    },
+    "global_paths_iqr_l2": {
+      "centroid": {
+        "protocol_macro_regret": 0.24838588013961244,
+        "majority_protocol_macro_regret": 0.2214029079406625,
+        "graph_mean_regret": 0.24943585539802662,
+        "graph_mean_majority": 0.1632099741515035,
+        "mean_delta": 0.08622588124652311,
+        "ci95": [-0.18918325243030562, 0.33454485478802753],
+        "better": 3, "worse": 4, "ties": 13, "sign_p": 1.0
+      },
+      "nearest": {
+        "graph_mean_regret": 0.17736983332440057,
+        "graph_mean_majority": 0.1632099741515035,
+        "mean_delta": 0.014159859172897074,
+        "ci95": [-0.23581175279071723, 0.22016282272262816],
+        "better": 2, "worse": 4, "ties": 14, "sign_p": 0.6875
+      },
+      "corpus_centroid_delta": {
+        "development": 0.30249240121580545,
+        "external": 0.0,
+        "snap": 0.06358411789328025,
+        "snap_scalability": -0.25814463031328594
+      }
+    },
+    "global_paths_minmax_l2": {
+      "centroid": {
+        "protocol_macro_regret": 0.17714004203743788,
+        "majority_protocol_macro_regret": 0.2214029079406625,
+        "graph_mean_regret": 0.21936692396529328,
+        "graph_mean_majority": 0.1632099741515035,
+        "mean_delta": 0.05615694981378979,
+        "ci95": [-0.20836819409848192, 0.28153477961868173],
+        "better": 3, "worse": 4, "ties": 13, "sign_p": 1.0
+      },
+      "nearest": {
+        "graph_mean_regret": 0.1379913257376203,
+        "graph_mean_majority": 0.1632099741515035,
+        "mean_delta": -0.02521864841388321,
+        "ci95": [-0.2693795219366955, 0.1725282228696285],
+        "better": 2, "worse": 3, "ties": 15, "sign_p": 1.0
+      },
+      "corpus_centroid_delta": {
+        "development": 0.30249240121580545,
+        "external": 0.0,
+        "snap": 0.14810792741708975,
+        "snap_scalability": -0.6276517922457937
+      }
+    }
+  }
+}
