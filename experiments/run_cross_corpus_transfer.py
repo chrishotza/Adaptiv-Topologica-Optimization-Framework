@@ -23,6 +23,7 @@ from experiments.run_canonical import (
     kernighan_lin,
     random_balanced,
     spectral_bisection,
+    spectral_modularity_bisection,
 )
 
 
