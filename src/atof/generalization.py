@@ -116,14 +116,17 @@ def summarize_generalization(
     def corpus_mean(field: str) -> float:
         return _mean(item[field] for item in nonempty)
 
+    micro_learned_agreement = _mean(
+        float(row["learned_strategy"] == row["oracle_strategy"])
+        for row in all_folds
+    )
+
     return {
         "corpus_count": len(nonempty),
         "graph_count": len(all_folds),
         "corpora": summaries,
         "micro": {
-            "learned_oracle_agreement": mean_field(
-                "learned_strategy",
-            ) if all_folds else 0.0,
+            "learned_oracle_agreement": micro_learned_agreement,
             "global_oracle_agreement": _mean(
                 float(row["global_strategy"] == row["oracle_strategy"])
                 for row in all_folds
