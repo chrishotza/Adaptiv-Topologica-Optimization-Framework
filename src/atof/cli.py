@@ -12,7 +12,7 @@ from . import __version__
 
 
 def _profile(path: Path) -> dict:
-    graph = nx.read_edgelist(path, nodetype=int, data=False)
+    graph = nx.read_edgelist(path, data=False)
     profiler = TopologyProfiler()
     profile = profiler.profile(graph)
     recommendation = HeuristicRegimeSelector().recommend(profile)
