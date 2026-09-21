@@ -108,3 +108,17 @@ This is the actual leave-one-corpus-out transfer protocol. It is the appropriate
 ## Next 0.6 tier
 
 After the aligned routine study is executed, the next research step is to run the larger SNAP scalability tier separately, then expand the number of heterogeneous unseen graphs before making stronger claims about routing generalization.
+
+## Topology feature ablation
+
+The reproducible ablation workflow is:
+
+~~~bash
+python -m experiments.run_feature_ablation
+~~~
+
+It preserves the same candidate strategies, objective, seeds, and leave-one-corpus-out split while changing only the topology features presented to the centroid and 1-NN routers.
+
+The latest run found that 1-NN reached mean relative regret **0.5565** with the global-path feature family alone, compared with **0.8171** using all features. The majority control remained at **0.3242** across feature sets.
+
+This is not used to change the public default router. The result is treated as a hypothesis for the next, larger-corpus transfer study.
