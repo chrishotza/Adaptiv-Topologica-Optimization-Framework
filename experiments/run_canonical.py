@@ -48,31 +48,107 @@ def kernighan_lin(graph: nx.Graph, seed: int) -> dict:
 
 
 
-def spectral_bisection(graph: nx.Graph) -> dict:
-    """Deterministic balanced spectral bisection using the Fiedler vector.
+def _balanced_spectral_order(
+    graph: nx.Graph, *, modularity: bool = False
+) -> tuple[list, list]:
+    """Return nodes and a deterministic spectral ranking.
 
-    This dense implementation is intentionally bounded to moderate graphs.
-    It is a reference baseline, not a scalability solver.
+    Graphs up to 2000 nodes use the historical dense NumPy implementation.
+    Larger graphs switch to SciPy sparse eigensolvers so the same strategy
+    remains defined on the expanded scalability corpus without changing the
+    balanced ranking contract.
+    """
+    node_count = graph.number_of_nodes()
+    nodes = list(graph.nodes())
+
+    if node_count <= 2000:
+        adjacency = nx.to_numpy_array(graph, nodelist=nodes, dtype=float)
+        if modularity:
+            degrees = adjacency.sum(axis=1)
+            edge_count = graph.number_of_edges()
+            if edge_count == 0:
+                leading = degrees
+            else:
+                matrix = adjacency - np.outer(degrees, degrees) / (2.0 * edge_count)
+                _, eigenvectors = np.linalg.eigh(matrix)
+                leading = eigenvectors[:, -1]
+        else:
+            laplacian = np.diag(adjacency.sum(axis=1)) - adjacency
+            _, eigenvectors = np.linalg.eigh(laplacian)
+            leading = eigenvectors[:, 1]
+    else:
+        from scipy.sparse import diags
+        from scipy.sparse.linalg import LinearOperator, eigsh
+
+        adjacency = nx.to_scipy_sparse_array(
+            graph, nodelist=nodes, dtype=float, format="csr"
+        )
+        v0 = np.arange(1, node_count + 1, dtype=float)
+        v0 -= v0.mean()
+        if not np.any(v0):
+            v0 = np.ones(node_count, dtype=float)
+
+        if modularity:
+            degrees = np.asarray(adjacency.sum(axis=1)).ravel()
+            edge_count = graph.number_of_edges()
+            if edge_count == 0:
+                leading = degrees
+            else:
+                degree_column = degrees
+
+                def matvec(vector: np.ndarray) -> np.ndarray:
+                    return adjacency @ vector - degree_column * (
+                        float(degree_column @ vector) / (2.0 * edge_count)
+                    )
+
+                operator = LinearOperator(
+                    shape=(node_count, node_count),
+                    matvec=matvec,
+                    dtype=float,
+                )
+                _, eigenvectors = eigsh(
+                    operator,
+                    k=1,
+                    which="LA",
+                    v0=v0,
+                    tol=1e-8,
+                    maxiter=max(1000, node_count * 10),
+                )
+                leading = eigenvectors[:, 0]
+        else:
+            laplacian = diags(
+                np.asarray(adjacency.sum(axis=1)).ravel()
+            ).tocsr() - adjacency
+            _, eigenvectors = eigsh(
+                laplacian,
+                k=2,
+                which="SM",
+                v0=v0,
+                tol=1e-8,
+                maxiter=max(1000, node_count * 10),
+            )
+            order_eigenvalues = np.argsort(np.asarray(_))
+            leading = eigenvectors[:, int(order_eigenvalues[1])]
+
+    order = sorted(
+        range(node_count),
+        key=lambda index: (float(leading[index]), repr(nodes[index])),
+    )
+    return nodes, order
+
+
+def spectral_bisection(graph: nx.Graph) -> dict:
+    """Deterministic balanced spectral bisection.
+
+    Dense NumPy eigendecomposition is retained for moderate graphs; large
+    graphs use a sparse SciPy eigensolver to preserve the strategy on the
+    scalability corpus.
     """
     node_count = graph.number_of_nodes()
     if node_count < 2:
         raise ValueError("spectral bisection requires at least two nodes")
-    if node_count > 2000:
-        raise ValueError(
-            "spectral bisection dense reference baseline is limited to 2000 nodes"
-        )
 
-    nodes = list(graph.nodes())
-    adjacency = nx.to_numpy_array(graph, nodelist=nodes, dtype=float)
-    laplacian = np.diag(adjacency.sum(axis=1)) - adjacency
-    eigenvalues, eigenvectors = np.linalg.eigh(laplacian)
-    del eigenvalues
-
-    fiedler = eigenvectors[:, 1]
-    order = sorted(
-        range(node_count),
-        key=lambda index: (float(fiedler[index]), repr(nodes[index])),
-    )
+    nodes, order = _balanced_spectral_order(graph, modularity=False)
     left_size = node_count // 2
     partition = {
         nodes[index]: 0 if position < left_size else 1
@@ -96,28 +172,8 @@ def spectral_modularity_bisection(graph: nx.Graph) -> dict:
     node_count = graph.number_of_nodes()
     if node_count < 2:
         raise ValueError("spectral modularity bisection requires at least two nodes")
-    if node_count > 2000:
-        raise ValueError(
-            "spectral modularity bisection dense reference baseline is limited to 2000 nodes"
-        )
 
-    nodes = list(graph.nodes())
-    adjacency = nx.to_numpy_array(graph, nodelist=nodes, dtype=float)
-    degrees = adjacency.sum(axis=1)
-    edge_count = graph.number_of_edges()
-    if edge_count == 0:
-        leading = degrees
-    else:
-        modularity_matrix = adjacency - np.outer(degrees, degrees) / (2.0 * edge_count)
-        eigenvalues, eigenvectors = np.linalg.eigh(modularity_matrix)
-        del eigenvalues
-        leading = eigenvectors[:, -1]
-
-    leading = eigenvectors[:, -1]
-    order = sorted(
-        range(node_count),
-        key=lambda index: (float(leading[index]), repr(nodes[index])),
-    )
+    nodes, order = _balanced_spectral_order(graph, modularity=True)
     left_size = node_count // 2
     partition = {
         nodes[index]: 0 if position < left_size else 1
