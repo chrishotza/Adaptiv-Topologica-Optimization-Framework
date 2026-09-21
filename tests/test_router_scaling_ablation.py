@@ -44,3 +44,9 @@ def test_scaling_and_metric_modes_validate():
         metric="l2",
     ).fit(training)
     assert centroid.predict(training[1]["topology"]) == "y"
+
+
+def test_scaling_aggregation_accepts_iterables():
+    from experiments.run_router_scaling_ablation import _mean
+
+    assert _mean(value for value in (1.0, 3.0, 5.0)) == 3.0

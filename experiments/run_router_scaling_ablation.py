@@ -41,6 +41,11 @@ def _commit_sha() -> str | None:
         return None
 
 
+def _mean(values) -> float:
+    values = list(values)
+    return sum(values) / len(values) if values else 0.0
+
+
 def _run_config(
     records: dict[str, dict[str, dict]],
     features: tuple[str, ...],
