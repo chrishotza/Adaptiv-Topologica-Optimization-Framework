@@ -1,0 +1,58 @@
+name: Topology feature ablation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "src/atof/routing.py"
+      - "experiments/run_feature_ablation.py"
+      - "tests/test_feature_ablation.py"
+      - ".github/workflows/feature-ablation.yml"
+      - "docs/generalization-study.md"
+
+jobs:
+  ablation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run feature ablation
+        run: python -m experiments.run_feature_ablation
+
+      - name: Validate result
+        run: |
+          test -s results/generalization/feature_ablation.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("results/generalization/feature_ablation.json").read_text())
+          expected = {
+              "all",
+              "without_degree_hub",
+              "without_mesoscopic",
+              "without_global_paths",
+          }
+          assert set(payload["feature_sets"]) == expected
+          for study in payload["feature_sets"].values():
+              assert study["macro"]["majority_mean_relative_regret"] >= 0
+              assert study["macro"]["learned_mean_relative_regret"] >= 0
+              assert study["macro"]["nearest_mean_relative_regret"] >= 0
+          print("validated feature sets:", sorted(expected))
+          PY
+
+      - name: Upload ablation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-feature-ablation
+          path: results/generalization/feature_ablation.json
