@@ -103,3 +103,45 @@ The strongest next experiments are:
 5. preserve per-corpus oracle distributions so aggregate agreement can never hide a degenerate target.
 
 No universal generalization claim is made from these runs.
+
+
+## Latest seven-strategy / dual-router evidence
+
+GitHub Actions run **35570306006** completed successfully on commit **20a5ab86bff781733cdc2fcd792564739cad8397**.
+
+The benchmark used one fixed k=2 candidate set across the three corpus tiers:
+
+- round-robin balanced;
+- random balanced;
+- BLOC-RELOC baseline;
+- BLOC-RELOC affinity;
+- spectral bisection;
+- balanced spectral-modularity bisection;
+- NetworkX Kernighan-Lin.
+
+Artifact SHA-256:
+
+~~~text
+3f6fa73086da7b67f95c4164a2a94b341fdd33e1f20afcf326267474a6df978f
+~~~
+
+Oracle distribution:
+
+| Corpus | Graphs | Oracle distribution |
+| --- | ---: | --- |
+| Development | 7 | Kernighan-Lin: 5; spectral bisection: 2 |
+| External | 4 | BLOC-RELOC baseline: 1; Kernighan-Lin: 2; spectral bisection: 1 |
+| SNAP | 4 | Kernighan-Lin: 4 |
+
+True leave-one-corpus-out macro transfer:
+
+| Router/control | Agreement | Mean relative regret |
+| --- | ---: | ---: |
+| Centroid | 0.4167 | 1.2280 |
+| 1-NN | 0.4405 | 0.8171 |
+| Majority | 0.7381 | 0.3242 |
+| Heuristic | 0.0833 | 6.2860 |
+
+The 1-NN router therefore reduces transfer regret versus the centroid router, but remains behind the majority control. SNAP remains non-diagnostic for adaptive routing because all four SNAP graph-level oracles are Kernighan-Lin.
+
+This is descriptive evidence on the current corpus, not a universal generalization result.
