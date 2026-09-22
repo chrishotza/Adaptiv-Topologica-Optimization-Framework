@@ -8,6 +8,7 @@ from experiments.run_dynamic_compute_external_benchmark import (
     _expected_balance_error,
     _validate_exact_balance_error,
     _corpus_comparison,
+    _equal_work_summary,
     _dominance_vs_fixed,
     _policy_summary,
     _run_policy,
@@ -39,6 +40,37 @@ def test_run_policy_records_structural_work() -> None:
     assert result["total_work"] > 0
     assert result["probe_work"] >= 0
     assert result["total_work"] >= result["probe_work"]
+
+
+def test_equal_work_summary_uses_common_budget():
+    rows = [
+        {
+            "graph_id": "g1",
+            "seed": 42,
+            "strategy": "fixed",
+            "total_work": 100,
+            "work_curve": [
+                {"work": 50, "edge_cut": 12},
+                {"work": 100, "edge_cut": 10},
+            ],
+        },
+        {
+            "graph_id": "g1",
+            "seed": 42,
+            "strategy": "marginal",
+            "total_work": 120,
+            "work_curve": [
+                {"work": 50, "edge_cut": 11},
+                {"work": 100, "edge_cut": 9},
+                {"work": 120, "edge_cut": 8},
+            ],
+        },
+    ]
+    result = _equal_work_summary(rows, "marginal")
+    assert result["graphs"] == 1
+    assert result["mean_candidate_edge_cut_at_common_work"] == pytest.approx(9.0)
+    assert result["mean_fixed_edge_cut_at_common_work"] == pytest.approx(10.0)
+    assert result["mean_edge_cut_delta_candidate_minus_fixed"] == pytest.approx(-1.0)
 
 
 def test_corpus_comparison_is_graph_level():
