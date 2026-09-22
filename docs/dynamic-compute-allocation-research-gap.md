@@ -36,6 +36,18 @@ The hindsight oracle is not a production method. It defines an upper reference f
 
 Measure the quality-versus-compute curve, not only the final endpoint:
 
+### Structural work unit
+
+ATOF now records a machine-independent work proxy for the two principal local-search operators:
+
+- local node-move work counts edge-incidence traversals performed while evaluating feasible moves;
+- hybrid two-swap work counts the corresponding edge incidences inspected for each sampled swap;
+- both are therefore reported in the same structural work unit rather than treating the number of random samples as equivalent computation.
+
+The trace records gain, work, and gain-per-work for each iteration. Wall-clock time remains a separate, machine-specific measure and is not replaced by this proxy.
+
+
+
 - edge cut at fixed time budgets;
 - relative regret at equal compute;
 - area under the quality-vs-time curve;
