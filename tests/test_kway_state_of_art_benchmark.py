@@ -153,3 +153,8 @@ def test_exact_floor_ceil_balance_gate():
         8,
     )
     assert sorted(repaired.count(block) for block in range(8)) == [4, 4, 4, 4, 4, 4, 4, 5]
+
+    graph_15 = nx.path_graph(15)
+    observed = [0, 1, 2, 3, 4, 5, 6, 7, 1, 2, 2, 3, 5, 6, 7]
+    repaired_15 = rebalance_kway(graph_15, observed, 8)
+    assert sorted(repaired_15.count(block) for block in range(8)) == [1, 2, 2, 2, 2, 2, 2, 2]
