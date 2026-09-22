@@ -43,6 +43,12 @@ python -m atof ai
 python -m atof solve examples/demo.edgelist
 ```
 
+Pipe an edge-list directly when the graph already exists in a shell or agent pipeline:
+
+```bash
+cat graph.edgelist | atof solve -
+```
+
 Request the partition mapping:
 
 ```bash
