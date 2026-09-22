@@ -89,6 +89,7 @@ parameters
 result.k
 result.edge_cut
 result.balance_error
+objective.optimization_metric (Engine mode)
 provenance.graph_fingerprint
 candidates[] (Portfolio mode)
 ~~~

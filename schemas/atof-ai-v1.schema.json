@@ -8,6 +8,7 @@
     "name",
     "version",
     "purpose",
+    "primary_flow",
     "commands",
     "input",
     "capabilities",
@@ -20,9 +21,18 @@
     "name": {"const": "atof"},
     "version": {"type": "string"},
     "purpose": {"type": "string"},
+    "primary_flow": {"type": "string"},
     "commands": {
       "type": "object",
-      "required": ["ai", "doctor", "solve", "profile", "optimize", "version", "short_flags"],
+      "required": [
+        "ai",
+        "doctor",
+        "solve",
+        "profile",
+        "optimize",
+        "version",
+        "short_flags"
+      ],
       "properties": {
         "ai": {"type": "string"},
         "doctor": {"type": "string"},
@@ -60,7 +70,13 @@
     },
     "input": {
       "type": "object",
-      "required": ["formats", "default_format", "default_seed", "stdin", "json"],
+      "required": [
+        "formats",
+        "default_format",
+        "default_seed",
+        "stdin",
+        "json"
+      ],
       "properties": {
         "formats": {
           "type": "array",
@@ -94,18 +110,32 @@
     },
     "capabilities": {
       "type": "object",
-      "required": ["engine", "portfolio", "exports", "provenance"],
+      "required": [
+        "engine",
+        "portfolio",
+        "exports",
+        "provenance"
+      ],
       "properties": {
         "engine": {
           "type": "object",
-          "required": ["k", "objective", "backend", "variants"],
+          "required": [
+            "k",
+            "objective",
+            "backend",
+            "variants"
+          ],
           "properties": {
             "k": {"const": ">=2"},
             "objective": {"type": "string"},
             "backend": {"const": "BLOC-RELOC"},
             "variants": {
               "type": "object",
-              "required": ["baseline", "affinity", "auto"],
+              "required": [
+                "baseline",
+                "affinity",
+                "auto"
+              ],
               "properties": {
                 "baseline": {"type": "string"},
                 "affinity": {"type": "string"},
@@ -118,7 +148,12 @@
         },
         "portfolio": {
           "type": "object",
-          "required": ["k", "objective", "backends", "selection"],
+          "required": [
+            "k",
+            "objective",
+            "backends",
+            "selection"
+          ],
           "properties": {
             "k": {"const": 2},
             "objective": {"type": "string"},
@@ -143,11 +178,17 @@
     },
     "output": {
       "type": "object",
-      "required": ["default", "compact", "full", "objective_metric_rule"],
+      "required": [
+        "default",
+        "compact",
+        "full",
+        "objective_metric_rule"
+      ],
       "properties": {
         "default": {"const": "JSON"},
         "compact": {"type": "string"},
-        "full": {"type": "string"},\n        "objective_metric_rule": {"type": "string"}
+        "full": {"type": "string"},
+        "objective_metric_rule": {"type": "string"}
       },
       "additionalProperties": false
     },

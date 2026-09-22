@@ -157,6 +157,7 @@ def compact_result(payload: dict) -> dict:
             "edges": graph.get("edges"),
         },
         "strategy": strategy,
+        "objective": payload.get("objective"),
         "result": {
             "k": result.get("k"),
             "edge_cut": result.get("edge_cut"),
@@ -177,6 +178,7 @@ def compact_result(payload: dict) -> dict:
                 "name": c.get("name"),
                 "available": c.get("available"),
                 "edge_cut": c.get("edge_cut"),
+                "balance_error": c.get("balance_error"),
                 "runtime_seconds": c.get("runtime_seconds"),
                 "error": c.get("error"),
             }

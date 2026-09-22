@@ -29,6 +29,20 @@ def test_ai_and_doctor_expose_same_input_contract(capsys):
     assert manifest["capabilities"]["portfolio"]["k"] == 2
 
 
+
+def test_ai_manifest_matches_declared_schema_shape(capsys):
+    assert main(["ai"]) == 0
+    manifest = json.loads(capsys.readouterr().out)
+
+    from pathlib import Path
+
+    schema_path = Path(__file__).parents[1] / "schemas" / "atof-ai-v1.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+    assert set(manifest).issubset(schema["properties"])
+    assert set(schema["required"]).issubset(manifest)
+    assert set(manifest["output"]).issubset(schema["properties"]["output"]["properties"])
+
 def test_cli_version(capsys):
     assert main(["--version"]) == 0
     assert capsys.readouterr().out.strip() == "0.6.0"
@@ -166,6 +180,45 @@ def test_cli_optimize_supports_kway_engine(tmp_path, capsys):
     assert payload["result"]["balance_error"] == 0.0
     assert set(payload["result"]["partition"].values()) == {0, 1, 2, 3}
 
+
+
+def test_cli_optimize_compact_preserves_engine_objective_semantics(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("0 1\n1 2\n2 3\n3 4\n4 5\n5 0\n", encoding="utf-8")
+
+    assert main([
+        "optimize",
+        str(graph),
+        "--engine",
+        "bloc",
+        "--variant",
+        "affinity",
+        "--compact",
+    ]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["objective"]["reported_metric"] == "edge_cut"
+    assert payload["objective"]["optimization_metric"] == "degree_affinity_weighted_cut"
+
+
+def test_cli_optimize_supports_partition_output_short_flag(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("a b\nb c\nc d\n", encoding="utf-8")
+    output = tmp_path / "partition.csv"
+
+    assert main([
+        "optimize",
+        str(graph),
+        "--engine",
+        "bloc",
+        "--variant",
+        "baseline",
+        "-p",
+        str(output),
+    ]) == 0
+
+    json.loads(capsys.readouterr().out)
+    assert output.read_text(encoding="utf-8").splitlines()[0] == "node,block"
 
 def test_cli_optimize(tmp_path, capsys):
     graph = tmp_path / "graph.edgelist"

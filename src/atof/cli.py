@@ -23,6 +23,8 @@ from .topology import TopologyProfiler
 
 
 _FORMAT_CHOICES = SUPPORTED_INPUT_FORMATS
+_ENGINE_CHOICES = ("bloc", "portfolio")
+_BLOC_VARIANT_CHOICES = ("auto", "baseline", "affinity")
 
 _CLI_ERRORS = (OSError, ValueError, RuntimeError, TypeError, UnicodeError, SyntaxError, nx.NetworkXException)
 
@@ -131,7 +133,7 @@ def main(argv: list[str] | None = None) -> int:
     optimize_parser.add_argument("--format", "-f", choices=_FORMAT_CHOICES, default="auto")
     optimize_parser.add_argument("--output", "-o", type=Path)
     optimize_parser.add_argument("--compact", "-c", action="store_true")
-    optimize_parser.add_argument("--partition-output", type=Path)
+    optimize_parser.add_argument("--partition-output", "-p", type=Path)
     optimize_parser.add_argument(
         "--partition-format",
         choices=PARTITION_OUTPUT_FORMATS,
