@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - research/diagnose-kaminpar-sigsegv
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
