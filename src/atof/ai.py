@@ -103,7 +103,7 @@ def build_doctor_report(*, full: bool = False) -> dict:
         "version": __version__,
         "runtime": runtime_metadata(),
         "backends": backends,
-        "input_formats": ["edgelist", "graphml", "gexf", "gml"],
+        "input_formats": ["edgelist", "json", "graphml", "gexf", "gml"],
         "portfolio_ready": any(
             item["available"] and item["id"] == "networkx-kl"
             for item in backends
