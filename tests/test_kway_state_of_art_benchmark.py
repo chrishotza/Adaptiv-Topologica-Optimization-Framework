@@ -124,6 +124,7 @@ def test_exact_floor_ceil_balance_gate():
         _expected_balance_error,
         _validate_exact_balance_error,
     )
+    from atof.partition import rebalance_kway
 
     graph = nx.path_graph(10)
 
@@ -145,3 +146,10 @@ def test_exact_floor_ceil_balance_gate():
     invalid[32] = 0
     with pytest.raises(ValueError, match="floor/ceil"):
         _exact_partition_balance_error(graph_33, invalid, 8)
+
+    repaired = rebalance_kway(
+        graph_33,
+        [0] * 33,
+        8,
+    )
+    assert sorted(repaired.count(block) for block in range(8)) == [4, 4, 4, 4, 4, 4, 4, 5]
