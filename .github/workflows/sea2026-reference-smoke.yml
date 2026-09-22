@@ -6,6 +6,9 @@ concurrency:
   cancel-in-progress: true
 
 on:
+  push:
+    branches:
+      - research/state-of-art-benchmark
   workflow_dispatch:
     inputs:
       limit:
