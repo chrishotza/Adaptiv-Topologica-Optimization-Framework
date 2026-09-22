@@ -26,6 +26,8 @@ def test_trace_exposes_marginal_local_and_hybrid_gains():
     assert len(result.trace) == 3
     for event in result.trace:
         assert "local_gain" in event
+        assert "local_work" in event
+        assert "local_gain_per_work" in event
         assert "hybrid_gain" in event
         assert "hybrid_work" in event
         assert "hybrid_gain_per_work" in event
