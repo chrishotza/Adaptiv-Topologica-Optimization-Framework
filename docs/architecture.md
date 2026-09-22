@@ -56,6 +56,14 @@ The Engine is ATOF's own product path.
 
 `BLOCReloc` is the canonical local-refinement strategy in the public engine. It supports deterministic initialization, balance-preserving `k`-way moves for `k>=2`, baseline and degree-affinity variants, and optimization traces.
 
+Engine objective semantics are variant-dependent:
+
+- **baseline** directly minimizes unweighted edge cut;
+- **affinity** minimizes a degree-affinity weighted surrogate while reporting the unweighted edge cut;
+- **auto** uses the regime selector to choose one of those variants.
+
+For machine consumers, `objective.optimization_metric` identifies the actual optimized scalar and `result.edge_cut` remains the common reported metric.
+
 ## ATOF Portfolio
 
 Portfolio mode is the composition layer over several available engines.

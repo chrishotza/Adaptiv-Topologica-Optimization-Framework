@@ -3,7 +3,18 @@
   "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-ai-v1.schema.json",
   "title": "ATOF AI manifest",
   "type": "object",
-  "required": ["schema", "name", "version", "purpose", "commands", "input", "capabilities", "output", "claim_policy", "limits"],
+  "required": [
+    "schema",
+    "name",
+    "version",
+    "purpose",
+    "commands",
+    "input",
+    "capabilities",
+    "output",
+    "claim_policy",
+    "limits"
+  ],
   "properties": {
     "schema": {"const": "atof.ai.v1"},
     "name": {"const": "atof"},
@@ -16,12 +27,22 @@
         "ai": {"type": "string"},
         "doctor": {"type": "string"},
         "solve": {"type": "string"},
+        "module": {"type": "string"},
         "profile": {"type": "string"},
         "optimize": {"type": "string"},
         "version": {"type": "string"},
         "short_flags": {
           "type": "object",
-          "required": ["compact", "engine", "seed", "iterations", "format", "output", "partition_output", "full"],
+          "required": [
+            "compact",
+            "engine",
+            "seed",
+            "iterations",
+            "format",
+            "output",
+            "partition_output",
+            "full"
+          ],
           "properties": {
             "compact": {"const": "-c"},
             "engine": {"const": "-e"},
@@ -34,43 +55,118 @@
           },
           "additionalProperties": false
         }
-      }
+      },
+      "additionalProperties": false
     },
     "input": {
       "type": "object",
+      "required": ["formats", "default_format", "default_seed", "stdin", "json"],
       "properties": {
-        "formats": {"type": "array", "items": {"type": "string"}},
-        "default_format": {"type": "string"},
+        "formats": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "default_format": {"const": "auto"},
         "default_seed": {"type": "integer"},
         "json": {
           "type": "object",
-          "required": ["edges"],
+          "required": ["nodes", "edges"],
           "properties": {
-            "nodes": {"type": "string"},
-            "edges": {"type": "string"}
-          }
+            "nodes": {"const": "optional array of node IDs"},
+            "edges": {"const": "array of 2-item node-ID arrays"}
+          },
+          "additionalProperties": false
         },
         "stdin": {
           "type": "object",
           "required": ["path", "formats"],
           "properties": {
             "path": {"const": "-"},
-            "formats": {"type": "array", "items": {"type": "string"}}
-          }
+            "formats": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          },
+          "additionalProperties": false
         }
-      }
+      },
+      "additionalProperties": false
     },
     "capabilities": {
       "type": "object",
+      "required": ["engine", "portfolio", "exports", "provenance"],
       "properties": {
-        "engine": {"type": "object"},
-        "portfolio": {"type": "object"},
-        "exports": {"type": "array"},
-        "provenance": {"type": "array"}
-      }
+        "engine": {
+          "type": "object",
+          "required": ["k", "objective", "backend", "variants"],
+          "properties": {
+            "k": {"const": ">=2"},
+            "objective": {"type": "string"},
+            "backend": {"const": "BLOC-RELOC"},
+            "variants": {
+              "type": "object",
+              "required": ["baseline", "affinity", "auto"],
+              "properties": {
+                "baseline": {"type": "string"},
+                "affinity": {"type": "string"},
+                "auto": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "portfolio": {
+          "type": "object",
+          "required": ["k", "objective", "backends", "selection"],
+          "properties": {
+            "k": {"const": 2},
+            "objective": {"type": "string"},
+            "backends": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "selection": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "exports": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "provenance": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": false
     },
-    "output": {"type": "object"},
-    "claim_policy": {"type": "object"},
-    "limits": {"type": "array", "items": {"type": "string"}}
-  }
+    "output": {
+      "type": "object",
+      "required": ["default", "compact", "full"],
+      "properties": {
+        "default": {"const": "JSON"},
+        "compact": {"type": "string"},
+        "full": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "claim_policy": {
+      "type": "object",
+      "required": ["rule", "non_claims"],
+      "properties": {
+        "rule": {"type": "string"},
+        "non_claims": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false
 }

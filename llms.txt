@@ -4,7 +4,7 @@
 
 ## Contract priority
 
-1. `atof ai` — current capabilities and limits
+1. `atof ai` — current capabilities, variant semantics, and limits
 2. `schemas/` — stable JSON contracts
 3. `AGENTS.md` — operating rules
 4. `docs/` — explanatory usage
@@ -33,9 +33,15 @@
 
 ATOF Engine = native BLOC-RELOC path with topology profiling.
 
+Engine variants:
+
+- baseline = direct unweighted edge-cut minimization;
+- affinity = degree-affinity weighted surrogate, with unweighted edge_cut reported;
+- auto = heuristic selection between baseline and affinity.
+
 ATOF Portfolio = empirical composition over the available open backends.
 
-Engine contract = k>=2, undirected, simple, unweighted balanced edge cut.
+Engine contract = k>=2, undirected, simple graphs with balanced node counts; reported metric = unweighted edge cut.
 
 Portfolio contract = k=2, undirected, simple, unweighted balanced edge cut.
 
@@ -47,7 +53,9 @@ JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 - Use `--compact` for low-token orchestration.
 - Preserve seed and graph fingerprint for reproducibility.
 - Optional backend failures are explicit.
-- Unsupported directed and multigraph graph models are rejected. Source weight attributes are treated as metadata under the current unweighted objective.
+- Unsupported directed and multigraph graph models are rejected. Source weight attributes are treated as metadata under the current unweighted graph model.
+- In Engine mode, use `objective.optimization_metric` to distinguish the actual optimization scalar from the reported `result.edge_cut`.
+- In Portfolio mode, `result.edge_cut` is the common selection metric.
 
 ## Evidence rule
 
