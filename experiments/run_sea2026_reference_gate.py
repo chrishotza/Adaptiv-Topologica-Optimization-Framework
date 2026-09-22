@@ -168,7 +168,6 @@ def run_configuration(
         command.extend(
             [
                 "--c-guiding-by-integrated-model=false",
-                "--c-rating-degree-similarity-policy=always_accept",
             ]
         )
 
@@ -428,7 +427,7 @@ def run_reference_gate(
     ]
 
     return {
-        "schema_version": "0.1",
+        "schema_version": "0.2",
         "protocol": "SEA 2026 exact-software reference gate",
         "source": {
             "paper_artifact_version": SEA_VERSION,
@@ -444,9 +443,12 @@ def run_reference_gate(
             "threads_are_environment_limited": True,
             "learned_configuration": "default snapshot configuration",
             "baseline_configuration": (
-                "default preset with integrated model disabled and "
-                "degree-similarity policy forced to always_accept"
+                "default preset with the integrated model disabled; "
+                "all other default preset options remain unchanged"
             ),
+            "baseline_overrides": [
+                "--c-guiding-by-integrated-model=false",
+            ],
         },
         "environment": {
             "python": sys.version,
