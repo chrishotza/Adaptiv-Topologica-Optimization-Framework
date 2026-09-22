@@ -146,7 +146,7 @@ This makes the product useful even when an external solver remains stronger on a
 - **G1 — Product parity:** expose mature open-source backends directly through the solve/portfolio product path.
 - **G2 — k-way parity:** complete k={4,8,32,64} matched evaluation on the locked corpus.
 - **G3 — SEA parity:** execute the exact 1.5.3 learned-coarsening snapshot on a matched subset of Set A.
-- **G4 — Set A:** materialize the 118-graph evaluation surface with hashes and source provenance.
+- **G4 — Set A:** materialize the 118-graph evaluation surface with hashes and source provenance; manual gate now implemented.
 - **G5 — Dynamic allocation:** evaluate quality-vs-structural-work curves against fixed strong baselines.
 - **G6 — Scale track:** evaluate large Set I/R-style instances separately from desktop-scale quality experiments.
 
