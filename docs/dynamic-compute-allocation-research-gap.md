@@ -8,6 +8,19 @@ This makes a simple claim such as 'ATOF uses an intelligent router' insufficient
 
 > Can an online controller allocate a finite search budget among complementary partitioning neighborhoods or solver components using observed marginal return, while preserving solution quality?
 
+## Experimental controller now implemented
+
+ATOF now exposes a research-only `hybrid_policy="marginal"` mode on `BLOCReloc.refine()`.
+
+The controller follows an auditable sequence:
+
+1. use the first eligible expensive pass as calibration;
+2. record local and hybrid gain per structural-work unit;
+3. after the cooldown/stagnation gate, pay for the hybrid operator only when its observed marginal return is at least as good as the local return;
+4. adapt the next hybrid sample budget within a bounded 0.25x–2x range of the configured base budget.
+
+This is deliberately **not a public/default routing policy**. It is an experimental mechanism for the quality-vs-compute study below. The controller is tested independently, while the external state-of-art benchmark remains the primary baseline gate.
+
 ## Difference from static solver selection
 
 A static router answers:
