@@ -323,6 +323,8 @@ def optimize_portfolio(
     """Evaluate available open-source backends under one auditable contract."""
     if k != 2:
         raise ValueError("portfolio mode currently supports k=2")
+    if iterations < 1:
+        raise ValueError("iterations must be at least 1")
     if graph.is_directed():
         raise ValueError("portfolio mode requires an undirected graph")
     if graph.is_multigraph():
