@@ -185,10 +185,11 @@ def _run_bloc(
     seed: int,
     iterations: int,
     variant: str,
+    k: int,
 ) -> tuple[dict[Any, int], int, float]:
     result: PartitionResult = BLOCReloc(
         graph,
-        k=2,
+        k=k,
         seed=seed,
         variant=variant,
     ).refine(iterations=iterations)
@@ -366,6 +367,7 @@ def optimize_portfolio(
                 seed=seed,
                 iterations=iterations,
                 variant="baseline",
+                k=k,
             ),
         ),
         _candidate(
@@ -378,6 +380,7 @@ def optimize_portfolio(
                 seed=seed,
                 iterations=iterations,
                 variant="affinity",
+                k=k,
             ),
         ),
         (
