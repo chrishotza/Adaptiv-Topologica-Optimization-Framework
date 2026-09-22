@@ -11,9 +11,9 @@ With `--hybrid-policy adaptive`, ATOF:
 1. runs the normal relocation neighborhood;
 2. measures the local objective gain;
 3. counts consecutive low-gain iterations;
-4. performs a cheap swap probe after the configured patience threshold;
-5. executes the full two-node swap pass only when that probe finds an improving move;
-6. uses the hybrid period as a minimum cooldown between adaptive probes and resets stagnation when the full hybrid pass actually improves the objective.
+4. calibrates the hybrid neighborhood with the first scheduled full pass;
+5. repeats the full pass while it remains productive;
+6. after an unproductive pass, uses the hybrid period as a minimum cooldown between adaptive probes and resumes full passes only when a probe finds an improving move.
 
 The rule is deterministic for a fixed graph, seed, and configuration. It does not require a trained model.
 
