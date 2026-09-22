@@ -195,7 +195,19 @@ def run_analysis(
         folds[test_corpus] = fold_rows
 
     all_rows = [row for rows in folds.values() for row in rows]
-    macro = {
+    per_corpus = {
+        corpus: {
+            f"{router}_vs_{control}": _summarize(
+                corpus_rows,
+                router,
+                control,
+            )
+            for router in ROUTERS
+            for control in CONTROLS
+        }
+        for corpus, corpus_rows in folds.items()
+    }
+    pooled = {
         f"{router}_vs_{control}": _summarize(
             all_rows,
             router,
@@ -204,6 +216,23 @@ def run_analysis(
         for router in ROUTERS
         for control in CONTROLS
     }
+    macro = {}
+    for router in ROUTERS:
+        for control in CONTROLS:
+            key = f"{router}_vs_{control}"
+            summaries = [value[key] for value in per_corpus.values()]
+            macro[key] = {
+                "corpora": len(summaries),
+                "mean_router_relative_regret": _mean(
+                    [item["mean_router_relative_regret"] for item in summaries]
+                ),
+                "mean_control_relative_regret": _mean(
+                    [item["mean_control_relative_regret"] for item in summaries]
+                ),
+                "mean_delta_router_minus_control": _mean(
+                    [item["mean_delta_router_minus_control"] for item in summaries]
+                ),
+            }
     micro_by_key = {}
     for router in ROUTERS:
         for control in CONTROLS:
@@ -249,6 +278,8 @@ def run_analysis(
         "matched_graphs": len(records),
         "rows": all_rows,
         "folds": folds,
+        "per_corpus": per_corpus,
+        "pooled": pooled,
         "macro": macro,
         "micro": micro_by_key,
         "source_benchmark": str(benchmark),
