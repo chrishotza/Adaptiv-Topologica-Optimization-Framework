@@ -46,8 +46,29 @@ def main(argv: list[str] | None = None) -> int:
     )
     ai_parser.add_argument(
         "--full",
+        "-F",
         action="store_true",
         help="emit the expanded AI manifest",
+    )
+
+    solve_parser = subparsers.add_parser(
+        "solve",
+        help="short AI-friendly alias for portfolio optimization",
+    )
+    solve_parser.add_argument("path", type=Path)
+    solve_parser.add_argument("--seed", "-s", type=int, default=42)
+    solve_parser.add_argument("--iterations", "-i", type=int, default=25)
+    solve_parser.add_argument(
+        "--format",
+        "-f",
+        choices=("auto", "edgelist", "graphml", "gexf", "gml"),
+        default="auto",
+    )
+    solve_parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        help="optional JSON output path",
     )
 
     profile_parser = subparsers.add_parser(
@@ -57,11 +78,13 @@ def main(argv: list[str] | None = None) -> int:
     profile_parser.add_argument("path", type=Path)
     profile_parser.add_argument(
         "--format",
+        "-f",
         choices=("auto", "edgelist", "graphml", "gexf", "gml"),
         default="auto",
     )
     profile_parser.add_argument(
         "--compact",
+        "-c",
         action="store_true",
         help="emit only the low-token profile summary",
     )
@@ -71,33 +94,38 @@ def main(argv: list[str] | None = None) -> int:
         help="profile and partition a graph",
     )
     optimize_parser.add_argument("path", type=Path)
-    optimize_parser.add_argument("--k", type=int, default=2)
-    optimize_parser.add_argument("--seed", type=int, default=42)
-    optimize_parser.add_argument("--iterations", type=int, default=25)
+    optimize_parser.add_argument("--k", "-k", type=int, default=2)
+    optimize_parser.add_argument("--seed", "-s", type=int, default=42)
+    optimize_parser.add_argument("--iterations", "-i", type=int, default=25)
     optimize_parser.add_argument(
         "--engine",
+        "-e",
         choices=("bloc", "portfolio"),
         default="bloc",
         help="portfolio compares available open-source backends under one contract",
     )
     optimize_parser.add_argument(
         "--variant",
+        "-v",
         choices=("auto", "baseline", "affinity"),
         default="auto",
         help="BLOC-RELOC variant when --engine bloc is used",
     )
     optimize_parser.add_argument(
         "--format",
+        "-f",
         choices=("auto", "edgelist", "graphml", "gexf", "gml"),
         default="auto",
     )
     optimize_parser.add_argument(
         "--output",
+        "-o",
         type=Path,
         help="optional JSON output path; stdout is used when omitted",
     )
     optimize_parser.add_argument(
         "--compact",
+        "-c",
         action="store_true",
         help="emit only the low-token result summary",
     )
@@ -114,6 +142,24 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(payload, indent=2, sort_keys=True))
         else:
             print(json.dumps(payload, separators=(",", ":"), sort_keys=True))
+        return 0
+
+    if args.command == "solve":
+        graph = load_graph(args.path, format=args.format)
+        result = optimize_portfolio(
+            graph,
+            k=2,
+            seed=args.seed,
+            iterations=args.iterations,
+        )
+        payload = compact_result(result.to_dict() | {"version": __version__})
+        encoded = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+        if args.output is None:
+            print(encoded)
+        else:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(encoded + "\n", encoding="utf-8")
+            print(str(args.output))
         return 0
 
     if args.command == "profile":
