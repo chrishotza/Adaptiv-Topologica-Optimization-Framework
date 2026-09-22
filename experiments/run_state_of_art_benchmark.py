@@ -42,6 +42,23 @@ CORE_STRATEGIES = (
     "mtkahypar_quality",
 )
 
+LOCAL_STRATEGIES = (
+    "bloc_reloc_baseline",
+    "bloc_reloc_affinity",
+    "bloc_reloc_hybrid_fixed",
+    "bloc_reloc_adaptive",
+    "kernighan_lin",
+)
+
+ISOLATED_STRATEGIES = (
+    "metis",
+    "kahip",
+    "kaminpar_default",
+    "kaminpar_strong",
+    "mtkahypar_default",
+    "mtkahypar_quality",
+)
+
 
 def _package_versions() -> dict[str, str | None]:
     versions: dict[str, str | None] = {}
@@ -432,11 +449,12 @@ def run_state_of_art_benchmark(
     strategies = CORE_STRATEGIES
     rows: list[dict] = []
 
+    # Keep Python implementations in-process.
     for corpus, graphs in corpora.items():
         for graph_name, graph in graphs.items():
             graph_id = f"{corpus}/{graph_name}"
             for seed in seeds:
-                for strategy in strategies:
+                for strategy in LOCAL_STRATEGIES:
                     row = {
                         "corpus": corpus,
                         "graph": graph_name,
@@ -464,6 +482,59 @@ def run_state_of_art_benchmark(
                             }
                         )
                     rows.append(row)
+
+    # C/C++ backends are isolated one strategy at a time. A native crash in
+    # one extension therefore cannot corrupt the Python process or hide rows
+    # for the remaining strategies.
+    for strategy in ISOLATED_STRATEGIES:
+        command = [
+            sys.executable,
+            "-m",
+            "experiments.run_isolated_state_of_art_backend",
+            "--strategy",
+            strategy,
+        ]
+        if cache_dir is not None:
+            command.extend(["--cache-dir", str(cache_dir)])
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            env={**__import__("os").environ, "PYTHONUNBUFFERED": "1"},
+        )
+        if completed.returncode == 0:
+            try:
+                isolated_rows = json.loads(completed.stdout)
+            except json.JSONDecodeError as exc:
+                isolated_rows = []
+                error = f"invalid worker JSON: {exc}"
+        else:
+            isolated_rows = []
+            error = (
+                f"isolated worker exit {completed.returncode}"
+                + (f": {completed.stderr[-1000:]}" if completed.stderr else "")
+            )
+
+        if isolated_rows:
+            rows.extend(isolated_rows)
+        else:
+            for corpus, graphs in corpora.items():
+                for graph_name, graph in graphs.items():
+                    graph_id = f"{corpus}/{graph_name}"
+                    for seed in seeds:
+                        rows.append(
+                            {
+                                "corpus": corpus,
+                                "graph": graph_name,
+                                "graph_id": graph_id,
+                                "nodes": graph.number_of_nodes(),
+                                "edges": graph.number_of_edges(),
+                                "seed": seed,
+                                "strategy": strategy,
+                                "status": "error",
+                                "error": error,
+                            }
+                        )
 
     graph_rows: dict[str, list[dict]] = {}
     for row in rows:
@@ -502,6 +573,7 @@ def run_state_of_art_benchmark(
             "adaptive_witness_patience": HYBRID_WITNESS_PATIENCE,
         },
         "candidate_strategies": list(strategies),
+        "isolated_native_strategies": list(ISOLATED_STRATEGIES),
         "corpora": {
             corpus: {
                 "graph_count": len(graphs),
