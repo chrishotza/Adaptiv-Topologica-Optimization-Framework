@@ -467,11 +467,6 @@ def optimize_portfolio(
         ),
     ]
 
-    candidates = [
-        _validate_candidate_partition(graph, k, candidate)
-        for candidate in candidates
-    ]
-
     if include_optional:
         candidates.extend(
             [
@@ -491,6 +486,11 @@ def optimize_portfolio(
                 ),
             ]
         )
+
+    candidates = [
+        _validate_candidate_partition(graph, k, candidate)
+        for candidate in candidates
+    ]
 
     available = [
         candidate
