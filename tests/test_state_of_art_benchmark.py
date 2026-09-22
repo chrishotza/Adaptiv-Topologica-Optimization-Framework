@@ -1,0 +1,153 @@
+from __future__ import annotations
+
+import pytest
+
+# Benchmark contract tests include native-backend isolation.
+from experiments.run_state_of_art_benchmark import (
+    CORE_STRATEGIES,
+    _aggregate_graph_summaries,
+    _summarize_graph,
+)
+
+
+def test_worker_decoder_uses_last_nonempty_stdout_line() -> None:
+    from experiments.run_state_of_art_benchmark import _decode_worker_rows
+
+    assert _decode_worker_rows('native warning\n[{"status": "ok"}]\n') == [
+        {"status": "ok"}
+    ]
+    with pytest.raises(ValueError, match="must be a list"):
+        _decode_worker_rows('{"status": "ok"}\n')
+
+
+def test_core_strategy_surface_is_locked() -> None:
+    assert CORE_STRATEGIES == (
+        "bloc_reloc_baseline",
+        "bloc_reloc_affinity",
+        "bloc_reloc_hybrid_fixed",
+        "bloc_reloc_adaptive",
+        "kernighan_lin",
+        "metis",
+        "kahip",
+        "kaminpar_default",
+        "kaminpar_strong",
+        "mtkahypar_default",
+        "mtkahypar_quality",
+    )
+
+
+def test_native_strategy_surface_is_isolated() -> None:
+    from experiments.run_state_of_art_benchmark import ISOLATED_STRATEGIES, LOCAL_STRATEGIES
+
+    assert "metis" in ISOLATED_STRATEGIES
+    assert "kahip" in ISOLATED_STRATEGIES
+    assert "kaminpar_default" in ISOLATED_STRATEGIES
+    assert "mtkahypar_default" in ISOLATED_STRATEGIES
+    assert "bloc_reloc_baseline" in LOCAL_STRATEGIES
+    assert "kernighan_lin" in LOCAL_STRATEGIES
+
+
+def test_graph_summary_normalizes_quality_and_runtime() -> None:
+    rows = [
+        {"strategy": "a", "status": "ok", "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 2.0},
+        {"strategy": "a", "status": "ok", "edge_cut": 12, "balance_error": 0.0, "runtime_seconds": 4.0},
+        {"strategy": "b", "status": "ok", "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 1.0},
+    ]
+    summary = _summarize_graph(rows, ("a", "b"))
+    assert summary["best_quality"] == "b"
+    assert summary["strategies"]["a"]["edge_cut"] == 11
+    assert summary["strategies"]["a"]["relative_quality_gap"] == pytest.approx(0.1)
+    assert summary["strategies"]["b"]["runtime_ratio_to_graph_median"] == pytest.approx(0.5)
+
+
+def test_complete_seed_set_is_marked_matched_for_aggregation() -> None:
+    rows = [
+        *[
+            {"strategy": "a", "status": "ok", "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 2.0}
+            for _ in range(3)
+        ],
+        *[
+            {"strategy": "b", "status": "ok", "edge_cut": 12, "balance_error": 0.0, "runtime_seconds": 1.0}
+            for _ in range(3)
+        ],
+    ]
+    summary = _summarize_graph(rows, ("a", "b"), expected_runs=3)
+    assert summary["matched"] is True
+    assert summary["expected_runs"] == 3
+    aggregate = _aggregate_graph_summaries({"g1": summary}, ("a", "b"))
+    assert aggregate["a"]["graphs_evaluated"] == 1
+    assert aggregate["b"]["graphs_evaluated"] == 1
+
+
+def test_duplicate_seed_rows_are_not_matched() -> None:
+    rows = [
+        *[
+            {"strategy": "a", "status": "ok", "seed": seed, "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 2.0}
+            for seed in (42, 101, 42)
+        ],
+        *[
+            {"strategy": "b", "status": "ok", "seed": seed, "edge_cut": 12, "balance_error": 0.0, "runtime_seconds": 1.0}
+            for seed in (42, 101, 2024)
+        ],
+    ]
+    summary = _summarize_graph(
+        rows,
+        ("a", "b"),
+        expected_runs=3,
+        expected_seeds=(42, 101, 2024),
+    )
+    assert summary["matched"] is False
+    assert summary["incomplete_strategies"] == ["a"]
+
+
+def test_incomplete_seed_set_is_not_matched() -> None:
+    rows = [
+        *[
+            {"strategy": "a", "status": "ok", "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 2.0}
+            for _ in range(3)
+        ],
+        *[
+            {"strategy": "b", "status": "ok", "edge_cut": 12, "balance_error": 0.0, "runtime_seconds": 1.0}
+            for _ in range(2)
+        ],
+    ]
+    summary = _summarize_graph(rows, ("a", "b"), expected_runs=3)
+    assert summary["matched"] is False
+    assert summary["incomplete_strategies"] == ["b"]
+
+
+def test_aggregate_uses_graphs_as_the_unit_of_analysis() -> None:
+    graph_summaries = {
+        "g1": {"strategies": {"a": {"relative_quality_gap": 0.0, "runtime_ratio_to_graph_median": 1.0}}},
+        "g2": {"strategies": {"a": {"relative_quality_gap": 0.2, "runtime_ratio_to_graph_median": 2.0}}},
+    }
+    aggregate = _aggregate_graph_summaries(
+        {key: {**value, "matched": True} for key, value in graph_summaries.items()},
+        ("a",),
+    )
+    assert aggregate["a"]["graphs_evaluated"] == 2
+    assert aggregate["a"]["mean_relative_quality_gap"] == pytest.approx(0.1)
+    assert aggregate["a"]["mean_runtime_ratio_to_graph_median"] == pytest.approx(1.5)
+
+
+def test_atof_benchmark_persists_marginal_events():
+    import networkx as nx
+    from experiments.run_state_of_art_benchmark import _run_atof
+
+    result = _run_atof(
+        nx.cycle_graph(20),
+        seed=5,
+        k=2,
+        variant="baseline",
+        hybrid_policy="fixed",
+    )
+
+    assert "marginal_events" in result["metadata"]
+    assert result["metadata"]["marginal_events"]
+    event = result["metadata"]["marginal_events"][0]
+    assert "local_gain" in event
+    assert "local_work" in event
+    assert "local_gain_per_work" in event
+    assert "hybrid_gain" in event
+    assert "hybrid_work" in event
+    assert "hybrid_gain_per_work" in event

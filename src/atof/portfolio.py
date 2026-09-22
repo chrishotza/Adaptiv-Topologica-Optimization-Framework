@@ -7,7 +7,12 @@ from typing import Any, Callable
 import networkx as nx
 
 from .provenance import graph_fingerprint, package_version
-from .partition import balance_error as partition_balance_error
+from .backends import run_kaminpar, run_mtkahypar
+from .partition import (
+    balance_error as partition_balance_error,
+    exact_balanced_block_weights,
+    rebalance_kway,
+)
 from .product import validate_product_graph
 from .selector import HeuristicRegimeSelector
 from .strategies import BLOCReloc, PartitionResult
@@ -128,57 +133,8 @@ def _rebalance_kway(
     membership: list[int],
     k: int,
 ) -> list[int]:
-    """Repair a partition to floor/ceil block sizes with deterministic local moves."""
-    if len(membership) != graph.number_of_nodes():
-        raise ValueError("membership length must match graph node count")
-    if k < 2:
-        raise ValueError("k must be at least 2")
-    if any(block < 0 or block >= k for block in membership):
-        raise ValueError("membership contains an invalid block label")
-
-    nodes = list(graph.nodes())
-    index = {node: i for i, node in enumerate(nodes)}
-    result = list(membership)
-    counts = [result.count(block) for block in range(k)]
-    lower = graph.number_of_nodes() // k
-    upper = (graph.number_of_nodes() + k - 1) // k
-
-    while True:
-        oversized = [block for block, count in enumerate(counts) if count > upper]
-        undersized = [block for block, count in enumerate(counts) if count < lower]
-        if not oversized and not undersized:
-            return result
-
-        source = min(oversized)
-        targets = tuple(undersized)
-
-        candidates: list[tuple[int, str, int, int]] = []
-        for node in nodes:
-            i = index[node]
-            if result[i] != source:
-                continue
-            source_neighbors = sum(
-                1
-                for neighbor in graph.neighbors(node)
-                if result[index[neighbor]] == source
-            )
-            for target in targets:
-                target_neighbors = sum(
-                    1
-                    for neighbor in graph.neighbors(node)
-                    if result[index[neighbor]] == target
-                )
-                delta = source_neighbors - target_neighbors
-                candidates.append((delta, repr(node), i, target))
-
-        if not candidates:
-            raise RuntimeError("could not repair partition balance")
-
-        _, _, chosen, target = min(candidates)
-        result[chosen] = target
-        counts[source] -= 1
-        counts[target] += 1
-
+    """Backward-compatible wrapper around the shared k-way repair contract."""
+    return rebalance_kway(graph, membership, k)
 
 
 
@@ -289,6 +245,41 @@ def _run_kahip(
     )
 
 
+
+def _run_kaminpar(
+    graph: nx.Graph,
+    *,
+    seed: int,
+    k: int,
+    context_name: str,
+) -> tuple[dict[Any, int], int, float]:
+    partition, edge_cut, balance, _runtime = run_kaminpar(
+        graph,
+        graph_id=graph_fingerprint(graph),
+        seed=seed,
+        k=k,
+        context_name=context_name,
+    )
+    return partition, edge_cut, balance
+
+
+def _run_mtkahypar(
+    graph: nx.Graph,
+    *,
+    seed: int,
+    k: int,
+    preset: str,
+) -> tuple[dict[Any, int], int, float]:
+    partition, edge_cut, balance, _runtime = run_mtkahypar(
+        graph,
+        graph_id=graph_fingerprint(graph),
+        seed=seed,
+        k=k,
+        preset=preset,
+    )
+    return partition, edge_cut, balance
+
+
 def _validate_candidate_partition(
     graph: nx.Graph,
     k: int,
@@ -316,6 +307,18 @@ def _validate_candidate_partition(
             raise ValueError("partition labels must be in [0, k)")
 
         edge_cut = _edge_cut(graph, candidate.partition)
+        target_weights = exact_balanced_block_weights(
+            graph.number_of_nodes(),
+            k,
+        )
+        counts = [
+            sum(1 for block in labels if block == target)
+            for target in range(k)
+        ]
+        if sorted(counts) != sorted(target_weights):
+            raise ValueError(
+                "partition violates exact floor/ceil balance contract"
+            )
         balance = partition_balance_error(graph, candidate.partition, k)
         postprocess = candidate.postprocess
         if postprocess == "none":
@@ -485,6 +488,54 @@ def optimize_portfolio(
                     package="kahip",
                     postprocess="balance_repair",
                     runner=lambda: _run_kahip(graph, seed=seed, k=k),
+                ),
+                _candidate(
+                    backend_id="kaminpar-default",
+                    name="KaMinPar(default)",
+                    package="kaminpar",
+                    postprocess="none",
+                    runner=lambda: _run_kaminpar(
+                        graph,
+                        seed=seed,
+                        k=k,
+                        context_name="default",
+                    ),
+                ),
+                _candidate(
+                    backend_id="kaminpar-strong",
+                    name="KaMinPar(strong)",
+                    package="kaminpar",
+                    postprocess="none",
+                    runner=lambda: _run_kaminpar(
+                        graph,
+                        seed=seed,
+                        k=k,
+                        context_name="strong",
+                    ),
+                ),
+                _candidate(
+                    backend_id="mtkahypar-default",
+                    name="Mt-KaHyPar(default)",
+                    package="mtkahypar",
+                    postprocess="none",
+                    runner=lambda: _run_mtkahypar(
+                        graph,
+                        seed=seed,
+                        k=k,
+                        preset="default",
+                    ),
+                ),
+                _candidate(
+                    backend_id="mtkahypar-quality",
+                    name="Mt-KaHyPar(quality)",
+                    package="mtkahypar",
+                    postprocess="none",
+                    runner=lambda: _run_mtkahypar(
+                        graph,
+                        seed=seed,
+                        k=k,
+                        preset="quality",
+                    ),
                 ),
             ]
         )

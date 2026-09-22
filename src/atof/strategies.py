@@ -85,8 +85,10 @@ class BLOCReloc:
             raise ValueError("tolerance must be >= 0")
         if hybrid_samples < 0:
             raise ValueError("hybrid_samples must be >= 0")
-        if hybrid_policy not in {"fixed", "adaptive"}:
-            raise ValueError("hybrid_policy must be 'fixed' or 'adaptive'")
+        if hybrid_policy not in {"fixed", "adaptive", "marginal"}:
+            raise ValueError(
+                "hybrid_policy must be 'fixed', 'adaptive', or 'marginal'"
+            )
         if hybrid_patience < 1:
             raise ValueError("hybrid_patience must be at least 1")
         if hybrid_probe_samples < 0:
@@ -124,6 +126,7 @@ class BLOCReloc:
             self.rng.shuffle(nodes)
             iteration_accepted = 0
             iteration_rejected = 0
+            local_work = 0
 
             for node in nodes:
                 source = partition[node]
@@ -141,6 +144,7 @@ class BLOCReloc:
                     if not (lower_size <= target_after <= upper_size):
                         continue
 
+                    local_work += self.graph.degree(node)
                     candidate = best + self._move_delta(
                         node,
                         source,
@@ -161,14 +165,19 @@ class BLOCReloc:
                     best = current
                     iteration_accepted += 1
 
+            local_gain = iteration_start - best
             hybrid_triggered = False
             hybrid_probe_triggered = False
+            hybrid_gain = 0.0
+            hybrid_work = 0
+            probe_work = 0
             should_hybrid = False
             if hybrid_period and controller.after_local_pass(
                 iteration=iteration,
                 start_cost=iteration_start,
                 end_cost=best,
                 tolerance=tolerance,
+                local_work=local_work,
             ):
                 should_hybrid = True
                 if hybrid_policy == "adaptive":
@@ -180,7 +189,7 @@ class BLOCReloc:
                         should_hybrid = True
                     else:
                         hybrid_probe_triggered = True
-                        witness = self._probe_two_swap(
+                        witness, probe_work = self._probe_two_swap(
                             partition,
                             samples=hybrid_probe_samples,
                             best=best,
@@ -199,16 +208,21 @@ class BLOCReloc:
                 if should_hybrid:
                     hybrid_triggered = True
                     hybrid_start = best
-                    h_accept, h_reject, best = self._two_swap(
+                    pass_samples = controller.hybrid_sample_budget(
+                        hybrid_samples
+                    )
+                    h_accept, h_reject, best, hybrid_work = self._two_swap(
                         partition,
                         tolerance=tolerance,
-                        samples=hybrid_samples,
+                        samples=pass_samples,
                         best=best,
                     )
+                    hybrid_gain = hybrid_start - best
                     controller.record_hybrid_pass(
                         iteration=iteration,
                         start_cost=hybrid_start,
                         end_cost=best,
+                        work=hybrid_work,
                     )
                     iteration_accepted += h_accept
                     iteration_rejected += h_reject
@@ -222,6 +236,22 @@ class BLOCReloc:
                     "edge_cut": edge_cut(self.graph, partition),
                     "accepted": iteration_accepted,
                     "rejected": iteration_rejected,
+                    "local_gain": local_gain,
+                    "local_work": local_work,
+                    "local_gain_per_work": (
+                        local_gain / local_work if local_work else 0.0
+                    ),
+                    "hybrid_gain": hybrid_gain,
+                    "hybrid_work": hybrid_work,
+                    "probe_work": probe_work,
+                    "total_work": local_work + hybrid_work + probe_work,
+                    "hybrid_samples": (
+                        int(pass_samples) if hybrid_triggered else 0
+                    ),
+                    "hybrid_gain_per_work": (
+                        hybrid_gain / hybrid_work if hybrid_work else 0.0
+                    ),
+                    "total_gain": iteration_start - best,
                     "hybrid": int(hybrid_triggered),
                     "hybrid_probe": int(hybrid_probe_triggered),
                 }
@@ -302,10 +332,10 @@ class BLOCReloc:
         *,
         samples: int,
         best: float,
-    ) -> bool:
-        """Return whether a boundary-aware sampled swap finds an improvement."""
+    ) -> tuple[bool, int]:
+        """Return witness result and structural work spent by the probe."""
         if samples <= 0:
-            return False
+            return False, 0
 
         boundary = [
             node
@@ -319,15 +349,18 @@ class BLOCReloc:
 
         blocks = list(by_block)
         if len(blocks) < 2:
-            return False
+            return False, 0
 
+        work = 0
         for _ in range(samples):
             block_u, block_v = self.probe_rng.sample(blocks, 2)
             u = self.probe_rng.choice(by_block[block_u])
             v = self.probe_rng.choice(by_block[block_v])
+            direct_edge = self.graph.has_edge(u, v)
+            work += self.graph.degree(u) + self.graph.degree(v) - (2 if direct_edge else 0)
             if best + self._swap_delta(u, v, partition) < best - 1e-12:
-                return True
-        return False
+                return True, work
+        return False, work
 
     def _two_swap(
         self,
@@ -336,14 +369,15 @@ class BLOCReloc:
         tolerance: float,
         samples: int,
         best: float,
-    ) -> tuple[int, int, float]:
+    ) -> tuple[int, int, float, int]:
         del tolerance  # A swap preserves every block size exactly.
         nodes = list(self.graph.nodes())
         if len(nodes) < 2:
-            return 0, 0, best
+            return 0, 0, best, 0
 
         accepted = 0
         rejected = 0
+        work = 0
 
         for _ in range(samples):
             u, v = self.rng.sample(nodes, 2)
@@ -352,6 +386,8 @@ class BLOCReloc:
             if block_u == block_v:
                 continue
 
+            direct_edge = self.graph.has_edge(u, v)
+            work += self.graph.degree(u) + self.graph.degree(v) - (2 if direct_edge else 0)
             candidate = best + self._swap_delta(u, v, partition)
 
             if candidate < best - 1e-12:
@@ -361,4 +397,4 @@ class BLOCReloc:
             else:
                 rejected += 1
 
-        return accepted, rejected, best
+        return accepted, rejected, best, work

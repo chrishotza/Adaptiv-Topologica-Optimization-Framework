@@ -1,0 +1,74 @@
+name: SEA Set A gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Number of Set A graphs to benchmark (118 for full gate)"
+        required: true
+        default: "12"
+        type: string
+      manifest_only:
+        description: "Validate corpus and provenance without running solver comparisons"
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+
+jobs:
+  set-a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ATOF plus state-of-art backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[metis,kahip,kaminpar,mtkahypar,dev]"
+
+      - name: Download SEA Set A
+        run: |
+          curl --fail --location --retry 5 \
+            "https://zenodo.org/records/19387774/files/set_a.zip?download=1" \
+            --output set_a.zip
+
+      - name: Verify published MD5
+        run: |
+          echo "94606409c10bced915890cf6e6fda213  set_a.zip" | md5sum -c -
+
+      - name: Extract Set A
+        run: |
+          mkdir -p data/set_a
+          unzip -q set_a.zip -d data/set_a
+
+      - name: Build corpus manifest
+        run: |
+          python -m experiments.run_sea_set_a_gate \
+            --set-a-dir data/set_a \
+            --set-a-zip set_a.zip \
+            --output results/state_of_art/set_a_manifest.json \
+            --manifest-only
+
+      - name: Run controlled Set A gate
+        if: ${{ github.event.inputs.manifest_only != 'true' }}
+        run: |
+          python -m experiments.run_sea_set_a_gate \
+            --set-a-dir data/set_a \
+            --set-a-zip set_a.zip \
+            --limit ${{ inputs.limit }} \
+            --output results/state_of_art/set_a_gate.json
+
+      - name: Upload gate artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sea-set-a-gate
+          path: |
+            results/state_of_art/set_a_manifest.json
+            results/state_of_art/set_a_gate.json
+          if-no-files-found: error

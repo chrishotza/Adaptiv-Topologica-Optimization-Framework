@@ -177,3 +177,72 @@ def test_portfolio_is_reproducible_for_same_seed():
     assert first["result"]["partition"] == second["result"]["partition"]
     assert first["result"]["edge_cut"] == second["result"]["edge_cut"]
     assert first["provenance"]["graph_fingerprint"] == second["provenance"]["graph_fingerprint"]
+
+
+def test_portfolio_reports_state_of_art_optional_backends(monkeypatch):
+    import atof.portfolio as portfolio
+
+    graph = nx.path_graph(8)
+
+    monkeypatch.setattr(
+        portfolio,
+        "_run_kaminpar",
+        lambda graph, seed, k, context_name: (
+            {node: node % k for node in graph},
+            7,
+            0.0,
+        ),
+    )
+    monkeypatch.setattr(
+        portfolio,
+        "_run_mtkahypar",
+        lambda graph, seed, k, preset: (
+            {node: node % k for node in graph},
+            7,
+            0.0,
+        ),
+    )
+
+    result = optimize_portfolio(graph, k=2, seed=42, iterations=5, include_optional=True)
+    ids = {item.id for item in result.candidates}
+    assert "kaminpar-default" in ids
+    assert "kaminpar-strong" in ids
+    assert "mtkahypar-default" in ids
+    assert "mtkahypar-quality" in ids
+
+
+def test_backend_manifest_includes_state_of_art_backends():
+    from atof.backends import inspect_backends
+
+    ids = {item.id for item in inspect_backends()}
+    assert "kaminpar-default" in ids
+    assert "kaminpar-strong" in ids
+    assert "mtkahypar-default" in ids
+    assert "mtkahypar-quality" in ids
+
+
+def test_portfolio_candidate_validation_rejects_non_floor_ceil_balance():
+    graph = nx.path_graph(10)
+    partition = {
+        0: 0, 1: 0, 2: 0, 3: 0,
+        4: 1, 5: 1, 6: 1, 7: 1,
+        8: 2, 9: 2,
+    }
+    candidate = PortfolioCandidate(
+        id="fake",
+        name="fake",
+        available=True,
+        edge_cut=0,
+        balance_error=0.0,
+        runtime_seconds=0.1,
+        partition=partition,
+        backend_version="test",
+        postprocess="none",
+    )
+
+    validated = _validate_candidate_partition(graph, 3, candidate)
+
+    assert not validated.available
+    assert validated.partition is None
+    assert validated.error
+    assert "floor/ceil balance contract" in validated.error

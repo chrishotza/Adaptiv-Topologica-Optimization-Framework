@@ -1,0 +1,73 @@
+name: KaMinPar crash probe
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install probe dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install "kaminpar>=3.7.3,<4"
+
+      - name: Probe exact matrix
+        run: |
+          python experiments/probe_kaminpar_sigsegv.py             --output results/kaminpar_sigsegv_probe.json
+
+      - name: Validate probe artifact
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/kaminpar_sigsegv_probe.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["total"] == payload["expected_total"] == 144
+          assert payload["graph"] == "development/barabasi_albert"
+          assert payload["graph_seed"] == 42
+          assert payload["solver_seeds"] == [42, 101, 2024]
+          assert payload["k_values"] == [4, 8, 32, 64]
+          assert payload["epsilons"] == [0.0, 0.03]
+          assert payload["contexts"] == [
+              "default",
+              "strong",
+              "fast",
+              "largek",
+              "largek-strong",
+              "largek-fast",
+          ]
+          assert len(payload["rows"]) == 144
+          PY
+
+      - name: Upload diagnostic artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaminpar-sigsegv-probe
+          path: results/kaminpar_sigsegv_probe.json
+          if-no-files-found: error

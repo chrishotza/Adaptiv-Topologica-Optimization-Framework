@@ -14,7 +14,7 @@ ATOF is a Python graph-partitioning and graph-optimization tool for problems tha
 
 - **balanced graph partitioning in Python** and NetworkX workflows;
 - **k-way graph partitioning** with the native ATOF Engine;
-- comparing **BLOC-RELOC, Kernighan-Lin, METIS, and KaHIP** under a common contract;
+- comparing **BLOC-RELOC, Kernighan-Lin, METIS, KaHIP, KaMinPar, and Mt-KaHyPar** under a common contract;
 - giving an **AI agent or automation pipeline** a machine-readable graph optimizer;
 - exporting a reproducible node-to-block mapping for downstream systems.
 
@@ -75,10 +75,10 @@ Request the partition mapping:
 atof solve examples/demo.edgelist --partition-output partition.csv
 ```
 
-For the optional METIS and KaHIP backends:
+For the optional external backends:
 
 ```bash
-python -m pip install -e ".[metis,kahip]"
+python -m pip install -e ".[metis,kahip,kaminpar,mtkahypar]"
 ```
 
 ## Why ATOF
@@ -89,7 +89,7 @@ ATOF is built around a simple interface problem:
 - AI agents need small, explicit, machine-readable contracts;
 - benchmark claims need provenance instead of hand-written summaries.
 
-ATOF provides one surface over a small portfolio of open backends and keeps the evidence boundary explicit.
+ATOF provides one surface over a growing portfolio of open backends and keeps the evidence boundary explicit. The repository's state-of-the-art lab is intentionally open: contributors can add backends, reproduce published protocols, and turn validated research advances into usable capabilities.
 
 ## Product architecture
 
@@ -101,15 +101,24 @@ ATOF provides one surface over a small portfolio of open backends and keeps the 
         ATOF Engine              ATOF Portfolio
         BLOC-RELOC          empirical backend composition
               |                       |
-              |          +------------+-------------+
-              |          |            |             |
-              |        BLOC       NetworkX       METIS / KaHIP
-              |                       |
-              +-----------+-----------+
-                          |
-                  JSON + provenance
-                          |
-                 partition export
+              |             |              |
+              |             |              |
+         BLOC-RELOC     NetworkX       optional external
+                            KL          METIS / KaHIP
+                                        |
+                                        | isolated workers
+                                        v
+                                    KaMinPar /
+                                    Mt-KaHyPar
+              |             |              |
+              +-------------+--------------+
+                            |
+                   common portfolio contract
+                   balance + unweighted cut
+                            |
+                   JSON + provenance
+                            |
+                    partition export
 ```
 
 ### ATOF Engine
@@ -139,9 +148,11 @@ The portfolio is the composition layer:
 - BLOC-RELOC affinity;
 - NetworkX Kernighan-Lin;
 - METIS via PyMetis, when installed;
-- KaHIP via KaFFPa-Strong, when installed.
+- KaHIP via KaFFPa-Strong, when installed;
+- KaMinPar default/strong, when installed;
+- Mt-KaHyPar default/quality, when installed.
 
-The current portfolio contract uses **k-way balanced partitioning for k>=2** on undirected, simple, unweighted graphs. NetworkX Kernighan-Lin remains a k=2 candidate; METIS, KaHIP, and the native BLOC-RELOC paths can serve k-way requests.
+The current portfolio contract uses **k-way balanced partitioning for k>=2** on undirected, simple, unweighted graphs. Optional native backends (KaMinPar and Mt-KaHyPar) execute through isolated worker processes so a native crash is contained to that candidate. NetworkX Kernighan-Lin remains a k=2 candidate; METIS, KaHIP, and the native BLOC-RELOC paths can serve k-way requests.
 
 Selection is empirical: lowest observed edge cut, then balance, runtime, and backend name as tie-breakers.
 
@@ -222,7 +233,7 @@ See [docs/claims.md](docs/claims.md) and [docs/open-source-access-benchmark.md](
 | Portfolio partitioning | k-way (`k>=2`) |
 | Input | edge-list, JSON, GraphML, GEXF, GML |
 | Output | JSON + JSON/CSV/TSV partition mapping |
-| Optional engines | METIS / KaHIP |
+| Optional engines | METIS / KaHIP / KaMinPar / Mt-KaHyPar |
 | Evidence | reproducible provenance + benchmark-qualified claims |
 
 The public graph model remains unweighted: source edge `weight` attributes are accepted as metadata but ignored. Portfolio mode supports balanced `k>=2` unweighted partitioning; NetworkX Kernighan-Lin is available only for `k=2`, while METIS/KaHIP and ATOF Engine support k-way requests.
@@ -286,6 +297,8 @@ Comparative statements should name the graph or corpus, objective, protocol, env
 - [Claims and evidence](docs/claims.md)
 - [Open-source access benchmark](docs/open-source-access-benchmark.md)
 - [Benchmark protocol](docs/benchmark-protocol.md)
+- [Open state-of-the-art lab](docs/state-of-art-open-lab.md)
+- [Contributing](CONTRIBUTING.md)
 - [Research findings](research/generalization-findings-2026-09-21.md)
 - [AI agent rules](AGENTS.md)
 - [llms.txt](llms.txt)
