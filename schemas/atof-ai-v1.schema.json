@@ -40,7 +40,8 @@
         "module": {"type": "string"},
         "profile": {"type": "string"},
         "optimize": {"type": "string"},
-        "version": {"type": "string"},        "short_flags": {
+        "version": {"type": "string"},
+        "short_flags": {
           "type": "object",
           "required": [
             "compact",
@@ -55,7 +56,72 @@
           ],
           "properties": {
             "compact": {"const": "-c"},
-            "engine": {
+            "engine": {"const": "-e"},
+            "seed": {"const": "-s"},
+            "iterations": {"const": "-i"},
+            "format": {"const": "-f"},
+            "output": {"const": "-o"},
+            "partition_output": {"const": "-p"},
+            "full": {"const": "-F"},
+            "k": {"const": "-k"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "required": [
+        "formats",
+        "default_format",
+        "default_seed",
+        "stdin",
+        "json",
+        "node_id_serialization"
+      ],
+      "properties": {
+        "formats": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "default_format": {"const": "auto"},
+        "default_seed": {"type": "integer"},
+        "json": {
+          "type": "object",
+          "required": ["nodes", "edges"],
+          "properties": {
+            "nodes": {"const": "optional array of node IDs"},
+            "edges": {"const": "array of 2-item node-ID arrays"}
+          },
+          "additionalProperties": false
+        },
+        "node_id_serialization": {"type": "string"},
+        "stdin": {
+          "type": "object",
+          "required": ["path", "formats"],
+          "properties": {
+            "path": {"const": "-"},
+            "formats": {
+              "type": "array",
+              "items": {"type": "string"}
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "engine",
+        "portfolio",
+        "exports",
+        "provenance"
+      ],
+      "properties": {
+        "engine": {
           "type": "object",
           "required": [
             "k",
