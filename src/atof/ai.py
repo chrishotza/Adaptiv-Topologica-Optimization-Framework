@@ -22,7 +22,16 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "profile": "atof profile <graph>",
             "optimize": "atof optimize <graph> --engine portfolio",
             "version": "atof --version",
-            "short_flags": "-c compact, -e engine, -s seed, -i iterations, -f format, -o output",
+            "short_flags": {
+                "compact": "-c",
+                "engine": "-e",
+                "seed": "-s",
+                "iterations": "-i",
+                "format": "-f",
+                "output": "-o",
+                "partition_output": "-p",
+                "full": "-F"
+            },
         },
         "input": {
             "formats": ["edgelist", "graphml", "gexf", "gml"],
