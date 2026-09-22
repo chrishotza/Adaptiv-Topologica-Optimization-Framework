@@ -213,6 +213,8 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "optimize":
         try:
+            if args.engine == "portfolio" and args.variant != "auto":
+                raise ValueError("--variant applies only to --engine bloc")
             graph = load_graph(args.path, format=args.format)
             if args.engine == "portfolio":
                 result = optimize_portfolio(
