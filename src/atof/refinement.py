@@ -57,6 +57,11 @@ class RefinementController:
         if self.stalled_iterations < self.patience:
             return False
         if (
+            self.last_hybrid_iteration is not None
+            and iteration - self.last_hybrid_iteration < self.period
+        ):
+            return False
+        if (
             self.last_probe_iteration is not None
             and iteration - self.last_probe_iteration < self.period
         ):
