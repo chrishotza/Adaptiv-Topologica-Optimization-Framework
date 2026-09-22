@@ -139,6 +139,8 @@ def _run_atof(
                 {
                     "iteration": int(event["iteration"]),
                     "local_gain": float(event["local_gain"]),
+                    "local_work": int(event["local_work"]),
+                    "local_gain_per_work": float(event["local_gain_per_work"]),
                     "hybrid_gain": float(event["hybrid_gain"]),
                     "hybrid_work": int(event["hybrid_work"]),
                     "probe_work": int(event["probe_work"]),
