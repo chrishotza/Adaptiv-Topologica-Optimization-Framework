@@ -66,7 +66,9 @@ def test_optimize_graph_supports_opt_in_hybrid_refinement():
         "period": 5,
         "samples": 10,
         "patience": 2,
+        "probe_samples": 20,
         "passes": 1,
+        "probes": 0,
     }
 
 
@@ -92,7 +94,9 @@ def test_optimize_graph_supports_adaptive_hybrid_policy():
     assert strategy["period"] == 3
     assert strategy["samples"] == 10
     assert strategy["patience"] == 2
-    assert strategy["passes"] >= 1
+    assert strategy["probe_samples"] == 20
+    assert strategy["passes"] >= 0
+    assert strategy["probes"] >= strategy["passes"]
 
 
 def test_optimize_graph_returns_balanced_product_result():
