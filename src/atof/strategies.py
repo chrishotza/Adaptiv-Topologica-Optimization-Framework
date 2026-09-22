@@ -81,6 +81,7 @@ class BLOCReloc:
         hybrid_witness_patience: int = 2,
         hybrid_credit_threshold: float = 1.5,
         hybrid_credit_max_skips: int = 1,
+        hybrid_credit_probe_samples: int = 20,
     ) -> PartitionResult:
         if iterations < 1:
             raise ValueError("iterations must be >= 1")
@@ -100,6 +101,8 @@ class BLOCReloc:
             raise ValueError("hybrid_credit_threshold must be > 0")
         if hybrid_credit_max_skips < 0:
             raise ValueError("hybrid_credit_max_skips must be >= 0")
+        if hybrid_credit_probe_samples < 0:
+            raise ValueError("hybrid_credit_probe_samples must be >= 0")
         controller = None
         credit_controller = None
         if hybrid_policy != "credit":
@@ -191,6 +194,17 @@ class BLOCReloc:
                 checkpoint = hybrid_period and (iteration + 1) % hybrid_period == 0
                 if checkpoint:
                     should_hybrid = credit_controller.should_hybrid()
+                    if (
+                        not should_hybrid
+                        and hybrid_credit_probe_samples > 0
+                    ):
+                        hybrid_probe_triggered = True
+                        witness = self._probe_two_swap(
+                            partition,
+                            samples=hybrid_credit_probe_samples,
+                            best=best,
+                        )
+                        should_hybrid = witness
                     credit_controller.record_decision(should_hybrid)
             elif hybrid_period and controller is not None and controller.after_local_pass(
                 iteration=iteration,
