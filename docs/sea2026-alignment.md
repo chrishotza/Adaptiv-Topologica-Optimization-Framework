@@ -78,7 +78,7 @@ The SEA 2026 artifact identifies Mt-KaHyPar software version 1.5.3 and a Softwar
 - `mt-kahypar/partition/coarsening/multilevel/ml/model_definition.h`;
 - embedded model parameter headers such as `Data20-FeatSrc20.h`.
 
-The current ATOF Mt-KaHyPar adapter intentionally uses the current PyPI release 1.6.2 as a clean external baseline. It does not claim to reproduce the SEA learned-coarsening implementation. Reproducing the paper requires a separate build against the archived 1.5.3 snapshot, because the paper's learned model, feature pipeline, compiler flags, and configuration belong to that software version.
+The current ATOF Mt-KaHyPar adapter intentionally uses the current PyPI release 1.6.2 as a clean external baseline. It requests epsilon=0 for the repository's exact floor/ceil contract and does not claim to reproduce the SEA learned-coarsening implementation. Reproducing the paper requires a separate build against the archived 1.5.3 snapshot, because the paper's learned model, feature pipeline, compiler flags, and configuration belong to that software version.
 
 Paper software artifact: https://doi.org/10.4230/artifacts.26212
 Software Heritage snapshot: https://archive.softwareheritage.org/swh:1:dir:0285e232ceaf8b004e75d01d1e5f4e6984770663;origin=https://github.com/kahypar/mt-kahypar;visit=swh:1:snp:c52ed946227f7476ef4ddbf78f09bb757c686d87;anchor=swh:1:rev:6d12d9cf210390624f3757e9b5399469d2d2ae68
