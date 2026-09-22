@@ -5,8 +5,11 @@ on:
   pull_request:
     paths:
       - "src/atof/dimacs.py"
+      - "src/atof/snap.py"
+      - "experiments/run_transfer_block.py"
       - "experiments/run_independent_dimacs_transfer.py"
       - "tests/test_dimacs.py"
+      - "tests/test_transfer_blocks.py"
       - ".github/workflows/independent-dimacs-transfer.yml"
       - "experiments/run_router_kahip_confirmatory.py"
       - "experiments/run_router_scaling_ablation.py"
@@ -21,8 +24,11 @@ on:
       - "research/independent-dimacs-transfer"
     paths:
       - "src/atof/dimacs.py"
+      - "src/atof/snap.py"
+      - "experiments/run_transfer_block.py"
       - "experiments/run_independent_dimacs_transfer.py"
       - "tests/test_dimacs.py"
+      - "tests/test_transfer_blocks.py"
       - ".github/workflows/independent-dimacs-transfer.yml"
       - "experiments/run_router_kahip_confirmatory.py"
       - "experiments/run_router_scaling_ablation.py"
@@ -33,9 +39,26 @@ on:
       - "pyproject.toml"
 
 jobs:
-  independent-transfer:
+  benchmark-blocks:
+    name: Benchmark ${{ matrix.block }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        block:
+          - development
+          - external
+          - snap
+          - snap_scalability_ca_grqc
+          - snap_scalability_ca_hepth
+          - snap_scalability_wiki_vote
+          - dimacs_jazz
+          - dimacs_email_urv
+          - dimacs_pgp_giant
+          - dimacs_as_22july06
+          - dimacs_power
+          - dimacs_astro_ph
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -44,10 +67,60 @@ jobs:
       - name: Install
         run: python -m pip install -e ".[dev,kahip,metis,analysis]"
       - name: Unit tests
-        run: pytest tests/test_dimacs.py
-      - name: Run independent transfer
-        run: python -m experiments.run_independent_dimacs_transfer
-      - name: Validate result
+        run: |
+          pytest tests/test_dimacs.py tests/test_transfer_blocks.py
+      - name: Run benchmark block
+        run: |
+          mkdir -p results/generalization/blocks
+          python -m experiments.run_transfer_block             --block "${{ matrix.block }}"             --output "results/generalization/blocks/${{ matrix.block }}.json"
+      - name: Validate block
+        run: |
+          test -s "results/generalization/blocks/${{ matrix.block }}.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          block = os.environ["BLOCK"]
+          payload = json.loads(
+              Path(f"results/generalization/blocks/{block}.json").read_text()
+          )
+          assert payload["graph_count"] == len(payload["graph_names"])
+          assert payload["protocol_signature"]["candidate_strategy_count"] == 9
+          assert len(payload["protocol_signature"]["candidate_strategies"]) == 9
+          print("validated block:", block, payload["graph_names"])
+          PY
+        env:
+          BLOCK: ${{ matrix.block }}
+      - name: Upload benchmark block
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-block-${{ matrix.block }}
+          path: results/generalization/blocks/${{ matrix.block }}.json
+          if-no-files-found: error
+
+  aggregate-transfer:
+    name: Aggregate reusable blocks
+    needs: benchmark-blocks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: python -m pip install -e ".[dev,kahip,metis,analysis]"
+      - name: Download benchmark blocks
+        uses: actions/download-artifact@v4
+        with:
+          pattern: atof-block-*
+          path: results/generalization/blocks
+          merge-multiple: true
+      - name: Aggregate without recomputation
+        run: |
+          python -m experiments.run_independent_dimacs_transfer             --blocks-dir results/generalization/blocks             --output results/generalization/independent_dimacs_transfer.json
+      - name: Validate aggregate
         run: |
           test -s results/generalization/independent_dimacs_transfer.json
           python - <<'PY'
@@ -67,18 +140,18 @@ jobs:
               "dimacs",
           }
           assert sum(item["graphs"] for item in payload["corpora"].values()) == 26
-          assert "metis_multilevel_balanced" in payload["candidate_strategies"]
-          assert "kahip_kaffpa_strong_balanced" in payload["candidate_strategies"]
+          assert len(payload["blocks"]) == 12
           assert set(payload["configs"]) == {
               "all_iqr_l2",
               "global_paths_iqr_l2",
               "global_paths_minmax_l2",
           }
           assert payload["corpora"]["dimacs"]["graphs"] == 6
-          print("validated independent DIMACS transfer:", payload["total_graphs"], "graphs")
+          print("validated aggregate:", payload["total_graphs"], "graphs from", len(payload["blocks"]), "blocks")
           PY
-      - name: Upload artifact
+      - name: Upload aggregate
         uses: actions/upload-artifact@v4
         with:
           name: atof-independent-dimacs-transfer
           path: results/generalization/independent_dimacs_transfer.json
+          if-no-files-found: error
