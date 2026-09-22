@@ -1,0 +1,117 @@
+name: SEA 2026 reference smoke test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "docs/sea2026-alignment.md"
+      - "docs/state-of-art-2026-map.md"
+      - ".github/workflows/sea2026-reference-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout ATOF
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build build-essential
+
+      - name: Checkout exact SEA 2026 Mt-KaHyPar snapshot
+        run: |
+          git clone --recurse-submodules https://github.com/kahypar/mt-kahypar.git sea-mtkahypar
+          cd sea-mtkahypar
+          git checkout 6d12d9cf210390624f3757e9b5399469d2d2ae68
+          git submodule update --init --recursive
+
+      - name: Configure exact snapshot
+        run: |
+          cmake -S sea-mtkahypar -B sea-mtkahypar/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DKAHYPAR_DOWNLOAD_BOOST=ON \
+            -DKAHYPAR_DOWNLOAD_TBB=ON \
+            -DKAHYPAR_ENABLE_GRAPH_PARTITIONING_FEATURES=ON \
+            -DKAHYPAR_ENABLE_HIGHEST_QUALITY_FEATURES=ON \
+            -DKAHYPAR_ENABLE_ARCH_COMPILE_OPTIMIZATIONS=ON \
+            -DKAHYPAR_ENABLE_EXTENDED_INSTRUCTIONS=ON \
+            -DKAHYPAR_ENABLE_THREAD_PINNING=OFF \
+            -DKAHYPAR_ENABLE_TESTING=OFF
+
+      - name: Build Mt-KaHyPar
+        run: cmake --build sea-mtkahypar/build --target MtKaHyPar --parallel 2
+
+      - name: Generate Karate graph in METIS format
+        run: |
+          python - <<'PY'
+          import networkx as nx
+          from pathlib import Path
+
+          graph = nx.karate_club_graph()
+          nodes = list(graph.nodes())
+          index = {node: i + 1 for i, node in enumerate(nodes)}
+          lines = [f"{len(nodes)} {graph.number_of_edges()}"]
+          for node in nodes:
+              neighbors = sorted(index[n] for n in graph.neighbors(node))
+              lines.append(" ".join(str(n) for n in neighbors))
+          Path("karate.metis").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          PY
+
+      - name: Run SEA learned-coarsening configuration
+        run: |
+          mkdir -p sea-output
+          ./sea-mtkahypar/build/mt-kahypar/application/MtKaHyPar \
+            -h karate.metis \
+            --instance-type=graph \
+            --input-file-format=metis \
+            --preset=default \
+            -o cut \
+            -k 2 \
+            -e 0 \
+            -t 2 \
+            --seed=42 \
+            --show-detailed-timings=true \
+            --write-partition-file=true \
+            --partition-output-folder=sea-output
+
+      - name: Run modified baseline configuration
+        run: |
+          mkdir -p baseline-output
+          ./sea-mtkahypar/build/mt-kahypar/application/MtKaHyPar \
+            -h karate.metis \
+            --instance-type=graph \
+            --input-file-format=metis \
+            --preset=default \
+            --c-guiding-by-integrated-model=false \
+            --c-rating-degree-similarity-policy=always_accept \
+            -o cut \
+            -k 2 \
+            -e 0 \
+            -t 2 \
+            --seed=42 \
+            --show-detailed-timings=true \
+            --write-partition-file=true \
+            --partition-output-folder=baseline-output
+
+      - name: Verify partition outputs
+        run: |
+          test -n "$(find sea-output -type f | head -n 1)"
+          test -n "$(find baseline-output -type f | head -n 1)"
+
+      - name: Upload SEA smoke artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sea2026-reference-smoke
+          path: |
+            sea-output
+            baseline-output
+            karate.metis
+          if-no-files-found: error
