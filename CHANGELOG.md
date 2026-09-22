@@ -4,6 +4,8 @@
 
 ### Added
 
+- Stable `atof.portfolio.v1` result schema and self-identifying Portfolio responses for AI validation.
+
 - K-way `solve` alias support via `--k`, exposing the Portfolio k-way contract through the shortest AI-facing command path.
 
 - K-way Portfolio support for balanced k>=2 partitions, with NetworkX Kernighan-Lin retained as a k=2-only candidate and METIS/KaHIP exposed for k-way runs.
