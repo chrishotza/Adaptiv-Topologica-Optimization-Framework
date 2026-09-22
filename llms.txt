@@ -58,6 +58,7 @@ JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 - Do not pass `--variant` with Portfolio mode; ignored optimization choices are rejected.
 - In Engine results, `result.weighted_cost` is an internal objective value and does not mean input edge weights were used.
 - In Portfolio mode, `result.edge_cut` is the common selection metric.
+- Machine-readable partition outputs canonicalize node IDs with `str()`; stringification collisions are rejected.
 
 ## Evidence rule
 

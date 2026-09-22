@@ -167,6 +167,14 @@ def test_write_partition_mapping_supports_generic_portfolio_mapping(tmp_path):
     ]
 
 
+
+def test_product_rejects_node_ids_that_collide_after_serialization():
+    graph = nx.Graph()
+    graph.add_nodes_from([1, "1"])
+
+    with pytest.raises(ValueError, match="unique after string serialization"):
+        optimize_graph(graph)
+
 def test_optimize_graph_rejects_unsupported_graph_models():
     directed = nx.DiGraph([(0, 1), (1, 2)])
     with pytest.raises(ValueError, match="undirected"):

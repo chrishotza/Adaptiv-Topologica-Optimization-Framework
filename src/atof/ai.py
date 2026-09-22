@@ -44,6 +44,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 "nodes": "optional array of node IDs",
                 "edges": "array of 2-item node-ID arrays",
             },
+            "node_id_serialization": "partition outputs canonicalize node IDs with str(); collisions after string conversion are rejected",
         },
         "capabilities": {
             "engine": {
@@ -105,6 +106,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "current common portfolio objective is unweighted edge cut",
             "Engine affinity uses a degree-affinity weighted surrogate and reports unweighted edge_cut",
             "weight attributes are accepted as input metadata but ignored by the current unweighted graph model",
+            "Machine-readable partition outputs canonicalize node IDs with str(); node IDs that collide after string conversion are rejected.",
         ],
     }
     return manifest if full else {

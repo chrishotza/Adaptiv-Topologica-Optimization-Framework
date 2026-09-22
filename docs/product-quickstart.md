@@ -53,7 +53,7 @@ A JSON graph uses `nodes` and `edges`:
 {"nodes":["a","b","isolated"],"edges":[["a","b"]]}
 ```
 
-The `nodes` array preserves isolated nodes. The `edges` array contains 2-item node-ID arrays.
+The `nodes` array preserves isolated nodes. The `edges` array contains 2-item node-ID arrays. Machine-readable partition outputs canonicalize node IDs with `str()`. Inputs with distinct node IDs that would serialize to the same string are rejected.
 
 ```bash
 atof solve graph.json

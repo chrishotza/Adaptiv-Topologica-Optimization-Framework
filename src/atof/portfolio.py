@@ -7,6 +7,7 @@ from typing import Any, Callable
 import networkx as nx
 
 from .provenance import graph_fingerprint, package_version
+from .product import validate_product_graph
 from .selector import HeuristicRegimeSelector
 from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfile, TopologyProfiler
@@ -325,12 +326,7 @@ def optimize_portfolio(
         raise ValueError("portfolio mode currently supports k=2")
     if iterations < 1:
         raise ValueError("iterations must be at least 1")
-    if graph.is_directed():
-        raise ValueError("portfolio mode requires an undirected graph")
-    if graph.is_multigraph():
-        raise ValueError("portfolio mode requires a simple graph")
-    if graph.number_of_nodes() < 2:
-        raise ValueError("portfolio mode requires at least 2 nodes")
+    validate_product_graph(graph)
 
     topology = TopologyProfiler().profile(graph)
     recommendation = HeuristicRegimeSelector().recommend(topology)

@@ -19,7 +19,7 @@ SUPPORTED_INPUT_FORMATS = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
 PARTITION_OUTPUT_FORMATS = ("auto", "json", "csv", "tsv")
 
 
-def _validate_product_graph(graph: nx.Graph) -> None:
+def validate_product_graph(graph: nx.Graph) -> None:
     """Validate the explicit graph contract used by the public product surface."""
     if graph.is_directed():
         raise ValueError("ATOF product mode requires an undirected graph")
@@ -27,6 +27,13 @@ def _validate_product_graph(graph: nx.Graph) -> None:
         raise ValueError("ATOF product mode requires a simple graph")
     if graph.number_of_nodes() < 2:
         raise ValueError("ATOF product mode requires at least 2 nodes")
+    # Machine-readable partition outputs canonicalize node IDs with str().
+    # Reject collisions such as 1 and "1" before serialization can merge them.
+    serialized_ids = [str(node) for node in graph.nodes()]
+    if len(serialized_ids) != len(set(serialized_ids)):
+        raise ValueError(
+            "ATOF product mode requires node IDs to be unique after string serialization"
+        )
     # Edge attributes such as "weight" may be present in source graphs.
     # The current MVP graph model is explicitly unweighted, so these attributes
     # are ignored rather than interpreted as edge costs.
@@ -164,7 +171,7 @@ def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
             graph = _load_json_graph_payload(json.loads(sys.stdin.read()))
         else:
             graph = nx.read_edgelist(StringIO(sys.stdin.read()), data=False)
-        _validate_product_graph(graph)
+        validate_product_graph(graph)
         return graph
 
     source = Path(path)
