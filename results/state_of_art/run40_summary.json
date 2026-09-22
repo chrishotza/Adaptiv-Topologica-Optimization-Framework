@@ -121,5 +121,51 @@
       "tied": 9,
       "worse": 8
     }
+  },
+  "absolute_excess_edge_cut": {
+    "bloc_reloc_baseline": {
+      "mean_excess_edge_cut": 1791.4,
+      "median_excess_edge_cut": 62
+    },
+    "bloc_reloc_affinity": {
+      "mean_excess_edge_cut": 2123.35,
+      "median_excess_edge_cut": 62.167
+    },
+    "bloc_reloc_hybrid_fixed": {
+      "mean_excess_edge_cut": 1671.483,
+      "median_excess_edge_cut": 16
+    },
+    "bloc_reloc_adaptive": {
+      "mean_excess_edge_cut": 1678.167,
+      "median_excess_edge_cut": 16
+    },
+    "kernighan_lin": {
+      "mean_excess_edge_cut": 105.867,
+      "median_excess_edge_cut": 1.667
+    },
+    "metis": {
+      "mean_excess_edge_cut": 645.217,
+      "median_excess_edge_cut": 1.667
+    },
+    "kahip": {
+      "mean_excess_edge_cut": 648.217,
+      "median_excess_edge_cut": 0
+    },
+    "kaminpar_default": {
+      "mean_excess_edge_cut": 619.317,
+      "median_excess_edge_cut": 0.333
+    },
+    "kaminpar_strong": {
+      "mean_excess_edge_cut": 619.317,
+      "median_excess_edge_cut": 0.333
+    },
+    "mtkahypar_default": {
+      "mean_excess_edge_cut": 540.717,
+      "median_excess_edge_cut": 0
+    },
+    "mtkahypar_quality": {
+      "mean_excess_edge_cut": 548.95,
+      "median_excess_edge_cut": 0
+    }
   }
 }
