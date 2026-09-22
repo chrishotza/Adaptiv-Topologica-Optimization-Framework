@@ -15,6 +15,8 @@ def test_ai_manifest_is_stable_and_compact():
     assert manifest["capabilities"]["portfolio"]["k"] == ">=2"
     assert manifest["capabilities"]["portfolio"]["result_schema"] == "atof.portfolio.v1"
     assert manifest["capabilities"]["engine"]["result_schema"] == "atof.optimize.v1"
+    assert manifest["commands"]["compare"] == "atof compare <graph> [--k N]"
+    assert manifest["capabilities"]["comparison"]["result_schema"] == "atof.compare.v1"
     assert manifest["commands"]["doctor"] == "atof doctor"
     assert "not universally optimal" in manifest["claim_policy"]["non_claims"]
     assert manifest["commands"]["short_flags"]["compact"] == "-c"

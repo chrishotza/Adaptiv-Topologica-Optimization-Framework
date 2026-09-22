@@ -28,6 +28,7 @@
         "ai",
         "doctor",
         "solve",
+        "compare",
         "profile",
         "optimize",
         "version",
@@ -37,6 +38,7 @@
         "ai": {"type": "string"},
         "doctor": {"type": "string"},
         "solve": {"type": "string"},
+        "compare": {"type": "string"},
         "module": {"type": "string"},
         "profile": {"type": "string"},
         "optimize": {"type": "string"},
@@ -116,6 +118,7 @@
       "type": "object",
       "required": [
         "engine",
+        "comparison",
         "portfolio",
         "exports",
         "provenance"
@@ -149,6 +152,15 @@
               },
               "additionalProperties": false
             }
+          },
+          "additionalProperties": false
+        },
+        "comparison": {
+          "type": "object",
+          "required": ["result_schema", "scope"],
+          "properties": {
+            "result_schema": {"const": "atof.compare.v1"},
+            "scope": {"type": "string"}
           },
           "additionalProperties": false
         },

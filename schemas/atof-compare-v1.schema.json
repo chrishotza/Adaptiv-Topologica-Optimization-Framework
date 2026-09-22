@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-compare-v1.schema.json",
+  "title": "ATOF Engine vs Portfolio comparison",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "mode",
+    "graph",
+    "parameters",
+    "comparison",
+    "engine",
+    "portfolio",
+    "provenance"
+  ],
+  "properties": {
+    "schema": {"const": "atof.compare.v1"},
+    "version": {"type": "string"},
+    "mode": {"const": "compare"},
+    "graph": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {"type": "integer", "minimum": 2},
+        "edges": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "object",
+      "required": ["k", "seed", "iterations"],
+      "properties": {
+        "k": {"type": "integer", "minimum": 2},
+        "seed": {"type": "integer"},
+        "iterations": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "comparison": {
+      "type": "object",
+      "required": [
+        "edge_cut_delta",
+        "balance_error_delta",
+        "lower_edge_cut",
+        "selection_metric",
+        "interpretation"
+      ],
+      "properties": {
+        "edge_cut_delta": {"type": "integer"},
+        "balance_error_delta": {"type": "number"},
+        "lower_edge_cut": {"enum": ["engine", "portfolio", "tie"]},
+        "selection_metric": {"const": "observed unweighted edge_cut"},
+        "interpretation": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "engine": {
+      "type": "object",
+      "required": ["schema", "strategy", "objective", "result"],
+      "properties": {
+        "schema": {"const": "atof.optimize.v1"},
+        "strategy": {"type": "object", "additionalProperties": true},
+        "objective": {"type": "object", "additionalProperties": true},
+        "result": {
+          "type": "object",
+          "required": ["k", "edge_cut", "balance_error"],
+          "properties": {
+            "k": {"type": "integer", "minimum": 2},
+            "edge_cut": {"type": "integer", "minimum": 0},
+            "balance_error": {"type": "number", "minimum": 0}
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "portfolio": {
+      "type": "object",
+      "required": ["schema", "strategy", "objective", "result", "candidates"],
+      "properties": {
+        "schema": {"const": "atof.portfolio.v1"},
+        "strategy": {"type": "object", "additionalProperties": true},
+        "objective": {"type": "object", "additionalProperties": true},
+        "result": {
+          "type": "object",
+          "required": ["k", "edge_cut", "balance_error"],
+          "properties": {
+            "k": {"type": "integer", "minimum": 2},
+            "edge_cut": {"type": "integer", "minimum": 0},
+            "balance_error": {"type": "number", "minimum": 0}
+          },
+          "additionalProperties": true
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "available", "edge_cut", "balance_error", "runtime_seconds", "error"],
+            "properties": {
+              "id": {"type": "string"},
+              "available": {"type": "boolean"},
+              "edge_cut": {"type": ["integer", "null"]},
+              "balance_error": {"type": ["number", "null"], "minimum": 0},
+              "runtime_seconds": {"type": ["number", "null"], "minimum": 0},
+              "error": {"type": ["string", "null"]}
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["graph_fingerprint", "seed", "iterations"],
+      "properties": {
+        "graph_fingerprint": {"type": "string"},
+        "seed": {"type": "integer"},
+        "iterations": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
