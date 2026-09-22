@@ -53,7 +53,7 @@ Therefore, an Engine result's `result.edge_cut` is always the unweighted reporte
 
 The Engine contract is k>=2, undirected, simple graphs with balanced node counts; its reported comparison metric is unweighted edge cut.
 
-The Portfolio contract is k=2 under an explicitly common unweighted edge-cut objective.
+The Portfolio contract is k>=2 under a common unweighted edge-cut objective; NetworkX Kernighan-Lin is available only for k=2.
 
 Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-list and JSON.
 
@@ -76,3 +76,11 @@ Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-l
 ## Claim discipline
 
 Do not claim universal optimality, universal speed superiority, or universal ease-of-use against every competing system. State the graph/corpus, objective, protocol, and environment when making comparative claims.
+
+
+## State-of-art research surface
+
+- Locked k=2 comparison: 20 graphs x 3 seeds x 11 candidates.
+- Matched k-way research gate: k={4,8,32,64} on the same corpus and seed set.
+- SEA 2026 alignment: learned-coarsening snapshot tracked separately from current Mt-KaHyPar product presets.
+- Dynamic compute allocation: research-only marginal-return controller, not a public default.
