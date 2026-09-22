@@ -77,6 +77,7 @@ class BLOCReloc:
         hybrid_policy: str = "fixed",
         hybrid_patience: int = 2,
         hybrid_probe_samples: int = 20,
+        hybrid_witness_patience: int = 2,
     ) -> PartitionResult:
         if iterations < 1:
             raise ValueError("iterations must be >= 1")
@@ -90,10 +91,13 @@ class BLOCReloc:
             raise ValueError("hybrid_patience must be at least 1")
         if hybrid_probe_samples < 0:
             raise ValueError("hybrid_probe_samples must be >= 0")
+        if hybrid_witness_patience < 1:
+            raise ValueError("hybrid_witness_patience must be at least 1")
         controller = RefinementController(
             policy=hybrid_policy,
             period=hybrid_period or max(iterations, 1),
             patience=hybrid_patience,
+            witness_patience=hybrid_witness_patience,
         )
 
         partition = initialize_balanced_partition(self.graph, self.k)
@@ -176,11 +180,21 @@ class BLOCReloc:
                         should_hybrid = True
                     else:
                         hybrid_probe_triggered = True
-                        controller.record_probe(iteration=iteration)
-                        should_hybrid = self._probe_two_swap(
+                        witness = self._probe_two_swap(
                             partition,
                             samples=hybrid_probe_samples,
                             best=best,
+                        )
+                        controller.record_probe(
+                            iteration=iteration,
+                            witness=witness,
+                        )
+                        # One missed witness is treated as insufficient
+                        # evidence to skip an expensive pass. Only repeated
+                        # misses permit the adaptive controller to abstain.
+                        should_hybrid = witness or (
+                            controller.witness_misses
+                            < controller.witness_patience
                         )
                 if should_hybrid:
                     hybrid_triggered = True
