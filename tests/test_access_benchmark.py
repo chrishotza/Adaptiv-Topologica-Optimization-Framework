@@ -23,3 +23,10 @@ def test_networkx_partition_returns_machine_readable_result():
     assert result["edge_cut"] >= 0
     assert result["balance_error"] >= 0.0
     assert len(result["partition"]) == 10
+
+
+def test_atof_partition_is_seed_deterministic():
+    graph = nx.karate_club_graph()
+    first, _ = partition_for("atof", graph, seed=42)
+    second, _ = partition_for("atof", graph, seed=42)
+    assert first == second
