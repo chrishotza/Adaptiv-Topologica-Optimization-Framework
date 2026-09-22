@@ -313,7 +313,6 @@ def _kaminpar_partition(
     )
     return {
         "partition": [int(block) for block in partition],
-        "edge_cut": int(kaminpar.edge_cut(loaded, partition)),
     }
 
 
@@ -342,8 +341,12 @@ def _run_kaminpar(
         {node: block for node, block in zip(graph.nodes(), partition)},
         k,
     )
+    partition = payload["partition"]
+    partition_map = {
+        node: block for node, block in zip(graph.nodes(), partition)
+    }
     return {
-        "edge_cut": int(payload["edge_cut"]),
+        "edge_cut": _edge_cut(graph, partition_map),
         "balance_error": float(balance),
         "runtime_seconds": time.perf_counter() - started,
         "metadata": {
