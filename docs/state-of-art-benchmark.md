@@ -49,7 +49,7 @@ The first locked comparison contains:
 
 The hybrid settings are fixed at period 5 and 100 sampled two-swaps. The adaptive controller uses 20 boundary-aware witness samples and a witness patience of 2.
 
-The benchmark records every graph/seed/strategy row, including failures, rather than silently dropping unavailable candidates. KaMinPar's Python binding mutates the Graph object during compute_partition and restores it afterward, so each worker keeps one strategy isolated from all other native extensions.
+The benchmark records every graph/seed/strategy row, including failures, rather than silently dropping unavailable candidates. A graph-level comparison is only marked matched when all candidates have the required seed count. KaMinPar's Python binding mutates the Graph object during compute_partition and restores it afterward, so each worker keeps one strategy isolated from all other native extensions.
 
 For unit-weight graphs, Mt-KaHyPar is requested with epsilon=0. KaMinPar is requested with explicit maximum block weights equal to ceil(n/k), which directly enforces the same floor/ceil balance contract. The benchmark then recomputes balance from every returned partition under ATOF's contract.
 
@@ -65,6 +65,8 @@ For each graph and strategy the manifest records:
 - hybrid pass/probe metadata where applicable;
 - graph provenance;
 - software/runtime metadata.
+
+A graph is considered matched only when every candidate has the complete seed set for that protocol. Partial candidate coverage remains visible in the raw manifest but is excluded from graph-level and cross-graph aggregate results. Native worker payload parsing also tolerates non-JSON diagnostic lines and consumes only the final JSON payload line.
 
 The graph-level summary then reports:
 
