@@ -107,3 +107,11 @@ ATOF now has executable Python adapters for KaMinPar and Mt-KaHyPar. The k=2 ben
 Mt-KaHyPar default/quality are current upstream multilevel presets. They must not be described as the SEA 2026 learned-coarsening model: the SEA contribution adds a pre-trained neural score to the coarsening stage inside Mt-KaHyPar. The paper reports 0.3–1.4% quality improvement over its Mt-KaHyPar baseline with 14% average runtime overhead in the published AVX2 implementation (DOI: https://doi.org/10.4230/LIPIcs.SEA.2026.25).
 
 Zenodo provides the Set A/B benchmark files and a compact benchmark-results archive. Set A contains 118 unweighted METIS-format graphs, while the complete archived material totals 348.2 GB; the benchmark-results archive is only 2.5 MB (DOI: https://doi.org/10.5281/zenodo.19387774).
+## GPU multilevel reference
+
+Jet is a GPU-oriented multilevel graph partitioner whose refinement and coarsening are designed for accelerators. Its evaluation compares against shared-memory CPU partitioners on a broad graph set. G-kway is another GPU multilevel line reporting large speedups while maintaining comparable partition quality.
+
+- Jet: https://doi.org/10.1137/23M1559129
+- G-kway: https://doi.org/10.1145/3734522
+
+These methods belong to a different hardware regime. ATOF's CPU benchmark must not mix their throughput numbers with CPU wall-clock measurements; the correct comparison is algorithmic quality at matched hardware or a separate hardware-specific track.
