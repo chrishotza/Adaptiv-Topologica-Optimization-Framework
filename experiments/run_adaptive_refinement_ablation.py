@@ -48,6 +48,7 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
         hybrid_policy="adaptive",
         hybrid_patience=HYBRID_PATIENCE,
         hybrid_probe_samples=HYBRID_PROBE_SAMPLES,
+        hybrid_witness_patience=2,
     )
     adaptive_runtime = time.perf_counter() - adaptive_started
     adaptive_payload = adaptive.to_dict(include_partition=False)
