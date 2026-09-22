@@ -24,6 +24,8 @@ class RefinementController:
     hybrid_passes: int = 0
     probes: int = 0
     last_hybrid_improved: bool | None = None
+    witness_patience: int = 2
+    witness_misses: int = 0
 
     def __post_init__(self) -> None:
         if self.policy not in POLICIES:
@@ -32,6 +34,8 @@ class RefinementController:
             raise ValueError("period must be at least 1")
         if self.patience < 1:
             raise ValueError("patience must be at least 1")
+        if self.witness_patience < 1:
+            raise ValueError("witness_patience must be at least 1")
 
     def after_local_pass(
         self,
@@ -68,10 +72,14 @@ class RefinementController:
             return False
         return True
 
-    def record_probe(self, *, iteration: int) -> None:
-        """Record a cheap adaptive witness probe."""
+    def record_probe(self, *, iteration: int, witness: bool) -> None:
+        """Record a cheap adaptive witness probe and its evidence."""
         self.probes += 1
         self.last_probe_iteration = iteration
+        if witness:
+            self.witness_misses = 0
+        else:
+            self.witness_misses += 1
 
     def record_hybrid_pass(
         self,
