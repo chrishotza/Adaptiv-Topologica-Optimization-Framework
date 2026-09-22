@@ -64,8 +64,14 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 },
             },
             "portfolio": {
-                "k": 2,
-                "objective": "minimize unweighted edge cut subject to balanced two-way partition",
+                "k": ">=2",
+                "objective": "minimize unweighted edge cut subject to balanced k-way partition",
+                "backend_limits": {
+                    "NetworkX Kernighan-Lin": "k=2 only",
+                    "METIS via PyMetis": "k>=2",
+                    "KaHIP via KaFFPa-Strong": "k>=2",
+                    "BLOC-RELOC": "k>=2",
+                },
                 "backends": [
                     "BLOC-RELOC",
                     "NetworkX Kernighan-Lin",
@@ -102,7 +108,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             ],
         },
         "limits": [
-            "portfolio mode currently supports k=2",
+            "portfolio mode supports k>=2; NetworkX Kernighan-Lin is available only for k=2",
             "current common portfolio objective is unweighted edge cut",
             "Engine affinity uses a degree-affinity weighted surrogate and reports unweighted edge_cut",
             "weight attributes are accepted as input metadata but ignored by the current unweighted graph model",
