@@ -87,3 +87,16 @@ The goal is not to imitate the paper's exact experiment. The goal is to establis
 - Gate D: external benchmark expansion using a documented 2026-era corpus.
 - Gate E: dynamic compute-allocation study against fixed strong baselines.
 - Gate F: only then assess whether ATOF contributes a distinct improvement in the quality/runtime frontier.
+## SEA 2026 benchmark dimensions that ATOF must match
+
+The published SEA 2026 evaluation uses k in {4, 8, 32, 64}, epsilon=0.03, five randomized runs per graph/k combination, and a one-hour time limit. It reports arithmetic means over seeds and geometric means over benchmark instances.
+
+The main Set A contains 118 graphs spanning 29k to 53M edges. The additional scale sets contain 38 irregular graphs (5.4M–1.8B edges) and 33 regular graphs (12M–575M edges), giving 189 instances across Set A, I, and R.
+
+The learned coarsening method trains on 20 graphs in Set B1-20, which are a subset of Set B and therefore a small subset of Set A. The published generalization protocol uses eight-fold cross-validation over Set A.
+
+The final reported Set A geometric means are 0.36 s and baseline-relative cut 0.00% for Mt-KaHyPar, 0.41 s and -0.34% for the learned coarsening approach, 0.38 s and +20.34% for Metis-K, and 0.68 s and +20.05% for Metis-R. The learned approach therefore trades about 14% runtime overhead for a small geometric-mean quality improvement over the unconstrained Mt-KaHyPar baseline in the published environment.
+
+These numbers are not ATOF measurements and are not directly comparable to our Python timings. They are the numerical target defining the external research frontier we need to reproduce under a controlled contract.
+
+The Zenodo record contains the public benchmark sets, training data, labels, and benchmark results. Its archive is very large, so ATOF should consume it selectively and record file hashes/provenance instead of vendoring the dataset.
