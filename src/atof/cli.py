@@ -10,6 +10,7 @@ from . import __version__
 from .ai import build_ai_manifest, build_doctor_report, compact_json, compact_result
 from .portfolio import optimize_portfolio
 from .product import (
+    PARTITION_OUTPUT_FORMATS,
     SUPPORTED_INPUT_FORMATS,
     load_graph,
     optimize_graph,
@@ -96,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     solve_parser.add_argument("--partition-output", "-p", type=Path)
     solve_parser.add_argument(
         "--partition-format",
-        choices=("auto", "json", "csv", "tsv"),
+        choices=PARTITION_OUTPUT_FORMATS,
         default="auto",
     )
 
