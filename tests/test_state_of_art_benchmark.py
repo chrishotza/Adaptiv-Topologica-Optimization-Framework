@@ -25,6 +25,17 @@ def test_core_strategy_surface_is_locked() -> None:
     )
 
 
+def test_native_strategy_surface_is_isolated() -> None:
+    from experiments.run_state_of_art_benchmark import ISOLATED_STRATEGIES, LOCAL_STRATEGIES
+
+    assert "metis" in ISOLATED_STRATEGIES
+    assert "kahip" in ISOLATED_STRATEGIES
+    assert "kaminpar_default" in ISOLATED_STRATEGIES
+    assert "mtkahypar_default" in ISOLATED_STRATEGIES
+    assert "bloc_reloc_baseline" in LOCAL_STRATEGIES
+    assert "kernighan_lin" in LOCAL_STRATEGIES
+
+
 def test_graph_summary_normalizes_quality_and_runtime() -> None:
     rows = [
         {"strategy": "a", "status": "ok", "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 2.0},
