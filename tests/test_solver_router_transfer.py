@@ -68,12 +68,18 @@ def test_summary_reports_paired_graph_delta() -> None:
             "control": "majority",
             "router_relative_regret": 0.0,
             "control_relative_regret": 0.1,
+            "router_runtime_ratio": 1.0,
+            "control_runtime_ratio": 1.0,
+            "router_runtime_dominates_control": False,
         },
         {
             "router": "nearest",
             "control": "majority",
             "router_relative_regret": 0.2,
             "control_relative_regret": 0.1,
+            "router_runtime_ratio": 1.0,
+            "control_runtime_ratio": 1.0,
+            "router_runtime_dominates_control": False,
         },
     ]
     summary = _summarize(rows, "nearest", "majority")
