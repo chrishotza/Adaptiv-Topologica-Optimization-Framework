@@ -121,6 +121,8 @@ def balance_bound_ok(
 ) -> bool:
     if len(counts) != k:
         return False
+    if any(count <= 0 for count in counts):
+        return False
     bound = (1.0 + epsilon) * ((graph.number_of_nodes() + k - 1) // k)
     return max(counts, default=0) <= bound + 1e-12
 
