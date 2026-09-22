@@ -144,6 +144,23 @@ def main(argv: list[str] | None = None) -> int:
         default="auto",
         help="BLOC-RELOC variant when --engine bloc is used",
     )
+    optimize_parser.add_argument(
+        "--hybrid",
+        action="store_true",
+        help="enable benchmarked two-swap hybrid refinement for the native Engine",
+    )
+    optimize_parser.add_argument(
+        "--hybrid-period",
+        type=int,
+        default=5,
+        help="hybrid swap interval when --hybrid is enabled",
+    )
+    optimize_parser.add_argument(
+        "--hybrid-samples",
+        type=int,
+        default=100,
+        help="two-node swap samples per hybrid pass",
+    )
     optimize_parser.add_argument("--format", "-f", choices=_FORMAT_CHOICES, default="auto")
     optimize_parser.add_argument("--output", "-o", type=Path)
     optimize_parser.add_argument("--compact", "-c", action="store_true")
@@ -256,6 +273,8 @@ def main(argv: list[str] | None = None) -> int:
         try:
             if args.engine == "portfolio" and args.variant != "auto":
                 raise ValueError("--variant applies only to --engine bloc")
+            if args.engine == "portfolio" and args.hybrid:
+                raise ValueError("--hybrid applies only to --engine bloc")
             graph = load_graph(args.path, format=args.format)
             if args.engine == "portfolio":
                 result = optimize_portfolio(
@@ -271,6 +290,9 @@ def main(argv: list[str] | None = None) -> int:
                     seed=args.seed,
                     iterations=args.iterations,
                     variant=args.variant,
+                    hybrid=args.hybrid,
+                    hybrid_period=args.hybrid_period,
+                    hybrid_samples=args.hybrid_samples,
                 )
             payload = result.to_dict()
             payload["file"] = str(args.path)
