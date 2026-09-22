@@ -6,6 +6,7 @@ import platform
 import statistics
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 from typing import Callable
@@ -32,6 +33,8 @@ CORE_STRATEGIES = (
     "kernighan_lin",
     "metis",
     "kahip",
+    "kaminpar_default",
+    "kaminpar_strong",
 )
 
 
@@ -132,6 +135,7 @@ def _strategy_run(
     *,
     seed: int,
     k: int,
+    graph_id: str,
 ) -> dict:
     if strategy == "bloc_reloc_baseline":
         return _run_atof(graph, seed=seed, k=k, variant="baseline")
@@ -159,7 +163,120 @@ def _strategy_run(
         return _run_external(metis_balanced_partition, graph, seed=seed, k=k)
     if strategy == "kahip":
         return _run_external(kahip_balanced_partition, graph, seed=seed, k=k)
+    if strategy == "kaminpar_default":
+        return _run_kaminpar(
+            graph, graph_id=graph_id, seed=seed, k=k, context_name="default"
+        )
+    if strategy == "kaminpar_strong":
+        return _run_kaminpar(
+            graph, graph_id=graph_id, seed=seed, k=k, context_name="strong"
+        )
     raise ValueError(f"unknown strategy: {strategy}")
+
+
+
+_KAMINPAR_GRAPH_CACHE: dict[str, object] = {}
+_KAMINPAR_TMPDIR = tempfile.TemporaryDirectory(prefix="atof-kaminpar-")
+_KAMINPAR_INSTANCE_CACHE: dict[str, object] = {}
+
+
+def _write_metis_graph(graph: nx.Graph, path: Path) -> None:
+    """Write the repository's unweighted undirected graph as METIS format."""
+    nodes = list(graph.nodes())
+    index = {node: i + 1 for i, node in enumerate(nodes)}
+    lines = [f"{len(nodes)} {graph.number_of_edges()}"]
+    for node in nodes:
+        neighbors = sorted(
+            (index[neighbor] for neighbor in graph.neighbors(node))
+        )
+        lines.append(" ".join(str(value) for value in neighbors))
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _kaminpar_graph(graph: nx.Graph, graph_id: str):
+    import kaminpar
+
+    cached = _KAMINPAR_GRAPH_CACHE.get(graph_id)
+    if cached is not None:
+        return cached
+
+    path = Path(_KAMINPAR_TMPDIR.name) / (
+        graph_id.replace("/", "__").replace(" ", "_") + ".metis"
+    )
+    _write_metis_graph(graph, path)
+    loaded = kaminpar.load_graph(
+        str(path),
+        kaminpar.GraphFileFormat.METIS,
+        compress=False,
+    )
+    _KAMINPAR_GRAPH_CACHE[graph_id] = loaded
+    return loaded
+
+
+def _kaminpar_partition(
+    graph: nx.Graph,
+    *,
+    graph_id: str,
+    seed: int,
+    k: int,
+    context_name: str,
+) -> dict:
+    import kaminpar
+
+    loaded = _kaminpar_graph(graph, graph_id)
+    context_factory = {
+        "default": kaminpar.default_context,
+        "strong": kaminpar.strong_context,
+    }[context_name]
+
+    instance_key = context_name
+    instance = _KAMINPAR_INSTANCE_CACHE.get(instance_key)
+    if instance is None:
+        instance = kaminpar.KaMinPar(num_threads=1, context=context_factory())
+        _KAMINPAR_INSTANCE_CACHE[instance_key] = instance
+
+    # KaMinPar exposes a process-level RNG seed; set it immediately before
+    # each timed partition call so the seed is explicit and reproducible.
+    kaminpar.reseed(int(seed))
+    partition = instance.compute_partition(loaded, k=k, eps=0.0)
+    return {
+        "partition": [int(block) for block in partition],
+        "edge_cut": int(kaminpar.edge_cut(loaded, partition)),
+    }
+
+
+def _run_kaminpar(
+    graph: nx.Graph,
+    *,
+    graph_id: str,
+    seed: int,
+    k: int,
+    context_name: str,
+) -> dict:
+    started = time.perf_counter()
+    payload = _kaminpar_partition(
+        graph,
+        graph_id=graph_id,
+        seed=seed,
+        k=k,
+        context_name=context_name,
+    )
+    partition = payload["partition"]
+    balance = _balance_error(
+        graph,
+        {node: block for node, block in zip(graph.nodes(), partition)},
+        k,
+    )
+    return {
+        "edge_cut": int(payload["edge_cut"]),
+        "balance_error": float(balance),
+        "runtime_seconds": time.perf_counter() - started,
+        "metadata": {
+            "context": context_name,
+            "seed_control": "kaminpar.reseed",
+            "graph_load_in_timing": False,
+        },
+    }
 
 
 def _mean(values: list[float]) -> float:
@@ -280,6 +397,7 @@ def run_state_of_art_benchmark(
                             graph,
                             seed=seed,
                             k=k,
+                            graph_id=graph_id,
                         )
                         row.update(result)
                         row["status"] = "ok"
