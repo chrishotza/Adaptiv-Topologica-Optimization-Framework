@@ -263,9 +263,52 @@ def test_cli_optimize_hybrid_refinement(tmp_path, capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["strategy"]["hybrid_refinement"] == {
         "enabled": True,
+        "policy": "fixed",
         "period": 5,
         "samples": 10,
+        "patience": 2,
+        "probe_samples": 20,
+        "passes": 5,
+        "probes": 0,
+        "witness_patience": 2,
     }
+
+
+def test_cli_optimize_adaptive_hybrid(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text(
+        "0 1\n1 2\n2 3\n3 4\n4 5\n5 6\n6 7\n7 8\n8 9\n9 10\n10 11\n11 12\n12 13\n13 14\n14 15\n",
+        encoding="utf-8",
+    )
+
+    assert main([
+        "optimize",
+        str(graph),
+        "--engine",
+        "bloc",
+        "--variant",
+        "baseline",
+        "--hybrid",
+        "--hybrid-period",
+        "3",
+        "--hybrid-samples",
+        "10",
+        "--hybrid-policy",
+        "adaptive",
+        "--hybrid-patience",
+        "2",
+    ]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    strategy = payload["strategy"]["hybrid_refinement"]
+    assert strategy["enabled"] is True
+    assert strategy["policy"] == "adaptive"
+    assert strategy["period"] == 3
+    assert strategy["patience"] == 2
+    assert strategy["probe_samples"] == 20
+    assert strategy["passes"] >= 1
+    assert strategy["witness_patience"] == 2
+    assert strategy["probes"] >= 0
 
 
 def test_cli_optimize_compact_preserves_engine_objective_semantics(tmp_path, capsys):

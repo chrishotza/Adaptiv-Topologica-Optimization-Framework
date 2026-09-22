@@ -15,25 +15,95 @@
     "result"
   ],
   "properties": {
-    "schema": {"const": "atof.optimize.v1"},
-    "version": {"type": "string"},
-    "mode": {"const": "optimize"},
-    "file": {"type": "string"},
+    "schema": {
+      "const": "atof.optimize.v1"
+    },
+    "version": {
+      "type": "string"
+    },
+    "mode": {
+      "const": "optimize"
+    },
+    "file": {
+      "type": "string"
+    },
     "strategy": {
       "type": "object",
-      "required": ["requested", "selected", "selection_mode", "regime"],
+      "required": [
+        "requested",
+        "selected",
+        "selection_mode",
+        "regime"
+      ],
       "properties": {
-        "requested": {"type": "string"},
-        "selected": {"type": "string"},
-        "selection_mode": {"type": "string"},
-        "regime": {"type": "string"},
+        "requested": {
+          "type": "string"
+        },
+        "selected": {
+          "type": "string"
+        },
+        "selection_mode": {
+          "type": "string"
+        },
+        "regime": {
+          "type": "string"
+        },
         "hybrid_refinement": {
           "type": "object",
-          "required": ["enabled", "period", "samples"],
+          "required": [
+            "enabled",
+            "policy",
+            "period",
+            "samples",
+            "patience",
+            "probe_samples",
+            "passes",
+            "probes",
+            "witness_patience"
+          ],
           "properties": {
-            "enabled": {"type": "boolean"},
-            "period": {"type": ["integer", "null"], "minimum": 1},
-            "samples": {"type": "integer", "minimum": 0}
+            "enabled": {
+              "type": "boolean"
+            },
+            "period": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1
+            },
+            "samples": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "policy": {
+              "type": "string",
+              "enum": [
+                "off",
+                "fixed",
+                "adaptive"
+              ]
+            },
+            "patience": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "passes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "probe_samples": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "probes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "witness_patience": {
+              "type": "integer",
+              "minimum": 1
+            }
           },
           "additionalProperties": false
         }
@@ -42,20 +112,41 @@
     },
     "graph": {
       "type": "object",
-      "required": ["nodes", "edges"],
+      "required": [
+        "nodes",
+        "edges"
+      ],
       "properties": {
-        "nodes": {"type": "integer", "minimum": 2},
-        "edges": {"type": "integer", "minimum": 0}
+        "nodes": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "edges": {
+          "type": "integer",
+          "minimum": 0
+        }
       },
       "additionalProperties": false
     },
     "parameters": {
       "type": "object",
-      "required": ["k", "seed", "iterations"],
+      "required": [
+        "k",
+        "seed",
+        "iterations"
+      ],
       "properties": {
-        "k": {"type": "integer", "minimum": 2},
-        "seed": {"type": "integer"},
-        "iterations": {"type": "integer", "minimum": 1}
+        "k": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "iterations": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "additionalProperties": false
     },
@@ -69,11 +160,21 @@
         "variant_semantics"
       ],
       "properties": {
-        "reported_metric": {"const": "edge_cut"},
-        "optimization_metric": {"type": "string"},
-        "direction": {"const": "minimize"},
-        "graph_model": {"const": "unweighted"},
-        "variant_semantics": {"type": "string"}
+        "reported_metric": {
+          "const": "edge_cut"
+        },
+        "optimization_metric": {
+          "type": "string"
+        },
+        "direction": {
+          "const": "minimize"
+        },
+        "graph_model": {
+          "const": "unweighted"
+        },
+        "variant_semantics": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
@@ -83,23 +184,40 @@
     },
     "recommendation": {
       "type": "object",
-      "required": ["primary", "alternatives", "rationale"],
+      "required": [
+        "primary",
+        "alternatives",
+        "rationale"
+      ],
       "properties": {
-        "primary": {"type": "string"},
+        "primary": {
+          "type": "string"
+        },
         "alternatives": {
           "type": "array",
-          "items": {"type": "string"}
+          "items": {
+            "type": "string"
+          }
         },
-        "rationale": {"type": "string"}
+        "rationale": {
+          "type": "string"
+        }
       },
       "additionalProperties": false
     },
     "provenance": {
       "type": "object",
-      "required": ["graph_fingerprint", "backend"],
+      "required": [
+        "graph_fingerprint",
+        "backend"
+      ],
       "properties": {
-        "graph_fingerprint": {"type": "string"},
-        "backend": {"const": "BLOC-RELOC"}
+        "graph_fingerprint": {
+          "type": "string"
+        },
+        "backend": {
+          "const": "BLOC-RELOC"
+        }
       },
       "additionalProperties": false
     },
@@ -111,13 +229,33 @@
         "balance_error"
       ],
       "properties": {
-        "k": {"type": "integer", "minimum": 2},
-        "iterations": {"type": "integer", "minimum": 1},
-        "edge_cut": {"type": "integer", "minimum": 0},
-        "weighted_cost": {"type": "number"},
-        "balance_error": {"type": "number", "minimum": 0},
-        "accepted_moves": {"type": "integer", "minimum": 0},
-        "rejected_moves": {"type": "integer", "minimum": 0},
+        "k": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "iterations": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "edge_cut": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "weighted_cost": {
+          "type": "number"
+        },
+        "balance_error": {
+          "type": "number",
+          "minimum": 0
+        },
+        "accepted_moves": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "rejected_moves": {
+          "type": "integer",
+          "minimum": 0
+        },
         "block_sizes": {
           "type": "object",
           "additionalProperties": {

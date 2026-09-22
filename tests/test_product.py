@@ -62,9 +62,43 @@ def test_optimize_graph_supports_opt_in_hybrid_refinement():
 
     assert payload["strategy"]["hybrid_refinement"] == {
         "enabled": True,
+        "policy": "fixed",
         "period": 5,
         "samples": 10,
+        "patience": 2,
+        "probe_samples": 20,
+        "passes": 1,
+        "probes": 0,
+        "witness_patience": 2,
     }
+
+
+def test_optimize_graph_supports_adaptive_hybrid_policy():
+    graph = nx.path_graph(16)
+    result = optimize_graph(
+        graph,
+        k=2,
+        seed=42,
+        iterations=8,
+        variant="baseline",
+        hybrid=True,
+        hybrid_period=3,
+        hybrid_samples=10,
+        hybrid_policy="adaptive",
+        hybrid_patience=2,
+    )
+    payload = result.to_dict(include_partition=False)
+
+    strategy = payload["strategy"]["hybrid_refinement"]
+    assert strategy["enabled"] is True
+    assert strategy["policy"] == "adaptive"
+    assert strategy["period"] == 3
+    assert strategy["samples"] == 10
+    assert strategy["patience"] == 2
+    assert strategy["probe_samples"] == 20
+    assert strategy["passes"] >= 1
+    assert strategy["witness_patience"] == 2
+    assert strategy["probes"] >= 0
 
 
 def test_optimize_graph_returns_balanced_product_result():

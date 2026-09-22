@@ -51,13 +51,25 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
 
     assert base_strategy == {
         "enabled": False,
+        "policy": "off",
         "period": None,
         "samples": HYBRID_SAMPLES,
+        "patience": 2,
+        "probe_samples": 20,
+        "passes": 0,
+        "probes": 0,
+        "witness_patience": 2,
     }
     assert hybrid_strategy == {
         "enabled": True,
+        "policy": "fixed",
         "period": HYBRID_PERIOD,
         "samples": HYBRID_SAMPLES,
+        "patience": 2,
+        "probe_samples": 20,
+        "passes": ITERATIONS // HYBRID_PERIOD,
+        "probes": 0,
+        "witness_patience": 2,
     }
 
     return {
