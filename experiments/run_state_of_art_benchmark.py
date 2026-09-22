@@ -27,6 +27,7 @@ HYBRID_SAMPLES = 100
 HYBRID_PROBE_SAMPLES = 20
 HYBRID_WITNESS_PATIENCE = 2
 
+# Locked candidate surface for the reproducible k=2 state-of-art comparison.
 CORE_STRATEGIES = (
     "bloc_reloc_baseline",
     "bloc_reloc_affinity",
