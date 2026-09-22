@@ -2,9 +2,16 @@ name: K-way state-of-art benchmark
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
-      - research/state-of-art-benchmark
+      - main
+    paths:
+      - "experiments/run_kway_state_of_art_benchmark.py"
+      - "experiments/run_isolated_kway_backend.py"
+      - "experiments/mtkahypar_backend.py"
+      - "tests/test_kway_state_of_art_benchmark.py"
+      - ".github/workflows/kway-state-of-art-benchmark.yml"
+      - "src/atof/**"
 
 permissions:
   contents: read
