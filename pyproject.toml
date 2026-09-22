@@ -5,7 +5,21 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "atof"
 version = "0.6.0"
-description = "AI-first open-source graph optimization interface with reproducible provenance and backend composition."
+description = "AI-first open-source graph partitioning and optimization interface for Python, NetworkX, METIS, KaHIP, and AI agents."
+keywords = [
+  "graph partitioning",
+  "graph optimization",
+  "balanced graph partitioning",
+  "k-way partitioning",
+  "networkx",
+  "metis",
+  "kahip",
+  "kernighan-lin",
+  "bloc-reloc",
+  "graph algorithms",
+  "ai agents",
+  "llm tools",
+]
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -14,6 +28,12 @@ dependencies = [
   "networkx>=3.0",
   "numpy>=1.24",
 ]
+
+[project.urls]
+Homepage = "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework"
+Repository = "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework"
+Documentation = "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework#readme"
+Issues = "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/issues"
 
 [project.scripts]
 atof = "atof.cli:main"
