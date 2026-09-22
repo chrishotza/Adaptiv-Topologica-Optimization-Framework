@@ -4,6 +4,32 @@ import json
 from atof.cli import main
 
 
+def test_cli_compare_engine_and_portfolio(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text(
+        "0 1\n1 2\n2 3\n3 4\n4 5\n5 0\n6 7\n7 8\n8 9\n9 10\n10 11\n11 6\n",
+        encoding="utf-8",
+    )
+
+    assert main([
+        "compare",
+        str(graph),
+        "--k",
+        "3",
+        "--iterations",
+        "3",
+        "--compact",
+    ]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["schema"] == "atof.compare.v1"
+    assert payload["mode"] == "compare"
+    assert payload["parameters"]["k"] == 3
+    assert payload["engine"]["schema"] == "atof.optimize.v1"
+    assert payload["portfolio"]["schema"] == "atof.portfolio.v1"
+    assert payload["comparison"]["lower_edge_cut"] in {"engine", "portfolio", "tie"}
+
+
 def test_cli_profile(tmp_path, capsys):
     graph = tmp_path / "graph.edgelist"
     graph.write_text("0 1\n1 2\n2 3\n", encoding="utf-8")
