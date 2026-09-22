@@ -132,6 +132,7 @@
           ],
           "properties": {
             "k": {"const": ">=2"},
+            "result_schema": {"const": "atof.optimize.v1"},
             "result_schema": {"const": "atof.portfolio.v1"},
             "objective": {"type": "string"},
             "backend": {"const": "BLOC-RELOC"},
