@@ -161,8 +161,10 @@ class BLOCReloc:
                     best = current
                     iteration_accepted += 1
 
+            local_gain = iteration_start - best
             hybrid_triggered = False
             hybrid_probe_triggered = False
+            hybrid_gain = 0.0
             should_hybrid = False
             if hybrid_period and controller.after_local_pass(
                 iteration=iteration,
@@ -205,6 +207,7 @@ class BLOCReloc:
                         samples=hybrid_samples,
                         best=best,
                     )
+                    hybrid_gain = hybrid_start - best
                     controller.record_hybrid_pass(
                         iteration=iteration,
                         start_cost=hybrid_start,
@@ -222,6 +225,9 @@ class BLOCReloc:
                     "edge_cut": edge_cut(self.graph, partition),
                     "accepted": iteration_accepted,
                     "rejected": iteration_rejected,
+                    "local_gain": local_gain,
+                    "hybrid_gain": hybrid_gain,
+                    "total_gain": iteration_start - best,
                     "hybrid": int(hybrid_triggered),
                     "hybrid_probe": int(hybrid_probe_triggered),
                 }
