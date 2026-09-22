@@ -19,7 +19,7 @@ SUPPORTED_INPUT_FORMATS = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
 PARTITION_OUTPUT_FORMATS = ("auto", "json", "csv", "tsv")
 
 
-def _validate_product_graph(graph: nx.Graph) -> None:
+def validate_product_graph(graph: nx.Graph) -> None:
     """Validate the explicit graph contract used by the public product surface."""
     if graph.is_directed():
         raise ValueError("ATOF product mode requires an undirected graph")
@@ -171,7 +171,7 @@ def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
             graph = _load_json_graph_payload(json.loads(sys.stdin.read()))
         else:
             graph = nx.read_edgelist(StringIO(sys.stdin.read()), data=False)
-        _validate_product_graph(graph)
+        validate_product_graph(graph)
         return graph
 
     source = Path(path)
