@@ -11,6 +11,7 @@ from .backends import run_kaminpar, run_mtkahypar
 from .partition import (
     balance_error as partition_balance_error,
     exact_balanced_block_weights,
+    rebalance_kway,
 )
 from .product import validate_product_graph
 from .selector import HeuristicRegimeSelector
@@ -132,57 +133,8 @@ def _rebalance_kway(
     membership: list[int],
     k: int,
 ) -> list[int]:
-    """Repair a partition to floor/ceil block sizes with deterministic local moves."""
-    if len(membership) != graph.number_of_nodes():
-        raise ValueError("membership length must match graph node count")
-    if k < 2:
-        raise ValueError("k must be at least 2")
-    if any(block < 0 or block >= k for block in membership):
-        raise ValueError("membership contains an invalid block label")
-
-    nodes = list(graph.nodes())
-    index = {node: i for i, node in enumerate(nodes)}
-    result = list(membership)
-    counts = [result.count(block) for block in range(k)]
-    lower = graph.number_of_nodes() // k
-    upper = (graph.number_of_nodes() + k - 1) // k
-
-    while True:
-        oversized = [block for block, count in enumerate(counts) if count > upper]
-        undersized = [block for block, count in enumerate(counts) if count < lower]
-        if not oversized and not undersized:
-            return result
-
-        source = min(oversized)
-        targets = tuple(undersized)
-
-        candidates: list[tuple[int, str, int, int]] = []
-        for node in nodes:
-            i = index[node]
-            if result[i] != source:
-                continue
-            source_neighbors = sum(
-                1
-                for neighbor in graph.neighbors(node)
-                if result[index[neighbor]] == source
-            )
-            for target in targets:
-                target_neighbors = sum(
-                    1
-                    for neighbor in graph.neighbors(node)
-                    if result[index[neighbor]] == target
-                )
-                delta = source_neighbors - target_neighbors
-                candidates.append((delta, repr(node), i, target))
-
-        if not candidates:
-            raise RuntimeError("could not repair partition balance")
-
-        _, _, chosen, target = min(candidates)
-        result[chosen] = target
-        counts[source] -= 1
-        counts[target] += 1
-
+    """Backward-compatible wrapper around the shared k-way repair contract."""
+    return rebalance_kway(graph, membership, k)
 
 
 
