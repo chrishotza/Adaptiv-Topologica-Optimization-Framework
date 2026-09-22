@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "atof"
 version = "0.6.0"
-description = "Usable topology-aware graph optimization and adaptive strategy selection."
+description = "AI-first open-source graph optimization interface with reproducible provenance and backend composition."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "Chris Hotza"}]
+authors = [{name = "Chris Hotza", email = "chrishotzaoficial@gmail.com"}]
 dependencies = [
   "networkx>=3.0",
   "numpy>=1.24",
