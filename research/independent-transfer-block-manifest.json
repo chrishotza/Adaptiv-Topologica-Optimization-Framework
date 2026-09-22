@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "source_workflow_run_id": 35672597211,
+  "aggregate_artifact": {
+    "id": 10672421161,
+    "name": "atof-independent-dimacs-transfer",
+    "sha256": "4c5f8221b125c4c40485715d60adfb1220ae6e4b061d793c771e175720d42507"
+  },
+  "blocks": [
+    {
+      "block": "development",
+      "artifact_id": 10671508129,
+      "sha256": "79134c9c99459bd0a5040f4509c5dcf0d3fb991fdf8a8cf07188e8c3e22765c6",
+      "graphs": 7
+    },
+    {
+      "block": "external",
+      "artifact_id": 10671358312,
+      "sha256": "eb9499c081c790126fd6c18fa979130ae9e4cf22f2b2e8d7efefefcd80c62973",
+      "graphs": 4
+    },
+    {
+      "block": "snap",
+      "artifact_id": 10671318370,
+      "sha256": "d052971dd3da0bf5e746c94d103c355d60d64563732fc019d4647bdd1f8d286c",
+      "graphs": 6
+    },
+    {
+      "block": "snap_scalability_ca_grqc",
+      "artifact_id": 10671668027,
+      "sha256": "7071022deb289dfcc4d359c00360d071a226320d1e345524ce0e524de1b67cc6",
+      "graphs": [
+        "ca_grqc"
+      ]
+    },
+    {
+      "block": "snap_scalability_ca_hepth",
+      "artifact_id": 10672001879,
+      "sha256": "3491e5122785c72dbe104904d6eb0f6aeb6b22e876b975923a3433da5853846e",
+      "graphs": [
+        "ca_hepth"
+      ]
+    },
+    {
+      "block": "snap_scalability_wiki_vote",
+      "artifact_id": 10671633596,
+      "sha256": "93854bcd0a23b57c52792bf8991c3f7ddf65799a9e48046f933151dd0b2a8e5b",
+      "graphs": [
+        "wiki_vote"
+      ]
+    },
+    {
+      "block": "dimacs_jazz",
+      "artifact_id": 10672111476,
+      "sha256": "86c33a4de104fc01979d8f21fedaab10fd754716d4e6ca4265cbc4bd58d1467c",
+      "graphs": [
+        "jazz"
+      ]
+    },
+    {
+      "block": "dimacs_email_urv",
+      "artifact_id": 10671313298,
+      "sha256": "3ff7ebe7b7217bfe3a1169b2a432c848e771f72874031827b5b05a079d02cba8",
+      "graphs": [
+        "email_urv"
+      ]
+    },
+    {
+      "block": "dimacs_pgp_giant",
+      "artifact_id": 10671114096,
+      "sha256": "d901f70fb93d0bdbebdae2cb016c475341576336bcf7dcd732e556f13ff45b93",
+      "graphs": [
+        "pgp_giant"
+      ]
+    },
+    {
+      "block": "dimacs_as_22july06",
+      "artifact_id": 10671628811,
+      "sha256": "ff8e18a90ac36af002d803663cdf668d7ee4e1da5b38a7f496e4f755d6d10149",
+      "graphs": [
+        "as_22july06"
+      ]
+    },
+    {
+      "block": "dimacs_power",
+      "artifact_id": 10671563044,
+      "sha256": "2b5fcdc8caeb4ebb428151b034e7798931b637d284701f8862024430ac7cf247",
+      "graphs": [
+        "power"
+      ]
+    },
+    {
+      "block": "dimacs_astro_ph",
+      "artifact_id": 10671728274,
+      "sha256": "0d12520d2ba067dd6aa48ea035f9fbe9e2246cc53aae59a2c8e5821751cd1b74",
+      "graphs": [
+        "astro_ph"
+      ]
+    }
+  ],
+  "reuse_rule": "Treat these block artifacts as immutable graph-local benchmark state. Downstream routing/statistical analyses must consume them without rerunning partitioning or topology profiling.",
+  "retention_note": "GitHub Actions artifacts are retention-limited; this manifest pins the exact source run and digest for reproducibility."
+}
