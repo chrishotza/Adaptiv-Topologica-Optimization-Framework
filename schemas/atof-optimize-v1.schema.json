@@ -58,7 +58,8 @@
             "patience",
             "probe_samples",
             "passes",
-            "probes"
+            "probes",
+            "witness_patience"
           ],
           "properties": {
             "enabled": {
@@ -98,6 +99,10 @@
             "probes": {
               "type": "integer",
               "minimum": 0
+            },
+            "witness_patience": {
+              "type": "integer",
+              "minimum": 1
             }
           },
           "additionalProperties": false
