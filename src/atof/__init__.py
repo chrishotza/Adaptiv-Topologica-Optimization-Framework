@@ -23,6 +23,7 @@ from .generalization import (
 from .datasets import GraphDataset, standard_reference_corpus
 from .product import OptimizationResult, load_graph, optimize_graph
 from .portfolio import PortfolioCandidate, PortfolioOptimizationResult, optimize_portfolio
+from .ai import build_ai_manifest, compact_result
 from .statistics import (
     bootstrap_mean_ci,
     graph_metric_means,
@@ -42,6 +43,7 @@ __all__ = [
     "SnapDataset", "download_snap_dataset", "snap_reference_corpus", "snap_scalability_corpus",
     "OptimizationResult", "load_graph", "optimize_graph",
     "PortfolioCandidate", "PortfolioOptimizationResult", "optimize_portfolio",
+    "build_ai_manifest", "compact_result",
     "bootstrap_mean_ci", "graph_metric_means",
     "paired_graph_differences", "paired_summary",
     "balance_error", "edge_cut", "initialize_balanced_partition",
