@@ -7,6 +7,18 @@ Node = Hashable
 Partition = dict[Node, int]
 EdgeCost = Callable[[Node, Node], float]
 
+def exact_balanced_block_weights(n: int, k: int) -> list[int]:
+    """Return k floor/ceil block capacities summing exactly to n."""
+    if k < 1:
+        raise ValueError("k must be >= 1")
+    if n < k:
+        raise ValueError("n must be >= k")
+    lower = n // k
+    upper = (n + k - 1) // k
+    num_upper = n - (lower * k)
+    return [upper] * num_upper + [lower] * (k - num_upper)
+
+
 def initialize_balanced_partition(graph: nx.Graph, k: int) -> Partition:
     """Create a deterministic near-balanced k-way partition."""
     if k < 1:
