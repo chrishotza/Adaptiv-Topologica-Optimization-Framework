@@ -58,6 +58,7 @@ class OptimizationResult:
     hybrid_samples: int = 100
     hybrid_policy: str = "fixed"
     hybrid_patience: int = 2
+    hybrid_probe_samples: int = 20
 
     @property
     def selection_mode(self) -> str:
@@ -92,7 +93,9 @@ class OptimizationResult:
                     "period": self.hybrid_period,
                     "samples": self.hybrid_samples,
                     "patience": self.hybrid_patience,
+                    "probe_samples": self.hybrid_probe_samples,
                     "passes": result.hybrid_passes,
+                    "probes": result.hybrid_probes,
                 },
             },
             "graph": {
@@ -235,6 +238,7 @@ def optimize_graph(
     hybrid_samples: int = 100,
     hybrid_policy: str = "fixed",
     hybrid_patience: int = 2,
+    hybrid_probe_samples: int = 20,
 ) -> OptimizationResult:
     """Profile and partition a graph with the product selection policy."""
     if variant not in ("auto", "baseline", "affinity"):
@@ -251,6 +255,8 @@ def optimize_graph(
         raise ValueError("hybrid_policy must be one of: fixed, adaptive")
     if hybrid_patience < 1:
         raise ValueError("hybrid_patience must be at least 1")
+    if hybrid_probe_samples < 0:
+        raise ValueError("hybrid_probe_samples must be >= 0")
 
     validate_product_graph(graph)
     profiler = TopologyProfiler()
@@ -269,6 +275,7 @@ def optimize_graph(
         hybrid_samples=hybrid_samples,
         hybrid_policy=hybrid_policy,
         hybrid_patience=hybrid_patience,
+        hybrid_probe_samples=hybrid_probe_samples,
     )
 
     return OptimizationResult(
@@ -287,6 +294,7 @@ def optimize_graph(
         hybrid_samples=hybrid_samples,
         hybrid_policy=hybrid_policy,
         hybrid_patience=hybrid_patience,
+        hybrid_probe_samples=hybrid_probe_samples,
     )
 
 
