@@ -23,8 +23,19 @@ def _validate_product_graph(graph: nx.Graph) -> None:
         raise ValueError("ATOF product mode requires a simple graph")
     if graph.number_of_nodes() < 2:
         raise ValueError("ATOF product mode requires at least 2 nodes")
-    if any("weight" in data for _, _, data in graph.edges(data=True)):
-        raise ValueError("ATOF product mode currently requires unweighted edges")
+    for _, _, data in graph.edges(data=True):
+        if "weight" not in data:
+            continue
+        try:
+            weight = float(data["weight"])
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                "ATOF product mode currently requires unweighted edges or unit weights"
+            ) from exc
+        if weight != 1.0:
+            raise ValueError(
+                "ATOF product mode currently requires unweighted edges or unit weights"
+            )
 
 
 @dataclass(frozen=True)
