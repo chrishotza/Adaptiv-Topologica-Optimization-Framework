@@ -24,6 +24,13 @@ atof doctor
 atof solve examples/demo.edgelist
 ```
 
+The same CLI is available as a Python module:
+
+```bash
+python -m atof ai
+python -m atof solve examples/demo.edgelist
+```
+
 Use this order when an AI agent is driving the tool:
 
 1. discover the machine contract;
@@ -64,7 +71,7 @@ atof optimize examples/demo.edgelist --engine portfolio
 atof optimize examples/demo.edgelist --engine portfolio --compact
 ```
 
-Portfolio mode currently supports `k=2), undirected simple graphs, and an unweighted edge-cut objective. It evaluates the available BLOC, NetworkX Kernighan-Lin, and optional METIS/KaHIP engines.
+Portfolio mode currently supports `k=2`, undirected simple graphs, and an unweighted edge-cut objective. It evaluates the available BLOC, NetworkX Kernighan-Lin, and optional METIS/KaHIP engines.
 
 The selected result is the minimum observed edge cut under the common contract, with balance and runtime used as tie-breakers.
 
@@ -99,10 +106,10 @@ The public product contract requires:
 - undirected graphs;
 - simple graphs;
 - at least two nodes;
-- unweighted edges;
+- unweighted edge-cut objective; edge `weight` attributes are accepted but ignored;
 - supported formats: edge-list, GraphML, GEXF, GML.
 
-Unsupported directed, multigraph, or weighted inputs are rejected rather than silently converted.
+Unsupported directed and multigraph inputs are rejected. Edge `weight` attributes are accepted as source metadata and ignored by the current unweighted objective.
 
 ## Provenance
 
