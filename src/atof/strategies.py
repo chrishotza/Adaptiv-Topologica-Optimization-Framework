@@ -282,17 +282,28 @@ class BLOCReloc:
         samples: int,
         best: float,
     ) -> bool:
-        """Return whether a cheap sampled swap probe found an improvement."""
+        """Return whether a boundary-aware sampled swap finds an improvement."""
         if samples <= 0:
             return False
-        nodes = list(self.graph.nodes())
-        if len(nodes) < 2:
+
+        boundary = [
+            node
+            for node in self.graph.nodes()
+            if any(partition[neighbor] != partition[node] for neighbor in self.graph.neighbors(node))
+        ]
+        candidates = boundary if len(boundary) >= 2 else list(self.graph.nodes())
+        by_block: dict[int, list[Hashable]] = {}
+        for node in candidates:
+            by_block.setdefault(partition[node], []).append(node)
+
+        blocks = list(by_block)
+        if len(blocks) < 2:
             return False
 
         for _ in range(samples):
-            u, v = self.probe_rng.sample(nodes, 2)
-            if partition[u] == partition[v]:
-                continue
+            block_u, block_v = self.probe_rng.sample(blocks, 2)
+            u = self.probe_rng.choice(by_block[block_u])
+            v = self.probe_rng.choice(by_block[block_v])
             if best + self._swap_delta(u, v, partition) < best - 1e-12:
                 return True
         return False
