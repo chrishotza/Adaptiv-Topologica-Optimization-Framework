@@ -75,6 +75,16 @@ def _run_policy(graph, *, seed: int, policy: str) -> dict:
     wall_runtime = time.perf_counter() - started
     total_work = sum(int(event["total_work"]) for event in result.trace)
     probe_work = sum(int(event["probe_work"]) for event in result.trace)
+    cumulative_work = 0
+    work_curve = []
+    for event in result.trace:
+        cumulative_work += int(event["total_work"])
+        work_curve.append(
+            {
+                "work": cumulative_work,
+                "edge_cut": int(event["edge_cut"]),
+            }
+        )
 
     balance = float(result.balance_error)
     if not _validate_exact_balance_error(graph, 2, balance):
@@ -90,6 +100,7 @@ def _run_policy(graph, *, seed: int, policy: str) -> dict:
         "balance_error": balance,
         "total_work": int(total_work),
         "probe_work": int(probe_work),
+        "work_curve": work_curve,
         "hybrid_passes": int(result.hybrid_passes),
         "hybrid_probes": int(result.hybrid_probes),
         "runtime_seconds": wall_runtime,
@@ -175,6 +186,101 @@ def _dominance_vs_fixed(rows: list[dict], policy: str) -> dict:
         "quality_strictly_better": len(quality_better),
         "work_strictly_lower": len(work_lower),
         "dominance_rate": len(dominated) / len(graphs) if graphs else 0.0,
+    }
+
+
+def _curve_quality_at_or_before_budget(
+    curve: list[dict],
+    budget: int,
+) -> int | None:
+    candidates = [
+        int(point["edge_cut"])
+        for point in curve
+        if int(point["work"]) <= budget
+    ]
+    return min(candidates) if candidates else None
+
+
+def _equal_work_graph_means(
+    rows: list[dict],
+    policy: str,
+) -> dict[str, dict[str, float]]:
+    grouped: dict[tuple[str, int], dict[str, dict]] = {}
+    for row in rows:
+        if row["strategy"] not in {policy, "fixed"}:
+            continue
+        key = (str(row["graph_id"]), int(row["seed"]))
+        grouped.setdefault(key, {})[str(row["strategy"])] = row
+
+    per_graph: dict[str, list[dict[str, float]]] = {}
+    for (graph_id, _seed), pair in grouped.items():
+        if policy not in pair or "fixed" not in pair:
+            continue
+        candidate = pair[policy]
+        fixed = pair["fixed"]
+        budget = min(int(candidate["total_work"]), int(fixed["total_work"]))
+        candidate_cut = _curve_quality_at_or_before_budget(
+            candidate["work_curve"], budget
+        )
+        fixed_cut = _curve_quality_at_or_before_budget(
+            fixed["work_curve"], budget
+        )
+        if candidate_cut is None or fixed_cut is None:
+            continue
+        per_graph.setdefault(graph_id, []).append(
+            {
+                "candidate": float(candidate_cut),
+                "fixed": float(fixed_cut),
+                "budget": float(budget),
+            }
+        )
+
+    return {
+        graph_id: {
+            "candidate_edge_cut": (
+                sum(item["candidate"] for item in values) / len(values)
+            ),
+            "fixed_edge_cut": (
+                sum(item["fixed"] for item in values) / len(values)
+            ),
+            "common_work_budget": (
+                sum(item["budget"] for item in values) / len(values)
+            ),
+        }
+        for graph_id, values in per_graph.items()
+        if values
+    }
+
+
+def _equal_work_summary(rows: list[dict], policy: str) -> dict:
+    graph_means = _equal_work_graph_means(rows, policy)
+    graphs = sorted(graph_means)
+    deltas = [
+        graph_means[g]["candidate_edge_cut"] - graph_means[g]["fixed_edge_cut"]
+        for g in graphs
+    ]
+    lower, upper = bootstrap_mean_ci(deltas, resamples=20000, seed=2026)
+    return {
+        "graphs": len(graphs),
+        "mean_candidate_edge_cut_at_common_work": (
+            sum(graph_means[g]["candidate_edge_cut"] for g in graphs) / len(graphs)
+            if graphs else 0.0
+        ),
+        "mean_fixed_edge_cut_at_common_work": (
+            sum(graph_means[g]["fixed_edge_cut"] for g in graphs) / len(graphs)
+            if graphs else 0.0
+        ),
+        "mean_edge_cut_delta_candidate_minus_fixed": (
+            sum(deltas) / len(deltas) if deltas else 0.0
+        ),
+        "bootstrap_95_ci": [lower, upper] if deltas else [0.0, 0.0],
+        "candidate_better_graphs": sum(delta < 0 for delta in deltas),
+        "fixed_better_graphs": sum(delta > 0 for delta in deltas),
+        "ties": sum(delta == 0 for delta in deltas),
+        "mean_common_work_budget": (
+            sum(graph_means[g]["common_work_budget"] for g in graphs) / len(graphs)
+            if graphs else 0.0
+        ),
     }
 
 
@@ -281,6 +387,7 @@ def run_benchmark(
                 seed=2025,
             ),
             "dominance_vs_fixed": _dominance_vs_fixed(rows, policy),
+            "equal_work_vs_fixed": _equal_work_summary(rows, policy),
         }
 
     payload = {
@@ -322,6 +429,7 @@ def run_benchmark(
             "This is a BLOC-RELOC controller study, not a comparison against the external multilevel solvers.",
             "Structural work is a machine-independent proxy; wall-clock time remains hardware-specific.",
             "The fixed controller is the primary paired baseline for adaptive and marginal allocation.",
+            "Equal-work analysis uses the best recorded edge cut at or before the common per-graph, per-seed structural-work budget.",
             "No public/default routing policy is changed by this experiment.",
         ],
         "runtime_seconds": time.perf_counter() - started,
