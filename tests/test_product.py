@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import networkx as nx
 
@@ -36,3 +37,21 @@ def test_load_graph_rejects_unknown_format(tmp_path: Path):
         assert "format must be one of" in str(exc)
     else:
         raise AssertionError("unknown format should fail")
+
+def test_write_partition_exports_csv_json_and_tsv(tmp_path):
+    from atof.product import write_partition
+
+    graph = nx.path_graph(6)
+    result = optimize_graph(graph, k=2, seed=42, iterations=2, variant="baseline")
+
+    csv_path = write_partition(result, tmp_path / "partition.csv")
+    assert csv_path.read_text(encoding="utf-8").splitlines()[0] == "node,block"
+    assert len(csv_path.read_text(encoding="utf-8").splitlines()) == 7
+
+    json_path = write_partition(result, tmp_path / "partition.json")
+    payload = json.loads(json_path.read_text(encoding="utf-8"))
+    assert len(payload) == 6
+    assert set(payload[0]) == {"node", "block"}
+
+    tsv_path = write_partition(result, tmp_path / "partition.tsv")
+    assert tsv_path.read_text(encoding="utf-8").splitlines()[0] == "node\tblock"
