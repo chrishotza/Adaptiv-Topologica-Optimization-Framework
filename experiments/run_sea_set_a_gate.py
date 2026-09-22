@@ -33,11 +33,10 @@ def discover_graph_files(root: Path) -> list[Path]:
 
 
 def read_metis_graph(path: Path) -> nx.Graph:
-    raw = [
-        line.strip()
-        for line in path.read_text(encoding="utf-8", errors="strict").splitlines()
-        if line.strip() and not line.lstrip().startswith("%")
-    ]
+    lines = path.read_text(encoding="utf-8", errors="strict").splitlines()
+    raw = [line.rstrip() for line in lines if not line.lstrip().startswith("%")]
+    while raw and not raw[0].strip():
+        raw.pop(0)
     if not raw:
         raise ValueError("empty METIS file")
 
