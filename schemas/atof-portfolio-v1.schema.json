@@ -67,7 +67,7 @@
     },
     "result": {
       "type": "object",
-      "required": ["k", "edge_cut", "balance_error", "partition"],
+      "required": ["k", "edge_cut", "balance_error"],
       "properties": {
         "k": {"type": "integer", "minimum": 2},
         "edge_cut": {"type": "integer", "minimum": 0},
