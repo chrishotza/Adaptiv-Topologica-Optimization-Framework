@@ -78,7 +78,6 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "portfolio mode currently supports k=2",
             "current common objective is unweighted edge cut",
             "weight attributes are accepted as input metadata but ignored by the current unweighted objective",
-            "portfolio mode currently supports k=2",
         ],
     }
     return manifest if full else {
