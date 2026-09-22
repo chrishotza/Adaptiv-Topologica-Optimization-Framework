@@ -7,6 +7,7 @@ from pathlib import Path
 import networkx as nx
 
 from . import __version__
+from .comparison import compare_graph, compact_comparison
 from .ai import build_ai_manifest, build_doctor_report, compact_json, compact_result
 from .portfolio import optimize_portfolio
 from .product import (
@@ -104,6 +105,18 @@ def main(argv: list[str] | None = None) -> int:
         default="auto",
     )
 
+    compare_parser = subparsers.add_parser(
+        "compare",
+        help="compare native Engine and Portfolio under identical parameters",
+    )
+    compare_parser.add_argument("path", type=Path)
+    compare_parser.add_argument("--k", "-k", type=int, default=2)
+    compare_parser.add_argument("--seed", "-s", type=int, default=42)
+    compare_parser.add_argument("--iterations", "-i", type=int, default=25)
+    compare_parser.add_argument("--format", "-f", choices=_FORMAT_CHOICES, default="auto")
+    compare_parser.add_argument("--output", "-o", type=Path)
+    compare_parser.add_argument("--compact", "-c", action="store_true")
+
     profile_parser = subparsers.add_parser("profile", help="profile a graph")
     profile_parser.add_argument("path", type=Path)
     profile_parser.add_argument("--format", "-f", choices=_FORMAT_CHOICES, default="auto")
@@ -182,6 +195,31 @@ def main(argv: list[str] | None = None) -> int:
                 )
             payload = compact_result(result.to_dict())
             encoded = compact_json(payload)
+            if args.output is None:
+                print(encoded)
+            else:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(encoded + "\n", encoding="utf-8")
+                print(str(args.output))
+            return 0
+        except _CLI_ERRORS as exc:
+            return _emit_error(exc)
+
+    if args.command == "compare":
+        try:
+            graph = load_graph(args.path, format=args.format)
+            payload = compare_graph(
+                graph,
+                k=args.k,
+                seed=args.seed,
+                iterations=args.iterations,
+            )
+            rendered = compact_comparison(payload) if args.compact else payload
+            encoded = compact_json(rendered) if args.compact else json.dumps(
+                rendered,
+                indent=2,
+                sort_keys=True,
+            )
             if args.output is None:
                 print(encoded)
             else:
