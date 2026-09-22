@@ -48,3 +48,19 @@ The `auto` mode is deliberately described as a **heuristic selector**. It is not
 The optimization result is a balanced partition under ATOF's current BLOC-RELOC objective. The JSON result is intended to be easy to consume from another program or pipeline.
 
 Research benchmarks and validation workflows remain separate from this product entry point.
+## Reuse from Python
+
+~~~python
+import networkx as nx
+from atof import optimize_graph
+
+graph = nx.path_graph(20)
+result = optimize_graph(graph, k=2, seed=42, iterations=25)
+print(result.partition_result.edge_cut)
+~~~
+
+The reusable API returns both the topology profile and the partition result. Call `result.to_dict(include_partition=False)` when the full node-to-block mapping is not needed.
+
+## Input formats
+
+The product loader supports `edgelist`, `graphml`, `gexf`, and `gml`. With `--format auto`, GraphML/GEXF/GML are detected from the file extension; other files default to edge-list parsing.
