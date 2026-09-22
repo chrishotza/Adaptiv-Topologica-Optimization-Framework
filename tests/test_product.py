@@ -57,3 +57,19 @@ def test_write_partition_exports_csv_json_and_tsv(tmp_path):
 
     tsv_path = write_partition(result, tmp_path / "partition.tsv")
     assert tsv_path.read_text(encoding="utf-8").splitlines()[0] == "node\tblock"
+
+
+def test_write_partition_mapping_supports_generic_portfolio_mapping(tmp_path):
+    from atof.product import write_partition_mapping
+
+    output = write_partition_mapping(
+        {"a": 1, "b": 0},
+        tmp_path / "portfolio.json",
+        format="json",
+    )
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload == [
+        {"node": "b", "block": 0},
+        {"node": "a", "block": 1},
+    ]
