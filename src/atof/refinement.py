@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-POLICIES = ("fixed", "adaptive")
+POLICIES = ("fixed", "adaptive", "early_stop")
 
 
 @dataclass
@@ -53,7 +53,7 @@ class RefinementController:
         else:
             self.stalled_iterations = 0
 
-        if self.policy == "fixed":
+        if self.policy in ("fixed", "early_stop"):
             return (iteration + 1) % self.period == 0
 
         if iteration + 1 < self.period:
