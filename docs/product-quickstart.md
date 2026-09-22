@@ -64,3 +64,21 @@ The reusable API returns both the topology profile and the partition result. Cal
 ## Input formats
 
 The product loader supports `edgelist`, `graphml`, `gexf`, and `gml`. With `--format auto`, GraphML/GEXF/GML are detected from the file extension; other files default to edge-list parsing.
+
+## Portfolio mode
+
+ATOF can act as an open-source portfolio layer over several graph partitioning backends.
+
+~~~bash
+atof optimize graph.edgelist --engine portfolio
+~~~
+
+Portfolio mode evaluates the internal BLOC-RELOC variants and NetworkX Kernighan-Lin. When the optional extras are installed, it also evaluates PyMetis and KaHIP. The selected result is the lowest edge cut among available candidates under the same two-way balance contract.
+
+Optional backends remain optional:
+
+~~~bash
+python -m pip install -e ".[dev,metis,kahip]"
+~~~
+
+The JSON output records which candidates were available, the edge cut, balance error, runtime, and any unavailable-backend reason. Portfolio mode is an empirical selection mechanism, not a claim of universal optimality.
