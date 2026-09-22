@@ -13,10 +13,12 @@ def test_ai_manifest_is_stable_and_compact():
     assert manifest["schema"] == "atof.ai.v1"
     assert manifest["name"] == "atof"
     assert manifest["capabilities"]["portfolio"]["k"] == ">=2"
+    assert manifest["capabilities"]["portfolio"]["result_schema"] == "atof.portfolio.v1"
     assert manifest["commands"]["doctor"] == "atof doctor"
     assert "not universally optimal" in manifest["claim_policy"]["non_claims"]
     assert manifest["commands"]["short_flags"]["compact"] == "-c"
     assert manifest["commands"]["short_flags"]["partition_output"] == "-p"
+    assert manifest["capabilities"]["portfolio"]["result_schema"] == "atof.portfolio.v1"
 
 
 def test_compact_result_drops_verbose_fields():
