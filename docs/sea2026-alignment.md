@@ -41,7 +41,7 @@ These are published results from a different hardware/software stack and are not
 
 1. Current direct benchmark: 20 graphs, k=2.
 2. Current external solver surface: METIS, KaHIP, KaMinPar, Mt-KaHyPar, NetworkX KL, BLOC-RELOC variants.
-3. Current Mt-KaHyPar default/quality backend is integrated; the SEA 2026 learned-coarsening model is still missing.
+3. Current Mt-KaHyPar default/quality backend is integrated; the exact SEA 2026 learned-coarsening snapshot is now exercised by a dedicated build-and-run smoke workflow, but it is not yet a matched multi-graph ATOF baseline.
 4. Matched k-way evaluation at k=4, 8, 32, 64 is implemented as a reproducible scaffold but has not yet been executed.
 5. Missing 118-graph Set A reproduction.
 6. Missing large irregular/regular scale tier comparable to Set I and Set R.
@@ -58,7 +58,7 @@ That question is materially different from simply routing among BLOC-RELOC varia
 
 - Gate A: current 20-graph k=2 head-to-head with KaMinPar.
 - Gate B: matched k-way ATOF/METIS/KaHIP/KaMinPar study at k=4, 8, 32, 64.
-- Gate C: add Mt-KaHyPar or the published SEA 2026 implementation as a direct baseline.
+- Gate C: verify the exact SEA 2026 software snapshot and then benchmark its learned configuration as a direct multi-graph reference.
 - Gate D: selectively materialize the 118-graph Set A benchmark and reproduce a subset of the published comparisons.
 - Gate E: expand to Set I/R for scale-sensitive validation.
 - Gate F: only then evaluate ATOF's dynamic compute-allocation controller against the mature baselines.
