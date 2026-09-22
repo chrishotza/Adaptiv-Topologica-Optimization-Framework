@@ -43,7 +43,22 @@ Use this order when an AI agent is driving the tool:
 printf "a b\nb c\nc d\n" | atof solve -
 ```
 
-Use `-` as the graph path for shell pipelines. stdin currently accepts edge-list input; GraphML, GEXF, and GML use file paths.
+Use `-` as the graph path for shell pipelines. stdin accepts edge-list or JSON when `--format json` is explicit. GraphML, GEXF, and GML use file paths.
+
+## JSON input
+
+A JSON graph uses `nodes` and `edges`:
+
+```json
+{"nodes":["a","b","isolated"],"edges":[["a","b"]]}
+```
+
+The `nodes` array preserves isolated nodes. The `edges` array contains 2-item node-ID arrays.
+
+```bash
+atof solve graph.json
+printf '{"nodes":["a","b"],"edges":[["a","b"]]}' | atof solve - --format json
+```
 
 ## Profile
 
