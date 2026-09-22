@@ -6,7 +6,7 @@ import pickle
 import sys
 from pathlib import Path
 
-from .backends import run_kaminpar, run_mtkahypar
+from .backends import _run_kaminpar_in_process, _run_mtkahypar_in_process
 
 
 def main() -> int:
@@ -23,7 +23,7 @@ def main() -> int:
         graph = pickle.load(handle)
 
     if args.strategy == "kaminpar":
-        partition, edge_cut, balance, runtime = run_kaminpar(
+        partition, edge_cut, balance, runtime = _run_kaminpar_in_process(
             graph,
             graph_id=args.graph_id,
             seed=args.seed,
@@ -31,7 +31,7 @@ def main() -> int:
             context_name=args.context,
         )
     else:
-        partition, edge_cut, balance, runtime = run_mtkahypar(
+        partition, edge_cut, balance, runtime = _run_mtkahypar_in_process(
             graph,
             graph_id=args.graph_id,
             seed=args.seed,
