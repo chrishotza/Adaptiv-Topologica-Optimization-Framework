@@ -51,7 +51,8 @@
             "format",
             "output",
             "partition_output",
-            "full"
+            "full",
+            "k"
           ],
           "properties": {
             "compact": {"const": "-c"},
@@ -61,7 +62,8 @@
             "format": {"const": "-f"},
             "output": {"const": "-o"},
             "partition_output": {"const": "-p"},
-            "full": {"const": "-F"}
+            "full": {"const": "-F"},
+            "k": {"const": "-k"}
           },
           "additionalProperties": false
         }
@@ -157,7 +159,7 @@
             "selection"
           ],
           "properties": {
-            "k": {"const": 2},
+            "k": {"const": ">=2"},
             "objective": {"type": "string"},
             "backends": {
               "type": "array",
