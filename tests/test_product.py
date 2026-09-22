@@ -19,6 +19,33 @@ def test_optimize_graph_supports_kway_engine():
     assert set(result.partition_result.partition.values()) == {0, 1, 2, 3}
 
 
+def test_optimize_graph_reports_its_actual_objective_semantics():
+    graph = nx.path_graph(8)
+
+    baseline = optimize_graph(
+        graph,
+        k=2,
+        seed=42,
+        iterations=3,
+        variant="baseline",
+    ).to_dict(include_partition=False)
+    affinity = optimize_graph(
+        graph,
+        k=2,
+        seed=42,
+        iterations=3,
+        variant="affinity",
+    ).to_dict(include_partition=False)
+
+    assert baseline["objective"]["reported_metric"] == "edge_cut"
+    assert baseline["objective"]["optimization_metric"] == "edge_cut"
+    assert "directly minimizes unweighted edge cut" in baseline["objective"]["variant_semantics"]
+
+    assert affinity["objective"]["reported_metric"] == "edge_cut"
+    assert affinity["objective"]["optimization_metric"] == "degree_affinity_weighted_cut"
+    assert "weighted surrogate" in affinity["objective"]["variant_semantics"]
+
+
 def test_optimize_graph_returns_balanced_product_result():
     graph = nx.path_graph(8)
     result = optimize_graph(graph, k=2, seed=42, iterations=3, variant="baseline")
@@ -104,6 +131,7 @@ def test_load_graph_rejects_unknown_format(tmp_path: Path):
     else:
         raise AssertionError("unknown format should fail")
 
+
 def test_write_partition_exports_csv_json_and_tsv(tmp_path):
     from atof.product import write_partition
 
@@ -138,9 +166,8 @@ def test_write_partition_mapping_supports_generic_portfolio_mapping(tmp_path):
         {"node": "a", "block": 1},
     ]
 
-def test_optimize_graph_rejects_unsupported_graph_models():
-    import pytest
 
+def test_optimize_graph_rejects_unsupported_graph_models():
     directed = nx.DiGraph([(0, 1), (1, 2)])
     with pytest.raises(ValueError, match="undirected"):
         optimize_graph(directed)
