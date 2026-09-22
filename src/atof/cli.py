@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 from . import __version__
-from .product import load_graph, optimize_graph
+from .product import load_graph, optimize_graph, write_partition
 from .topology import TopologyProfiler
 from .selector import HeuristicRegimeSelector
 
@@ -73,6 +73,17 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         help="optional JSON output path; stdout is used when omitted",
     )
+    optimize_parser.add_argument(
+        "--partition-output",
+        type=Path,
+        help="optional node-to-block partition file",
+    )
+    optimize_parser.add_argument(
+        "--partition-format",
+        choices=("auto", "json", "csv", "tsv"),
+        default="auto",
+        help="partition export format",
+    )
 
     args = parser.parse_args(argv)
 
@@ -86,16 +97,24 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "optimize":
         graph = load_graph(args.path, format=args.format)
-        payload = optimize_graph(
+        result = optimize_graph(
             graph,
             k=args.k,
             seed=args.seed,
             iterations=args.iterations,
             variant=args.variant,
-        ).to_dict()
+        )
+        payload = result.to_dict()
         payload["file"] = str(args.path)
         payload["version"] = __version__
         encoded = json.dumps(payload, indent=2, sort_keys=True)
+        if args.partition_output is not None:
+            write_partition(
+                result,
+                args.partition_output,
+                format=args.partition_format,
+            )
+
         if args.output is None:
             print(encoded)
         else:
