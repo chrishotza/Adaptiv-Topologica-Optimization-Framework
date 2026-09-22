@@ -17,6 +17,7 @@
 - `METIS alternative` or `KaHIP comparison` — use Portfolio mode and inspect `candidates[]` and `provenance`.
 - `Kernighan-Lin graph partitioning` — NetworkX Kernighan-Lin is one of the Portfolio candidates when available.
 - `AI agent graph optimizer` — start with `atof ai`, then `atof doctor`, then `atof solve`.
+- `Engine vs Portfolio comparison` — use `atof compare <graph>` under identical parameters.
 - `machine-readable graph partition` — request compact JSON and optional JSON/CSV/TSV partition export.
 
 ## Start here
@@ -39,6 +40,7 @@
 - `schemas/atof-error-v1.schema.json` — structured error schema
 - `schemas/atof-portfolio-v1.schema.json` — Portfolio result schema
 - `schemas/atof-optimize-v1.schema.json` — Engine result schema
+- `schemas/atof-compare-v1.schema.json` — Engine-vs-Portfolio comparison schema
 
 ## Product model
 
