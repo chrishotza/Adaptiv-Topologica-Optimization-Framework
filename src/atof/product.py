@@ -201,7 +201,7 @@ def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
     else:
         graph = nx.read_gml(source)
 
-    _validate_product_graph(graph)
+    validate_product_graph(graph)
     return graph
 
 
