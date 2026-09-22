@@ -20,6 +20,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "ai": "atof ai",
             "doctor": "atof doctor",
             "solve": "atof solve <graph> [--k N]",
+            "compare": "atof compare <graph> [--k N]",
             "module": "python -m atof",
             "profile": "atof profile <graph>",
             "optimize": "atof optimize <graph> --engine portfolio",
@@ -64,6 +65,10 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                     ),
                     "auto": "heuristically selects baseline or affinity",
                 },
+            },
+            "comparison": {
+                "result_schema": "atof.compare.v1",
+                "scope": "compare native Engine and Portfolio under identical parameters",
             },
             "portfolio": {
                 "k": ">=2",
