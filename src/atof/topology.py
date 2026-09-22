@@ -90,8 +90,6 @@ def _average_shortest_path_length_exact(graph: nx.Graph) -> float:
     if node_count < AVERAGE_PATH_PARALLEL_THRESHOLD:
         return float(nx.average_shortest_path_length(graph))
 
-    if "fork" not in get_context.__globals__.get("__builtins__", {}):
-        return float(nx.average_shortest_path_length(graph))
 
     try:
         context = get_context("fork")
