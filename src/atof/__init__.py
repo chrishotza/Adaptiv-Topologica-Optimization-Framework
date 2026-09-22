@@ -21,6 +21,7 @@ from .generalization import (
     summarize_transfer_folds,
 )
 from .datasets import GraphDataset, standard_reference_corpus
+from .product import OptimizationResult, load_graph, optimize_graph
 from .statistics import (
     bootstrap_mean_ci,
     graph_metric_means,
@@ -38,6 +39,7 @@ __all__ = [
     "summarize_generalization", "summarize_routing_folds", "summarize_transfer_folds",
     "GraphDataset", "standard_reference_corpus",
     "SnapDataset", "download_snap_dataset", "snap_reference_corpus", "snap_scalability_corpus",
+    "OptimizationResult", "load_graph", "optimize_graph",
     "bootstrap_mean_ci", "graph_metric_means",
     "paired_graph_differences", "paired_summary",
     "balance_error", "edge_cut", "initialize_balanced_partition",
