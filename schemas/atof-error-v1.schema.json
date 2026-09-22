@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-error-v1.schema.json",
+  "title": "ATOF error response",
+  "type": "object",
+  "required": ["schema", "name", "version", "error"],
+  "properties": {
+    "schema": {"const": "atof.error.v1"},
+    "name": {"const": "atof"},
+    "version": {"type": "string"},
+    "error": {
+      "type": "object",
+      "required": ["type", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {"type": "string"},
+        "message": {"type": "string"}
+      }
+    }
+  },
+  "additionalProperties": false
+}
