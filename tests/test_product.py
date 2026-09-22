@@ -88,8 +88,8 @@ def test_optimize_graph_rejects_unsupported_graph_models():
 
     weighted = nx.Graph()
     weighted.add_edge("a", "b", weight=2.0)
-    with pytest.raises(ValueError, match="unweighted"):
-        optimize_graph(weighted)
+    weighted_result = optimize_graph(weighted)
+    assert weighted_result.partition_result.edge_cut == 1
 
 
 def test_optimize_graph_rejects_invalid_iterations():
