@@ -14,8 +14,8 @@ on:
       - "docs/state-of-art-benchmark.md"
       - "docs/state-of-art-2026-map.md"
       - ".github/workflows/state-of-art-benchmark.yml"
-      - "src/atof/**"
-      - "src/atof/*"
+      - "src/atof/strategies.py"
+      - "experiments/**"
 
 permissions:
   contents: read
