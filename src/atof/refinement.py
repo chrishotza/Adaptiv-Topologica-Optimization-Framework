@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
-POLICIES = ("fixed", "adaptive")
+POLICIES = ("fixed", "adaptive", "budgeted")
 
 
 @dataclass
@@ -26,6 +26,13 @@ class RefinementController:
     last_hybrid_improved: bool | None = None
     witness_patience: int = 2
     witness_misses: int = 0
+    sample_budget: int = 100
+    min_samples: int = 25
+    max_samples: int = 200
+    sample_growth: float = 1.25
+    sample_shrink: float = 0.5
+    budget_adjustments: int = 0
+    sample_history: list[int] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if self.policy not in POLICIES:
@@ -36,6 +43,18 @@ class RefinementController:
             raise ValueError("patience must be at least 1")
         if self.witness_patience < 1:
             raise ValueError("witness_patience must be at least 1")
+        if self.sample_budget < 1:
+            raise ValueError("sample_budget must be at least 1")
+        if self.min_samples < 1:
+            raise ValueError("min_samples must be at least 1")
+        if self.max_samples < self.min_samples:
+            raise ValueError("max_samples must be >= min_samples")
+        if not 1.0 < self.sample_growth <= 4.0:
+            raise ValueError("sample_growth must be in (1, 4]")
+        if not 0.0 < self.sample_shrink < 1.0:
+            raise ValueError("sample_shrink must be in (0, 1)")
+        self.sample_budget = max(self.min_samples, min(self.sample_budget, self.max_samples))
+        self.sample_history = [self.sample_budget]
 
     def after_local_pass(
         self,
@@ -53,7 +72,7 @@ class RefinementController:
         else:
             self.stalled_iterations = 0
 
-        if self.policy == "fixed":
+        if self.policy in ("fixed", "budgeted"):
             return (iteration + 1) % self.period == 0
 
         if iteration + 1 < self.period:
@@ -87,6 +106,7 @@ class RefinementController:
         iteration: int,
         start_cost: float,
         end_cost: float,
+        samples_used: int,
     ) -> None:
         """Record the result of a hybrid pass and reset stagnation when useful."""
         self.hybrid_passes += 1
@@ -94,3 +114,16 @@ class RefinementController:
         self.last_hybrid_improved = end_cost < start_cost - 1e-12
         if self.last_hybrid_improved:
             self.stalled_iterations = 0
+        if self.policy == "budgeted":
+            if self.last_hybrid_improved:
+                self.sample_budget = min(
+                    self.max_samples,
+                    max(self.sample_budget + 1, int(self.sample_budget * self.sample_growth)),
+                )
+            else:
+                self.sample_budget = max(
+                    self.min_samples,
+                    int(self.sample_budget * self.sample_shrink),
+                )
+            self.budget_adjustments += int(self.sample_budget != samples_used)
+            self.sample_history.append(self.sample_budget)
