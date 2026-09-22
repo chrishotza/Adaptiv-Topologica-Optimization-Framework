@@ -267,7 +267,7 @@ def test_cli_optimize_hybrid_refinement(tmp_path, capsys):
         "period": 5,
         "samples": 10,
         "patience": 2,
-        "passes": 1,
+        "passes": 5,
     }
 
 
