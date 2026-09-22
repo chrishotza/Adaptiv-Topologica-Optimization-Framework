@@ -7,6 +7,7 @@ from experiments.run_dynamic_compute_external_benchmark import (
     POLICIES,
     _expected_balance_error,
     _validate_exact_balance_error,
+    _corpus_comparison,
     _dominance_vs_fixed,
     _policy_summary,
     _run_policy,
@@ -38,6 +39,20 @@ def test_run_policy_records_structural_work() -> None:
     assert result["total_work"] > 0
     assert result["probe_work"] >= 0
     assert result["total_work"] >= result["probe_work"]
+
+
+def test_corpus_comparison_is_graph_level():
+    rows = [
+        {"corpus": "a", "graph_id": "a/g1", "strategy": "fixed", "edge_cut": 10, "total_work": 100},
+        {"corpus": "a", "graph_id": "a/g1", "strategy": "fixed", "edge_cut": 12, "total_work": 120},
+        {"corpus": "a", "graph_id": "a/g1", "strategy": "marginal", "edge_cut": 9, "total_work": 90},
+        {"corpus": "a", "graph_id": "a/g1", "strategy": "marginal", "edge_cut": 11, "total_work": 110},
+    ]
+    result = _corpus_comparison(rows, "marginal")
+    assert result["a"]["graphs"] == 1
+    assert result["a"]["mean_edge_cut_delta"] == pytest.approx(-1.0)
+    assert result["a"]["mean_total_work_delta"] == pytest.approx(-10.0)
+    assert result["a"]["joint_quality_work_dominance_rate"] == pytest.approx(1.0)
 
 
 def test_policy_summary_counts_graphs_and_rows() -> None:
