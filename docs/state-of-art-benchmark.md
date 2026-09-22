@@ -41,7 +41,9 @@ The first locked comparison contains:
 4. BLOC-RELOC + state-aware adaptive refinement;
 5. NetworkX Kernighan-Lin;
 6. METIS;
-7. KaHIP.
+7. KaHIP;
+8. KaMinPar default;
+9. KaMinPar strong.
 
 The hybrid settings are fixed at period 5 and 100 sampled two-swaps. The adaptive controller uses 20 boundary-aware witness samples and a witness patience of 2.
 
