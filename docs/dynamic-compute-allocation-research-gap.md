@@ -55,9 +55,10 @@ ATOF now records a machine-independent work proxy for the two principal local-se
 
 - local node-move work counts edge-incidence traversals performed while evaluating feasible moves;
 - hybrid two-swap work counts the corresponding edge incidences inspected for each sampled swap;
-- both are therefore reported in the same structural work unit rather than treating the number of random samples as equivalent computation.
+- both are therefore reported in the same structural work unit rather than treating the number of random samples as equivalent computation;
+- adaptive witness probes are also charged in the same structural work unit, so probe-based abstention cannot make the controller appear cheaper by omitting its measurement cost.
 
-The trace records gain, work, and gain-per-work for each iteration. Wall-clock time remains a separate, machine-specific measure and is not replaced by this proxy.
+The trace records local work, hybrid work, probe work, total work, gain, and gain-per-work for each iteration. Wall-clock time remains a separate, machine-specific measure and is not replaced by this proxy.
 
 
 
