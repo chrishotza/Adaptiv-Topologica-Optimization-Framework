@@ -26,7 +26,17 @@
         "requested": {"type": "string"},
         "selected": {"type": "string"},
         "selection_mode": {"type": "string"},
-        "regime": {"type": "string"}
+        "regime": {"type": "string"},
+        "hybrid_refinement": {
+          "type": "object",
+          "required": ["enabled", "period", "samples"],
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "period": {"type": ["integer", "null"], "minimum": 1},
+            "samples": {"type": "integer", "minimum": 0}
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },
