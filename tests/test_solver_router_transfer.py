@@ -32,7 +32,7 @@ def test_global_mean_control_uses_training_graph_values() -> None:
         {"strategy_metrics": {"a": {"edge_cut": 10.0}, "b": {"edge_cut": 12.0}}},
         {"strategy_metrics": {"a": {"edge_cut": 11.0}, "b": {"edge_cut": 8.0}}},
     ]
-    assert _global_mean_strategy(training) == "a"
+    assert _global_mean_strategy(training) == "b"
 
 
 def test_runtime_and_dominance_are_reported() -> None:
