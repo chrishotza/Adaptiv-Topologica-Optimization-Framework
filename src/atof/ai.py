@@ -15,7 +15,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "name": "atof",
         "version": __version__,
         "purpose": "AI-first graph optimization interface.",
-        "primary_flow": "ai -> doctor -> solve -> compact JSON",
+        "primary_flow": "ai->doctor->solve->compact JSON",
         "commands": {
             "ai": "atof ai",
             "doctor": "atof doctor",
