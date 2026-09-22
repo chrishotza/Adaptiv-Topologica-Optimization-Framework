@@ -173,6 +173,12 @@ def main(argv: list[str] | None = None) -> int:
         default=2,
         help="stalled local iterations required by the adaptive policy",
     )
+    optimize_parser.add_argument(
+        "--hybrid-probe-samples",
+        type=int,
+        default=20,
+        help="cheap swap samples used by the adaptive witness probe",
+    )
     optimize_parser.add_argument("--format", "-f", choices=_FORMAT_CHOICES, default="auto")
     optimize_parser.add_argument("--output", "-o", type=Path)
     optimize_parser.add_argument("--compact", "-c", action="store_true")
@@ -307,6 +313,7 @@ def main(argv: list[str] | None = None) -> int:
                     hybrid_samples=args.hybrid_samples,
                     hybrid_policy=args.hybrid_policy,
                     hybrid_patience=args.hybrid_patience,
+                    hybrid_probe_samples=args.hybrid_probe_samples,
                 )
             payload = result.to_dict()
             payload["file"] = str(args.path)
