@@ -29,6 +29,20 @@ def test_ai_and_doctor_expose_same_input_contract(capsys):
     assert manifest["capabilities"]["portfolio"]["k"] == 2
 
 
+
+def test_ai_manifest_matches_declared_schema_shape(capsys):
+    assert main(["ai"]) == 0
+    manifest = json.loads(capsys.readouterr().out)
+
+    from pathlib import Path
+
+    schema_path = Path(__file__).parents[1] / "schemas" / "atof-ai-v1.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+    assert set(manifest).issubset(schema["properties"])
+    assert set(schema["required"]).issubset(manifest)
+    assert set(manifest["output"]).issubset(schema["properties"]["output"]["properties"])
+
 def test_cli_version(capsys):
     assert main(["--version"]) == 0
     assert capsys.readouterr().out.strip() == "0.6.0"
