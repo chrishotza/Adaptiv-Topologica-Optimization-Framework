@@ -52,6 +52,7 @@ def _package_versions() -> dict[str, str | None]:
         "pymetis",
         "kahip",
         "kaminpar",
+        "mtkahypar",
     ):
         try:
             versions[distribution] = importlib_metadata.version(distribution)
