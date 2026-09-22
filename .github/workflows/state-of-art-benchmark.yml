@@ -74,6 +74,10 @@ jobs:
               "centroid_vs_majority",
               "centroid_vs_global_mean",
           }
+          for summary in payload["pooled"].values():
+              assert "mean_router_runtime_ratio" in summary
+              assert "mean_control_runtime_ratio" in summary
+              assert "joint_quality_runtime_dominance_rate" in summary
           PY
 
       - name: Upload solver-router transfer artifact
