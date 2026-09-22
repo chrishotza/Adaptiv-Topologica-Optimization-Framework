@@ -54,6 +54,18 @@ Can dynamic allocation of refinement/search budget produce a measurable quality-
 
 That question is materially different from simply routing among BLOC-RELOC variants. It has to be evaluated against internal ML heuristics, not only external solver selection.
 
+## Set A acquisition and controlled gate
+
+The Zenodo record for the SEA 2026 work publishes `set_a.zip` as 118 unweighted METIS-format graphs with a published MD5 of `94606409c10bced915890cf6e6fda213`. The archive is about 3.4 GB, so ATOF does not vendor it into Git. The repository instead provides a manual GitHub Actions gate that:
+
+1. downloads the public archive;
+2. verifies the published MD5;
+3. extracts and validates all 118 graphs;
+4. records per-file SHA-256 provenance;
+5. optionally runs a controlled ATOF quality gate on a selected prefix of the corpus.
+
+The controlled gate deliberately does not claim to reproduce the SEA 2026 numerical protocol. The published study uses k in {4, 8, 32, 64}, epsilon=0.03, five randomized runs, a one-hour limit, and a 64-thread machine; ATOF's product contract currently uses exact floor/ceil balance and its own reproducible seed set. The purpose of this first gate is corpus parity and reproducible cross-solver access. A later SEA-reproduction track will mirror the published contract separately.
+
 ## Execution gates
 
 - Gate A: current 20-graph k=2 head-to-head with KaMinPar.
