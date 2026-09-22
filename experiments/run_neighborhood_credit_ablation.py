@@ -16,28 +16,23 @@ ITERATIONS = 25
 HYBRID_PERIOD = 5
 HYBRID_SAMPLES = 100
 K = 3
-CREDIT_THRESHOLD = 1.5
-CREDIT_MAX_SKIPS = 1
+CREDIT_CONFIGS = (
+    {"threshold": 0.75, "max_skips": 1},
+    {"threshold": 1.00, "max_skips": 1},
+    {"threshold": 1.25, "max_skips": 1},
+    {"threshold": 1.50, "max_skips": 1},
+)
 
 
-def run_pair(graph, *, seed: int, variant: str) -> dict:
-    fixed_started = time.perf_counter()
-    fixed = BLOCReloc(graph, k=K, seed=seed, variant=variant).refine(
-        iterations=ITERATIONS,
-        hybrid_period=HYBRID_PERIOD,
-        hybrid_samples=HYBRID_SAMPLES,
-        hybrid_policy="fixed",
-    )
-    fixed_runtime = time.perf_counter() - fixed_started
-
+def run_pair(graph, *, seed: int, variant: str, threshold: float, max_skips: int, fixed) -> dict:
     credit_started = time.perf_counter()
     credit = BLOCReloc(graph, k=K, seed=seed, variant=variant).refine(
         iterations=ITERATIONS,
         hybrid_period=HYBRID_PERIOD,
         hybrid_samples=HYBRID_SAMPLES,
         hybrid_policy="credit",
-        hybrid_credit_threshold=CREDIT_THRESHOLD,
-        hybrid_credit_max_skips=CREDIT_MAX_SKIPS,
+        hybrid_credit_threshold=threshold,
+        hybrid_credit_max_skips=max_skips,
     )
     credit_runtime = time.perf_counter() - credit_started
 
@@ -49,13 +44,14 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
     )
 
     return {
+        "threshold": threshold,
+        "max_skips": max_skips,
         "seed": seed,
         "variant": variant,
         "iterations": ITERATIONS,
-        "hybrid_period": HYBRID_PERIOD,
         "k_fixed": K,
         "k_credit": K,
-        "k": K,
+        "hybrid_period": HYBRID_PERIOD,
         "hybrid_samples": HYBRID_SAMPLES,
         "fixed_edge_cut": fixed.edge_cut,
         "credit_edge_cut": credit.edge_cut,
@@ -63,26 +59,15 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
         "fixed_weighted_cost": fixed.weighted_cost,
         "credit_weighted_cost": credit.weighted_cost,
         "weighted_cost_delta": credit.weighted_cost - fixed.weighted_cost,
-        "fixed_runtime_seconds": fixed_runtime,
+        "fixed_runtime_seconds": 0.0,
         "credit_runtime_seconds": credit_runtime,
-        "runtime_ratio": credit_runtime / fixed_runtime if fixed_runtime > 0 else None,
+        "runtime_ratio": None,
         "fixed_hybrid_passes": fixed.hybrid_passes,
         "credit_hybrid_passes": credit.hybrid_passes,
         "pass_delta": credit.hybrid_passes - fixed.hybrid_passes,
         "fixed_samples_used": fixed_samples,
         "credit_samples_used": credit_samples,
         "sample_delta": credit_samples - fixed_samples,
-        "credit_trace": [
-            {
-                "iteration": int(row["iteration"]),
-                "hybrid": int(row["hybrid"]),
-                "local_credit": float(row["local_credit"]),
-                "hybrid_credit": float(row["hybrid_credit"]),
-                "local_work": int(row["local_work"]),
-                "hybrid_work": int(row["hybrid_work"]),
-            }
-            for row in credit.trace
-        ],
     }
 
 
@@ -93,41 +78,76 @@ def run_benchmark() -> dict:
     for graph_name, graph in build_suite().items():
         for seed in SEEDS:
             for variant in VARIANTS:
-                rows.append(
-                    {"graph": graph_name, **run_pair(graph, seed=seed, variant=variant)}
+                fixed_started = time.perf_counter()
+                fixed = BLOCReloc(graph, k=K, seed=seed, variant=variant).refine(
+                    iterations=ITERATIONS,
+                    hybrid_period=HYBRID_PERIOD,
+                    hybrid_samples=HYBRID_SAMPLES,
+                    hybrid_policy="fixed",
                 )
+                fixed_runtime = time.perf_counter() - fixed_started
 
-    deltas = [row["edge_cut_delta"] for row in rows]
-    ratios = [row["runtime_ratio"] for row in rows if row["runtime_ratio"] is not None]
+                for config in CREDIT_CONFIGS:
+                    row = run_pair(
+                        graph,
+                        seed=seed,
+                        variant=variant,
+                        threshold=config["threshold"],
+                        max_skips=config["max_skips"],
+                        fixed=fixed,
+                    )
+                    row["fixed_runtime_seconds"] = fixed_runtime
+                    row["runtime_ratio"] = (
+                        row["credit_runtime_seconds"] / fixed_runtime
+                        if fixed_runtime > 0
+                        else None
+                    )
+                    rows.append({"graph": graph_name, **row})
+
+    summaries = []
+    for config in CREDIT_CONFIGS:
+        subset = [
+            row
+            for row in rows
+            if row["threshold"] == config["threshold"]
+            and row["max_skips"] == config["max_skips"]
+        ]
+        deltas = [row["edge_cut_delta"] for row in subset]
+        ratios = [row["runtime_ratio"] for row in subset if row["runtime_ratio"] is not None]
+        summaries.append(
+            {
+                "threshold": config["threshold"],
+                "max_skips": config["max_skips"],
+                "comparisons": len(subset),
+                "better_edge_cut": sum(delta < 0 for delta in deltas),
+                "tied_edge_cut": sum(delta == 0 for delta in deltas),
+                "worse_edge_cut": sum(delta > 0 for delta in deltas),
+                "mean_edge_cut_delta": sum(deltas) / len(deltas) if deltas else 0.0,
+                "mean_runtime_ratio": sum(ratios) / len(ratios) if ratios else 0.0,
+                "mean_pass_delta": (
+                    sum(row["pass_delta"] for row in subset) / len(subset)
+                    if subset
+                    else 0.0
+                ),
+                "mean_sample_delta": (
+                    sum(row["sample_delta"] for row in subset) / len(subset)
+                    if subset
+                    else 0.0
+                ),
+            }
+        )
 
     return {
-        "schema_version": "0.1",
+        "schema_version": "0.2",
         "created_at": datetime.now(timezone.utc).isoformat(),
         "suite": "experiments.generate_suite.build_suite",
         "surface": "atof.strategies.BLOCReloc",
-        "seeds": list(SEEDS),
-        "variants": list(VARIANTS),
-        "iterations": ITERATIONS,
-        "hybrid_period": HYBRID_PERIOD,
         "k": K,
+        "hybrid_period": HYBRID_PERIOD,
         "hybrid_samples": HYBRID_SAMPLES,
-        "credit_threshold": CREDIT_THRESHOLD,
-        "credit_max_skips": CREDIT_MAX_SKIPS,
+        "configs": list(CREDIT_CONFIGS),
         "rows": rows,
-        "summary": {
-            "comparisons": len(rows),
-            "credit_better_edge_cut": sum(delta < 0 for delta in deltas),
-            "tied_edge_cut": sum(delta == 0 for delta in deltas),
-            "credit_worse_edge_cut": sum(delta > 0 for delta in deltas),
-            "mean_edge_cut_delta": sum(deltas) / len(deltas) if deltas else 0.0,
-            "mean_runtime_ratio": sum(ratios) / len(ratios) if ratios else 0.0,
-            "mean_pass_delta": (
-                sum(row["pass_delta"] for row in rows) / len(rows) if rows else 0.0
-            ),
-            "mean_sample_delta": (
-                sum(row["sample_delta"] for row in rows) / len(rows) if rows else 0.0
-            ),
-        },
+        "summaries": summaries,
         "runtime_seconds": time.perf_counter() - started,
     }
 
@@ -144,7 +164,7 @@ def main() -> int:
     payload = run_benchmark()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(json.dumps(payload["summary"], indent=2))
+    print(json.dumps(payload["summaries"], indent=2))
     return 0
 
 
