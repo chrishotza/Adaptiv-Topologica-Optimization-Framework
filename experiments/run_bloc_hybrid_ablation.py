@@ -19,6 +19,47 @@ HYBRID_SAMPLES = 100
 ITERATIONS = 25
 
 
+def compare_pair(
+    graph: nx.Graph,
+    *,
+    seed: int,
+    variant: str,
+) -> dict:
+    base = BLOCReloc(graph, k=2, seed=seed, variant=variant)
+    hybrid = BLOCReloc(graph, k=2, seed=seed, variant=variant)
+
+    base_started = time.perf_counter()
+    base_result = base.refine(iterations=ITERATIONS)
+    base_runtime = time.perf_counter() - base_started
+
+    hybrid_started = time.perf_counter()
+    hybrid_result = hybrid.refine(
+        iterations=ITERATIONS,
+        hybrid_period=HYBRID_PERIOD,
+        hybrid_samples=HYBRID_SAMPLES,
+    )
+    hybrid_runtime = time.perf_counter() - hybrid_started
+
+    return {
+        "seed": seed,
+        "variant": variant,
+        "iterations": ITERATIONS,
+        "hybrid_period": HYBRID_PERIOD,
+        "hybrid_samples": HYBRID_SAMPLES,
+        "base_edge_cut": base_result.edge_cut,
+        "hybrid_edge_cut": hybrid_result.edge_cut,
+        "edge_cut_delta": hybrid_result.edge_cut - base_result.edge_cut,
+        "base_weighted_cost": base_result.weighted_cost,
+        "hybrid_weighted_cost": hybrid_result.weighted_cost,
+        "weighted_cost_delta": hybrid_result.weighted_cost - base_result.weighted_cost,
+        "base_balance_error": base_result.balance_error,
+        "hybrid_balance_error": hybrid_result.balance_error,
+        "base_runtime_seconds": base_runtime,
+        "hybrid_runtime_seconds": hybrid_runtime,
+        "hybrid_accepted_moves": hybrid_result.accepted_moves,
+    }
+
+
 def run_ablation() -> dict:
     rows: list[dict] = []
     started = time.perf_counter()
@@ -26,50 +67,10 @@ def run_ablation() -> dict:
     for graph_name, graph in build_suite().items():
         for seed in SEEDS:
             for variant in VARIANTS:
-                base = BLOCReloc(
-                    graph,
-                    k=2,
-                    seed=seed,
-                    variant=variant,
-                )
-                hybrid = BLOCReloc(
-                    graph,
-                    k=2,
-                    seed=seed,
-                    variant=variant,
-                )
-
-                base_started = time.perf_counter()
-                base_result = base.refine(iterations=ITERATIONS)
-                base_runtime = time.perf_counter() - base_started
-
-                hybrid_started = time.perf_counter()
-                hybrid_result = hybrid.refine(
-                    iterations=ITERATIONS,
-                    hybrid_period=HYBRID_PERIOD,
-                    hybrid_samples=HYBRID_SAMPLES,
-                )
-                hybrid_runtime = time.perf_counter() - hybrid_started
-
                 rows.append(
                     {
                         "graph": graph_name,
-                        "seed": seed,
-                        "variant": variant,
-                        "iterations": ITERATIONS,
-                        "hybrid_period": HYBRID_PERIOD,
-                        "hybrid_samples": HYBRID_SAMPLES,
-                        "base_edge_cut": base_result.edge_cut,
-                        "hybrid_edge_cut": hybrid_result.edge_cut,
-                        "edge_cut_delta": hybrid_result.edge_cut - base_result.edge_cut,
-                        "base_weighted_cost": base_result.weighted_cost,
-                        "hybrid_weighted_cost": hybrid_result.weighted_cost,
-                        "weighted_cost_delta": hybrid_result.weighted_cost - base_result.weighted_cost,
-                        "base_balance_error": base_result.balance_error,
-                        "hybrid_balance_error": hybrid_result.balance_error,
-                        "base_runtime_seconds": base_runtime,
-                        "hybrid_runtime_seconds": hybrid_runtime,
-                        "hybrid_accepted_moves": hybrid_result.accepted_moves,
+                        **compare_pair(graph, seed=seed, variant=variant),
                     }
                 )
 
