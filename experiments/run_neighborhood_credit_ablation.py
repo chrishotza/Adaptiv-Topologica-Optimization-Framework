@@ -17,8 +17,7 @@ HYBRID_PERIOD = 5
 HYBRID_SAMPLES = 100
 K = 3
 CREDIT_CONFIGS = (
-    {"threshold": 0.75, "max_skips": 1, "probe_samples": 20},
-    {"threshold": 1.00, "max_skips": 1, "probe_samples": 20},
+    {"threshold": 1.00, "max_skips": 1, "probe_samples": 50},
 )
 
 
