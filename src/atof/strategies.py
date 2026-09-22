@@ -168,13 +168,20 @@ class BLOCReloc:
             ):
                 should_hybrid = True
                 if hybrid_policy == "adaptive":
-                    hybrid_probe_triggered = True
-                    controller.record_probe(iteration=iteration)
-                    should_hybrid = self._probe_two_swap(
-                        partition,
-                        samples=hybrid_probe_samples,
-                        best=best,
-                    )
+                    # Calibrate the expensive neighborhood first. Once a full
+                    # pass has proven useful, repeat it while the search still
+                    # stalls. Only after an unproductive full pass do we spend
+                    # a cheap witness probe before paying again.
+                    if controller.last_hybrid_improved is True:
+                        should_hybrid = True
+                    else:
+                        hybrid_probe_triggered = True
+                        controller.record_probe(iteration=iteration)
+                        should_hybrid = self._probe_two_swap(
+                            partition,
+                            samples=hybrid_probe_samples,
+                            best=best,
+                        )
                 if should_hybrid:
                     hybrid_triggered = True
                     hybrid_start = best
