@@ -40,16 +40,27 @@ def _run(
         variant="baseline",
     ).refine(iterations=ITERATIONS, **kwargs)
 
+    trace = list(result.trace)
     hybrid_events = [
-        event for event in result.trace if int(event["hybrid"]) == 1
+        event for event in trace if int(event["hybrid"]) == 1
     ]
+    total_local_gain = sum(float(event["local_gain"]) for event in trace)
+    total_local_work = sum(int(event["local_work"]) for event in trace)
     total_hybrid_gain = sum(float(event["hybrid_gain"]) for event in hybrid_events)
     total_hybrid_work = sum(int(event["hybrid_work"]) for event in hybrid_events)
+    total_structural_work = total_local_work + total_hybrid_work
     total_hybrid_passes = len(hybrid_events)
 
     return {
         "edge_cut": int(result.edge_cut),
         "runtime_seconds": time.perf_counter() - started,
+        "local_gain": total_local_gain,
+        "local_work": total_local_work,
+        "local_gain_per_work": (
+            total_local_gain / total_local_work
+            if total_local_work
+            else 0.0
+        ),
         "hybrid_passes": total_hybrid_passes,
         "hybrid_gain": total_hybrid_gain,
         "hybrid_work": total_hybrid_work,
@@ -58,7 +69,16 @@ def _run(
             if total_hybrid_work
             else 0.0
         ),
-        "trace": list(result.trace),
+        "structural_work": total_structural_work,
+        "gain_per_structural_work": (
+            (total_local_gain + total_hybrid_gain) / total_structural_work
+            if total_structural_work
+            else 0.0
+        ),
+        "positive_hybrid_passes": sum(
+            1 for event in hybrid_events if float(event["hybrid_gain"]) > 1e-12
+        ),
+        "trace": trace,
     }
 
 
@@ -104,10 +124,16 @@ def run(
                                 baseline["edge_cut"] - result["edge_cut"]
                             ),
                             "runtime_seconds": result["runtime_seconds"],
+                            "local_gain": result["local_gain"],
+                            "local_work": result["local_work"],
+                            "local_gain_per_work": result["local_gain_per_work"],
                             "hybrid_passes": result["hybrid_passes"],
                             "hybrid_gain": result["hybrid_gain"],
                             "hybrid_work": result["hybrid_work"],
                             "hybrid_gain_per_work": result["hybrid_gain_per_work"],
+                            "structural_work": result["structural_work"],
+                            "gain_per_structural_work": result["gain_per_structural_work"],
+                            "positive_hybrid_passes": result["positive_hybrid_passes"],
                             "trace": result["trace"],
                         }
                     )
@@ -124,10 +150,24 @@ def run(
             "mean_runtime_seconds": _mean(
                 [float(r["runtime_seconds"]) for r in entries]
             ),
+            "mean_local_work": _mean([float(r["local_work"]) for r in entries]),
+            "mean_local_gain": _mean([float(r["local_gain"]) for r in entries]),
+            "mean_local_gain_per_work": _mean(
+                [float(r["local_gain_per_work"]) for r in entries]
+            ),
             "mean_hybrid_work": _mean([float(r["hybrid_work"]) for r in entries]),
             "mean_hybrid_gain": _mean([float(r["hybrid_gain"]) for r in entries]),
             "mean_hybrid_gain_per_work": _mean(
                 [float(r["hybrid_gain_per_work"]) for r in entries]
+            ),
+            "mean_structural_work": _mean(
+                [float(r["structural_work"]) for r in entries]
+            ),
+            "mean_gain_per_structural_work": _mean(
+                [float(r["gain_per_structural_work"]) for r in entries]
+            ),
+            "mean_positive_hybrid_passes": _mean(
+                [float(r["positive_hybrid_passes"]) for r in entries]
             ),
         }
 
@@ -145,14 +185,24 @@ def run(
                 "mean_improvement_vs_baseline": _mean(
                     [float(row["improvement_vs_baseline"]) for row in entries]
                 ),
+                "mean_local_gain_per_work": _mean(
+                    [float(row["local_gain_per_work"]) for row in entries]
+                ),
                 "mean_hybrid_gain_per_work": _mean(
                     [float(row["hybrid_gain_per_work"]) for row in entries]
+                ),
+                "mean_gain_per_structural_work": _mean(
+                    [float(row["gain_per_structural_work"]) for row in entries]
                 ),
             }
 
     payload = {
         "schema_version": "0.1",
-        "protocol": "marginal-return observatory over fixed BLOC-RELOC hybrid budgets",
+        "protocol": (
+            "marginal-return observatory over fixed BLOC-RELOC hybrid budgets; "
+            "local and hybrid operators report the same structural work unit "
+            "(edge-incidence traversals)"
+        ),
         "objective": "unweighted 2-way edge cut",
         "seeds": list(SEEDS),
         "iterations": ITERATIONS,
