@@ -23,6 +23,7 @@ class OptimizationResult:
     regime: str
     requested_variant: str
     selected_variant: str
+    k: int
     recommendation: str
     alternatives: tuple[str, ...]
     rationale: str
@@ -58,7 +59,7 @@ class OptimizationResult:
                 "rationale": self.rationale,
             },
             "result": {
-                "k": result.iterations and None,
+                "k": self.k,
                 "iterations": result.iterations,
                 "edge_cut": result.edge_cut,
                 "weighted_cost": result.weighted_cost,
@@ -138,6 +139,7 @@ def optimize_graph(
         regime=recommendation.regime,
         requested_variant=variant,
         selected_variant=selected,
+        k=k,
         recommendation=recommendation.primary,
         alternatives=tuple(recommendation.alternatives),
         rationale=recommendation.rationale,
