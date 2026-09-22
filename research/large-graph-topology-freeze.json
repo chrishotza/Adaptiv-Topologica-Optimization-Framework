@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "source_workflow_run_id": 35672597211,
+  "graphs": {
+    "as_22july06": {
+      "source_type": "DIMACS clustering testbed",
+      "node_count": 22963,
+      "edge_count": 48436,
+      "density": 0.0001837214768149516,
+      "avg_degree": 4.218612550624918,
+      "degree_std": 32.942427443787814,
+      "max_degree": 2390,
+      "hub_ratio": 566.5369766289537,
+      "degree_gini": 0.6318777151682362,
+      "clustering": 0.2304476752355951,
+      "transitivity": 0.011146383847822162,
+      "assortativity": -0.19838487512056474,
+      "core_number": 25.0,
+      "diameter": 11.0,
+      "avg_path_length": 3.842426273858345,
+      "communities": 43,
+      "modularity": 0.6307766347912376
+    },
+    "astro_ph": {
+      "source_type": "DIMACS clustering testbed",
+      "node_count": 16706,
+      "edge_count": 121251,
+      "density": 0.0008689531615892331,
+      "avg_degree": 14.515862564348138,
+      "degree_std": 21.0084701502654,
+      "max_degree": 360,
+      "hub_ratio": 24.800455253977287,
+      "degree_gini": 0.60791506436773,
+      "clustering": 0.6387806769887955,
+      "transitivity": 0.4258896466537989,
+      "assortativity": 0.23546196391382157,
+      "core_number": 56.0,
+      "diameter": 14.0,
+      "avg_path_length": 4.79802666718945,
+      "communities": 1166,
+      "modularity": 0.6191667304715891
+    },
+    "wiki_vote": {
+      "source_type": "SNAP scalability corpus",
+      "node_count": 7115,
+      "edge_count": 100762,
+      "density": 0.003981420144693063,
+      "avg_degree": 28.32382290934645,
+      "degree_std": 57.57424112608943,
+      "max_degree": 1065,
+      "hub_ratio": 37.60085647367063,
+      "degree_gini": 0.7475786160894602,
+      "clustering": 0.14089784589308738,
+      "transitivity": 0.12547914899233995,
+      "assortativity": -0.08305248270016032,
+      "core_number": 53.0,
+      "diameter": 7.0,
+      "avg_path_length": 3.247509990226615,
+      "communities": 55,
+      "modularity": 0.34020342297620904
+    }
+  }
+}
