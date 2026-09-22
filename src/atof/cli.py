@@ -9,13 +9,20 @@ import networkx as nx
 from . import __version__
 from .ai import build_ai_manifest, build_doctor_report, compact_json, compact_result
 from .portfolio import optimize_portfolio
-from .product import load_graph, optimize_graph, write_partition, write_partition_mapping
+from .product import (
+    PARTITION_OUTPUT_FORMATS,
+    SUPPORTED_INPUT_FORMATS,
+    load_graph,
+    optimize_graph,
+    write_partition,
+    write_partition_mapping,
+)
 from .provenance import graph_fingerprint
 from .selector import HeuristicRegimeSelector
 from .topology import TopologyProfiler
 
 
-_FORMAT_CHOICES = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
+_FORMAT_CHOICES = SUPPORTED_INPUT_FORMATS
 
 _CLI_ERRORS = (OSError, ValueError, RuntimeError, TypeError, UnicodeError, SyntaxError, nx.NetworkXException)
 
@@ -90,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
     solve_parser.add_argument("--partition-output", "-p", type=Path)
     solve_parser.add_argument(
         "--partition-format",
-        choices=("auto", "json", "csv", "tsv"),
+        choices=PARTITION_OUTPUT_FORMATS,
         default="auto",
     )
 

@@ -15,7 +15,8 @@ from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfile, TopologyProfiler
 
 
-_FORMATS = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
+SUPPORTED_INPUT_FORMATS = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
+PARTITION_OUTPUT_FORMATS = ("auto", "json", "csv", "tsv")
 
 
 def _validate_product_graph(graph: nx.Graph) -> None:
@@ -155,8 +156,8 @@ def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
     source = Path(path)
     if not source.exists():
         raise FileNotFoundError(source)
-    if format not in _FORMATS:
-        raise ValueError("format must be one of: " + ", ".join(_FORMATS))
+    if format not in SUPPORTED_INPUT_FORMATS:
+        raise ValueError("format must be one of: " + ", ".join(SUPPORTED_INPUT_FORMATS))
 
     selected = format
     if selected == "auto":
@@ -247,8 +248,8 @@ def write_partition_mapping(
             ".csv": "csv",
             ".tsv": "tsv",
         }.get(target.suffix.lower(), "csv")
-    if selected not in {"json", "csv", "tsv"}:
-        raise ValueError("format must be one of: auto, json, csv, tsv")
+    if selected not in PARTITION_OUTPUT_FORMATS:
+        raise ValueError("format must be one of: " + ", ".join(PARTITION_OUTPUT_FORMATS))
 
     target.parent.mkdir(parents=True, exist_ok=True)
     rows = [

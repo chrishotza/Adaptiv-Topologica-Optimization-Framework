@@ -11,6 +11,7 @@
 - `cat graph.json | atof solve - --format json` — solve minimal JSON graph data
 - `atof profile <graph> --compact` — low-token topology summary
 - `atof optimize <graph> --engine portfolio --compact` — explicit portfolio path
+- `atof optimize <graph> --engine bloc --k 4 --compact` — native k-way Engine path
 - `AGENTS.md` — agent operating rules
 - `docs/ai-quickstart.md` — machine-facing interface
 - `docs/product-quickstart.md` — product usage

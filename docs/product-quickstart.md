@@ -140,7 +140,7 @@ The public product contract requires:
 - simple graphs;
 - at least two nodes;
 - unweighted edge-cut objective; edge `weight` attributes are accepted but ignored;
-- supported formats: edge-list, GraphML, GEXF, GML.
+- supported formats: edge-list, JSON, GraphML, GEXF, GML.
 
 Unsupported directed and multigraph inputs are rejected. Edge `weight` attributes are accepted as source metadata and ignored by the current unweighted objective.
 
