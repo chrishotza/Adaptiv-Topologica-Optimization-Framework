@@ -189,9 +189,10 @@ def _run_kaminpar(
         node: int(block)
         for node, block in zip(graph.nodes(), partition)
     }
+    exact_balance = _exact_partition_balance_error(graph, partition_map, k)
     return {
         "edge_cut": _edge_cut(graph, partition_map),
-        "balance_error": _balance_error(graph, partition_map, k),
+        "balance_error": exact_balance,
         "runtime_seconds": time.perf_counter() - started,
         "metadata": {
             "context": context_name,
@@ -227,9 +228,14 @@ def _run_bloc(
         seed=seed,
         variant=variant,
     ).refine(iterations=ITERATIONS, **kwargs)
+    exact_balance = _exact_partition_balance_error(
+        graph,
+        dict(result.partition),
+        k,
+    )
     return {
         "edge_cut": int(result.edge_cut),
-        "balance_error": float(result.balance_error),
+        "balance_error": exact_balance,
         "runtime_seconds": time.perf_counter() - started,
         "metadata": {
             "hybrid_passes": int(result.hybrid_passes),
@@ -251,9 +257,11 @@ def _run_external(
         seed=seed,
         k=k,
     )
+    del balance
+    exact_balance = _exact_partition_balance_error(graph, partition, k)
     return {
         "edge_cut": int(edge_cut),
-        "balance_error": float(balance),
+        "balance_error": exact_balance,
         "runtime_seconds": time.perf_counter() - started,
         "metadata": {},
     }
@@ -334,6 +342,32 @@ def _expected_balance_error(graph, k: int) -> float:
         return 0.0
     lower = n // k
     upper = (n + k - 1) // k
+    target = n / k
+    return max(abs(lower - target), abs(upper - target)) / target
+
+
+def _exact_partition_balance_error(
+    graph: nx.Graph,
+    partition: dict,
+    k: int,
+) -> float:
+    n = graph.number_of_nodes()
+    if n == 0:
+        return 0.0
+    if len(partition) != n or set(partition) != set(graph.nodes()):
+        raise ValueError("partition does not cover the graph exactly")
+    counts = [0] * k
+    for node, block in partition.items():
+        block = int(block)
+        if block < 0 or block >= k:
+            raise ValueError("partition block labels must be in [0, k)")
+        counts[block] += 1
+
+    lower = n // k
+    upper = (n + k - 1) // k
+    if any(count < lower or count > upper for count in counts):
+        raise ValueError("partition is outside the exact floor/ceil balance contract")
+
     target = n / k
     return max(abs(lower - target), abs(upper - target)) / target
 
