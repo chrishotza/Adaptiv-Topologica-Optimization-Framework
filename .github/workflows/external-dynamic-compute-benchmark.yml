@@ -76,6 +76,12 @@ jobs:
               assert row["total_work"] >= 0
               assert row["probe_work"] >= 0
               assert row["total_work"] >= row["probe_work"]
+          curve = row["work_curve"]
+          assert len(curve) == payload["iterations"]
+          curve_work = [int(point["work"]) for point in curve]
+          assert curve_work == sorted(curve_work)
+          assert curve_work[-1] == int(row["total_work"])
+          assert all(int(point["edge_cut"]) >= 0 for point in curve)
           n = int(row["nodes"])
           target = n / payload["k"]
           lower = n // payload["k"]
