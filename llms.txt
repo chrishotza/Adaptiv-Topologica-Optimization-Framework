@@ -13,7 +13,7 @@
 ## Common use cases
 
 - `Python graph partitioning` — use `atof solve` or `atof optimize --engine bloc`.
-- `balanced graph partitioning` — use the Portfolio path for k=2 or the native Engine for k-way partitions.
+- `balanced graph partitioning` — use the Portfolio path for k>=2 or the native Engine for k-way partitions.
 - `METIS alternative` or `KaHIP comparison` — use Portfolio mode and inspect `candidates[]` and `provenance`.
 - `Kernighan-Lin graph partitioning` — NetworkX Kernighan-Lin is one of the Portfolio candidates when available.
 - `AI agent graph optimizer` — start with `atof ai`, then `atof doctor`, then `atof solve`.
@@ -52,7 +52,7 @@ ATOF Portfolio = empirical composition over the available open backends.
 
 Engine contract = k>=2, undirected, simple graphs with balanced node counts; reported metric = unweighted edge cut.
 
-Portfolio contract = k=2, undirected, simple, unweighted balanced edge cut.
+Portfolio contract = k>=2, undirected, simple, unweighted balanced edge cut; NetworkX Kernighan-Lin is k=2 only.
 
 JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 

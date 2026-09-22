@@ -64,6 +64,8 @@ class PortfolioOptimizationResult:
 
     def to_dict(self, *, include_partition: bool = True) -> dict:
         payload = {
+            "schema": "atof.portfolio.v1",
+            "version": package_version("atof"),
             "mode": "portfolio",
             "strategy": {
                 "selected": self.selected_strategy,

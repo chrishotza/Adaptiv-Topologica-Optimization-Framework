@@ -66,6 +66,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             },
             "portfolio": {
                 "k": ">=2",
+                "result_schema": "atof.portfolio.v1",
                 "objective": "minimize unweighted edge cut subject to balanced k-way partition",
                 "backends": [
                     "BLOC-RELOC",
@@ -168,6 +169,10 @@ def compact_result(payload: dict) -> dict:
             "balance_error": result.get("balance_error"),
         },
     }
+    schema = payload.get("schema")
+    if schema is not None:
+        compact["schema"] = schema
+
     provenance = payload.get("provenance")
     if provenance is not None:
         compact["provenance"] = provenance

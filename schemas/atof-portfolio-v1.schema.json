@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-portfolio-v1.schema.json",
+  "title": "ATOF Portfolio result",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "mode",
+    "strategy",
+    "graph",
+    "parameters",
+    "objective",
+    "result",
+    "provenance",
+    "candidates"
+  ],
+  "properties": {
+    "schema": {"const": "atof.portfolio.v1"},
+    "version": {"type": "string"},
+    "mode": {"const": "portfolio"},
+    "file": {"type": "string"},
+    "strategy": {
+      "type": "object",
+      "required": ["selected", "regime", "selection_policy"],
+      "properties": {
+        "selected": {"type": "string"},
+        "regime": {"type": "string"},
+        "selection_policy": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "graph": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {"type": "integer", "minimum": 2},
+        "edges": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "object",
+      "required": ["k", "seed", "iterations"],
+      "properties": {
+        "k": {"type": "integer", "minimum": 2},
+        "seed": {"type": "integer"},
+        "iterations": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "objective": {
+      "type": "object",
+      "required": ["name", "direction", "graph_model", "balance"],
+      "properties": {
+        "name": {"const": "edge_cut"},
+        "direction": {"const": "minimize"},
+        "graph_model": {"const": "unweighted_undirected"},
+        "balance": {"const": "balanced k-way partition"}
+      },
+      "additionalProperties": false
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "result": {
+      "type": "object",
+      "required": ["k", "edge_cut", "balance_error"],
+      "properties": {
+        "k": {"type": "integer", "minimum": 2},
+        "edge_cut": {"type": "integer", "minimum": 0},
+        "balance_error": {"type": "number", "minimum": 0},
+        "partition": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["graph_fingerprint", "available_backends", "postprocessing"],
+      "properties": {
+        "graph_fingerprint": {"type": "string"},
+        "available_backends": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "postprocessing": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "available",
+          "edge_cut",
+          "balance_error",
+          "runtime_seconds",
+          "error"
+        ],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "available": {"type": "boolean"},
+          "edge_cut": {"type": ["integer", "null"]},
+          "balance_error": {"type": ["number", "null"], "minimum": 0},
+          "runtime_seconds": {"type": ["number", "null"], "minimum": 0},
+          "backend_version": {"type": ["string", "null"]},
+          "postprocess": {"type": "string"},
+          "error": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
