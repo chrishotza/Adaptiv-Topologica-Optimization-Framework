@@ -30,3 +30,17 @@ def test_metis_parser_rejects_wrong_edge_count(tmp_path: Path) -> None:
 def test_set_a_gate_imports_as_a_research_only_module() -> None:
     graph = nx.path_graph(4)
     assert graph.number_of_nodes() == 4
+
+
+def test_sea_workflow_uses_live_github_expressions() -> None:
+    workflow = (
+        Path(__file__).parents[1]
+        / ".github"
+        / "workflows"
+        / "sea-set-a-gate.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "if: \\${{" not in workflow
+    assert "--limit \\${{" not in workflow
+    assert "if: ${{ github.event.inputs.manifest_only != 'true' }}" in workflow
+    assert "--limit ${{ inputs.limit }}" in workflow
