@@ -4,6 +4,8 @@
 
 ### Added
 
+- Stable `atof.optimize.v1` result schema and self-identifying Engine responses for AI validation.
+
 - Stable `atof.portfolio.v1` result schema and self-identifying Portfolio responses for AI validation.
 
 - K-way `solve` alias support via `--k`, exposing the Portfolio k-way contract through the shortest AI-facing command path.
