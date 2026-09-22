@@ -90,6 +90,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "default": "JSON",
             "compact": "low-token graph/result summary",
             "full": "topology, candidates, provenance, and selected node-to-block mapping",
+            "objective_metric_rule": "In Engine mode, objective.optimization_metric names the optimized scalar; result.weighted_cost is the internal reported objective value and is not an input edge-weight cost.",
         },
         "claim_policy": {
             "rule": "claims are tied to code, tests, or named benchmarks",
