@@ -15,6 +15,18 @@ from .topology import TopologyProfile, TopologyProfiler
 _FORMATS = ("auto", "edgelist", "graphml", "gexf", "gml")
 
 
+def _validate_product_graph(graph: nx.Graph) -> None:
+    """Validate the explicit graph contract used by the public product surface."""
+    if graph.is_directed():
+        raise ValueError("ATOF product mode requires an undirected graph")
+    if graph.is_multigraph():
+        raise ValueError("ATOF product mode requires a simple graph")
+    if graph.number_of_nodes() < 2:
+        raise ValueError("ATOF product mode requires at least 2 nodes")
+    if any("weight" in data for _, _, data in graph.edges(data=True)):
+        raise ValueError("ATOF product mode currently requires unweighted edges")
+
+
 @dataclass(frozen=True)
 class OptimizationResult:
     """Product-level result for one topology-aware partition run."""
@@ -118,7 +130,8 @@ def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
     else:
         graph = nx.read_gml(source)
 
-    return nx.Graph(graph)
+    _validate_product_graph(graph)
+    return graph
 
 
 def _select_variant(recommendation: str) -> str:
@@ -136,7 +149,12 @@ def optimize_graph(
     """Profile and partition a graph with the product selection policy."""
     if variant not in ("auto", "baseline", "affinity"):
         raise ValueError("variant must be one of: auto, baseline, affinity")
+    if k < 2:
+        raise ValueError("k must be at least 2")
+    if iterations < 1:
+        raise ValueError("iterations must be at least 1")
 
+    _validate_product_graph(graph)
     profiler = TopologyProfiler()
     topology = profiler.profile(graph)
     recommendation = HeuristicRegimeSelector().recommend(topology)
