@@ -68,3 +68,18 @@ That question is materially different from simply routing among BLOC-RELOC varia
 - Schrape, Maas, Langedal, Seemaier, SEA 2026: https://doi.org/10.4230/LIPIcs.SEA.2026.25
 - Supplementary dataset: https://doi.org/10.5281/zenodo.19387774
 - Mt-KaHyPar SEA 2026 artifact: https://doi.org/10.4230/artifacts.26212
+## Reproducible software snapshot
+
+The SEA 2026 artifact identifies Mt-KaHyPar software version 1.5.3 and a Software Heritage snapshot rooted at revision `6d12d9cf210390624f3757e9b5399469d2d2ae68`. The snapshot contains the learned-coarsening implementation, including:
+
+- `mt-kahypar/partition/coarsening/multilevel/ml/ml-clustering-heavy.h`;
+- `mt-kahypar/partition/coarsening/multilevel/ml/compute_features.cpp`;
+- `mt-kahypar/partition/coarsening/multilevel/ml/compute_ml_results.cpp`;
+- `mt-kahypar/partition/coarsening/multilevel/ml/model_definition.h`;
+- embedded model parameter headers such as `Data20-FeatSrc20.h`.
+
+The current ATOF Mt-KaHyPar adapter intentionally uses the current PyPI release 1.6.2 as a clean external baseline. It does not claim to reproduce the SEA learned-coarsening implementation. Reproducing the paper requires a separate build against the archived 1.5.3 snapshot, because the paper's learned model, feature pipeline, compiler flags, and configuration belong to that software version.
+
+Paper software artifact: https://doi.org/10.4230/artifacts.26212
+Software Heritage snapshot: https://archive.softwareheritage.org/swh:1:dir:0285e232ceaf8b004e75d01d1e5f4e6984770663;origin=https://github.com/kahypar/mt-kahypar;visit=swh:1:snp:c52ed946227f7476ef4ddbf78f09bb757c686d87;anchor=swh:1:rev:6d12d9cf210390624f3757e9b5399469d2d2ae68
+Git commit reference: https://github.com/kahypar/mt-kahypar/commit/6d12d9cf210390624f3757e9b5399469d2d2ae68
