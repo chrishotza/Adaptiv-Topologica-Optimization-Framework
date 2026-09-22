@@ -32,7 +32,7 @@ Current portfolio contract = k=2, undirected, simple, unweighted edge cut.
 - Use `--compact` for low-token orchestration.
 - Preserve seed and graph fingerprint for reproducibility.
 - Optional backend failures are explicit.
-- Unsupported graph models are rejected rather than silently normalized.
+- Unsupported directed and multigraph graph models are rejected. Source weight attributes are treated as metadata under the current unweighted objective.
 
 ## Evidence rule
 
