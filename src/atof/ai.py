@@ -112,6 +112,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
     return manifest if full else {
         "schema": manifest["schema"],
         "name": manifest["name"],
+        "primary_flow": manifest["primary_flow"],
         "version": manifest["version"],
         "purpose": manifest["purpose"],
         "commands": manifest["commands"],
