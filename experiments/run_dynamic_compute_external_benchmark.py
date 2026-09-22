@@ -178,6 +178,50 @@ def _dominance_vs_fixed(rows: list[dict], policy: str) -> dict:
     }
 
 
+def _corpus_comparison(rows: list[dict], policy: str) -> dict[str, dict[str, float | int]]:
+    grouped: dict[str, list[dict]] = {}
+    for row in rows:
+        grouped.setdefault(str(row["corpus"]), []).append(row)
+
+    output: dict[str, dict[str, float | int]] = {}
+    for corpus, corpus_rows in sorted(grouped.items()):
+        fixed = _graph_policy_means(corpus_rows, "fixed")
+        candidate = _graph_policy_means(corpus_rows, policy)
+        graphs = sorted(set(fixed) & set(candidate))
+        cut_deltas = [
+            candidate[g]["edge_cut"] - fixed[g]["edge_cut"]
+            for g in graphs
+        ]
+        work_deltas = [
+            candidate[g]["total_work"] - fixed[g]["total_work"]
+            for g in graphs
+        ]
+        dominance = sum(
+            candidate[g]["edge_cut"] <= fixed[g]["edge_cut"]
+            and candidate[g]["total_work"] <= fixed[g]["total_work"]
+            and (
+                candidate[g]["edge_cut"] < fixed[g]["edge_cut"]
+                or candidate[g]["total_work"] < fixed[g]["total_work"]
+            )
+            for g in graphs
+        )
+        output[corpus] = {
+            "graphs": len(graphs),
+            "mean_edge_cut_delta": (
+                sum(cut_deltas) / len(cut_deltas) if cut_deltas else 0.0
+            ),
+            "mean_total_work_delta": (
+                sum(work_deltas) / len(work_deltas) if work_deltas else 0.0
+            ),
+            "quality_strictly_better": sum(delta < 0 for delta in cut_deltas),
+            "work_strictly_lower": sum(delta < 0 for delta in work_deltas),
+            "joint_quality_work_dominance_rate": (
+                dominance / len(graphs) if graphs else 0.0
+            ),
+        }
+    return output
+
+
 def run_benchmark(
     output_path: str | Path = "results/state_of_art/dynamic_compute_external.json",
     *,
@@ -270,6 +314,10 @@ def run_benchmark(
         "rows": rows,
         "summaries": summaries,
         "comparisons": comparisons,
+        "by_corpus": {
+            policy: _corpus_comparison(rows, policy)
+            for policy in ("adaptive", "marginal")
+        },
         "limitations": [
             "This is a BLOC-RELOC controller study, not a comparison against the external multilevel solvers.",
             "Structural work is a machine-independent proxy; wall-clock time remains hardware-specific.",
