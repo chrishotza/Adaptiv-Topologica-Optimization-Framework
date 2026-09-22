@@ -556,7 +556,18 @@ def run_state_of_art_benchmark(
         )
         if completed.returncode == 0:
             try:
-                isolated_rows = json.loads(completed.stdout)
+                payload_lines = [
+                    line.strip()
+                    for line in completed.stdout.splitlines()
+                    if line.strip()
+                ]
+                if not payload_lines:
+                    raise json.JSONDecodeError(
+                        "worker returned no JSON payload",
+                        completed.stdout,
+                        0,
+                    )
+                isolated_rows = json.loads(payload_lines[-1])
             except json.JSONDecodeError as exc:
                 isolated_rows = []
                 error = f"invalid worker JSON: {exc}"
