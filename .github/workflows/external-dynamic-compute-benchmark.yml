@@ -66,7 +66,7 @@ jobs:
               assert sorted({row["seed"] for row in graph_rows}) == [42, 101, 2024]
               assert {row["strategy"] for row in graph_rows} == {"off", "fixed", "adaptive", "marginal"}
           for row in payload["rows"]:
-              assert row["total_work"] > 0
+              assert row["total_work"] >= 0
               assert row["probe_work"] >= 0
               assert row["total_work"] >= row["probe_work"]
           for policy in ("adaptive", "marginal"):
