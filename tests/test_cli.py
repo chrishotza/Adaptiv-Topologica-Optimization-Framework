@@ -92,6 +92,25 @@ def test_cli_solve_exports_partition(tmp_path, capsys):
     assert output.read_text(encoding="utf-8").splitlines()[0] == "node,block"
     assert len(output.read_text(encoding="utf-8").splitlines()) == 5
 
+def test_cli_optimize_rejects_kway_portfolio(capsys, tmp_path):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("0 1\n1 2\n2 3\n", encoding="utf-8")
+
+    code = main([
+        "optimize",
+        str(graph),
+        "--engine",
+        "portfolio",
+        "--k",
+        "3",
+    ])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 2
+    assert payload["schema"] == "atof.error.v1"
+    assert payload["error"]["type"] == "ValueError"
+
+
 def test_cli_optimize_supports_kway_engine(tmp_path, capsys):
     graph = tmp_path / "graph.edgelist"
     graph.write_text(
