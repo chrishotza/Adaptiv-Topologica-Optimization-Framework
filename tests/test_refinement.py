@@ -52,6 +52,24 @@ def test_fixed_controller_preserves_periodic_schedule():
 
 
 
+
+def test_controller_enforces_cooldown_after_hybrid_pass():
+    controller = RefinementController(policy="adaptive", period=3, patience=1)
+    controller.record_hybrid_pass(
+        iteration=2, start_cost=10.0, end_cost=9.0
+    )
+
+    assert not controller.after_local_pass(
+        iteration=3, start_cost=9.0, end_cost=9.0, tolerance=0.05
+    )
+    assert not controller.after_local_pass(
+        iteration=4, start_cost=9.0, end_cost=9.0, tolerance=0.05
+    )
+    assert controller.after_local_pass(
+        iteration=5, start_cost=9.0, end_cost=9.0, tolerance=0.05
+    )
+
+
 @pytest.mark.parametrize(
     "kwargs",
     [
