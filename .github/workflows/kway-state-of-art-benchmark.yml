@@ -51,6 +51,53 @@ jobs:
             --output results/state_of_art/k${{ matrix.k }}.json \
             --cache-dir .cache/snap
 
+      - name: Validate matched k-way manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          k = ${{ matrix.k }}
+          payload = json.loads(
+              Path(f"results/state_of_art/k{k}.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          expected_strategies = set(payload["candidate_strategies"])
+          expected_seeds = {42, 101, 2024}
+
+          rows = [row for row in payload["rows"] if row["k"] == k]
+          assert payload["k_values"] == [k]
+          assert len(expected_strategies) == 10
+          assert payload["seeds"] == [42, 101, 2024]
+
+          eligible_graphs = {
+              row["graph_id"]
+              for row in rows
+              if int(row["nodes"]) >= k
+          }
+          assert eligible_graphs
+
+          for graph_id in sorted(eligible_graphs):
+              graph_rows = [row for row in rows if row["graph_id"] == graph_id]
+              assert len(graph_rows) == len(expected_strategies) * len(expected_seeds)
+              assert {row["strategy"] for row in graph_rows} == expected_strategies
+              for strategy in expected_strategies:
+                  strategy_rows = [
+                      row for row in graph_rows if row["strategy"] == strategy
+                  ]
+                  assert len(strategy_rows) == len(expected_seeds)
+                  assert {int(row["seed"]) for row in strategy_rows} == expected_seeds
+                  assert all(row["status"] == "ok" for row in strategy_rows)
+
+              summary = payload["graph_summaries"][f"k={k}:{graph_id}"]
+              assert summary["matched"] is True
+              assert set(summary["strategies"]) == expected_strategies
+
+          assert set(payload["aggregate"][f"k={k}"]["strategies"]) == expected_strategies
+          assert payload["aggregate"][f"k={k}"]["matched_graphs"] == len(eligible_graphs)
+          PY
+
       - name: Upload k-way manifest
         uses: actions/upload-artifact@v4
         with:
