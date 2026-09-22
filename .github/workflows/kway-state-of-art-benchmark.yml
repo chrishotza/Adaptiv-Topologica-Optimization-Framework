@@ -11,7 +11,7 @@ on:
       - "experiments/mtkahypar_backend.py"
       - "tests/test_kway_state_of_art_benchmark.py"
       - ".github/workflows/kway-state-of-art-benchmark.yml"
-      - "src/atof/**"
+      - "src/atof/strategies.py"
 
 permissions:
   contents: read
