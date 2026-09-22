@@ -5,6 +5,8 @@ import pytest
 
 from experiments.run_dynamic_compute_external_benchmark import (
     POLICIES,
+    _expected_balance_error,
+    _validate_exact_balance_error,
     _dominance_vs_fixed,
     _policy_summary,
     _run_policy,
@@ -13,6 +15,17 @@ from experiments.run_dynamic_compute_external_benchmark import (
 
 def test_external_dynamic_policy_surface_is_locked() -> None:
     assert POLICIES == ("off", "fixed", "adaptive", "marginal")
+
+
+def test_exact_balance_contract():
+    class GraphStub:
+        def number_of_nodes(self):
+            return 15
+
+    expected = _expected_balance_error(GraphStub(), 2)
+    assert expected == pytest.approx(1 / 15)
+    assert _validate_exact_balance_error(GraphStub(), 2, expected)
+    assert not _validate_exact_balance_error(GraphStub(), 2, expected + 0.01)
 
 
 def test_run_policy_records_structural_work() -> None:
