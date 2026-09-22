@@ -59,3 +59,23 @@ def test_aggregate_uses_graphs_as_the_unit_of_analysis() -> None:
     assert aggregate["a"]["graphs_evaluated"] == 2
     assert aggregate["a"]["mean_relative_quality_gap"] == pytest.approx(0.1)
     assert aggregate["a"]["mean_runtime_ratio_to_graph_median"] == pytest.approx(1.5)
+
+
+def test_atof_benchmark_persists_marginal_events():
+    import networkx as nx
+    from experiments.run_state_of_art_benchmark import _run_atof
+
+    result = _run_atof(
+        nx.cycle_graph(20),
+        seed=5,
+        k=2,
+        variant="baseline",
+        hybrid_policy="fixed",
+    )
+
+    assert "marginal_events" in result["metadata"]
+    assert result["metadata"]["marginal_events"]
+    event = result["metadata"]["marginal_events"][0]
+    assert "hybrid_gain" in event
+    assert "hybrid_work" in event
+    assert "hybrid_gain_per_work" in event
