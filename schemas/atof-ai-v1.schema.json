@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-ai-v1.schema.json",
+  "title": "ATOF AI manifest",
+  "type": "object",
+  "required": ["schema", "name", "version", "purpose", "commands", "capabilities", "output", "claim_policy", "limits"],
+  "properties": {
+    "schema": {"const": "atof.ai.v1"},
+    "name": {"const": "atof"},
+    "version": {"type": "string"},
+    "purpose": {"type": "string"},
+    "commands": {"type": "object"},
+    "capabilities": {"type": "object"},
+    "output": {"type": "object"},
+    "claim_policy": {"type": "object"},
+    "limits": {"type": "array", "items": {"type": "string"}}
+  }
+}
