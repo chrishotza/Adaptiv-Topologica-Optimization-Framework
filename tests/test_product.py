@@ -46,6 +46,27 @@ def test_optimize_graph_reports_its_actual_objective_semantics():
     assert "weighted surrogate" in affinity["objective"]["variant_semantics"]
 
 
+def test_optimize_graph_supports_opt_in_hybrid_refinement():
+    graph = nx.cycle_graph(16)
+    result = optimize_graph(
+        graph,
+        k=2,
+        seed=42,
+        iterations=5,
+        variant="baseline",
+        hybrid=True,
+        hybrid_period=5,
+        hybrid_samples=10,
+    )
+    payload = result.to_dict(include_partition=False)
+
+    assert payload["strategy"]["hybrid_refinement"] == {
+        "enabled": True,
+        "period": 5,
+        "samples": 10,
+    }
+
+
 def test_optimize_graph_returns_balanced_product_result():
     graph = nx.path_graph(8)
     result = optimize_graph(graph, k=2, seed=42, iterations=3, variant="baseline")
