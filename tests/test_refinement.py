@@ -81,3 +81,25 @@ def test_controller_enforces_cooldown_after_hybrid_pass():
 def test_refinement_controller_rejects_invalid_configuration(kwargs):
     with pytest.raises(ValueError):
         RefinementController(**kwargs)
+
+
+def test_early_stop_refinement_tracks_actual_samples_used():
+    from atof.strategies import BLOCReloc
+
+    result = BLOCReloc(
+        nx.path_graph(16),
+        k=2,
+        seed=42,
+        variant="baseline",
+    ).refine(
+        iterations=10,
+        hybrid_period=5,
+        hybrid_samples=20,
+        hybrid_policy="early_stop",
+        hybrid_batch_samples=5,
+        hybrid_idle_patience=2,
+    )
+    hybrid_rows = [row for row in result.trace if row["hybrid"] == 1]
+    assert hybrid_rows
+    assert all(0 < row["hybrid_samples"] <= 20 for row in hybrid_rows)
+    assert result.hybrid_passes == len(hybrid_rows)
