@@ -39,6 +39,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "default_format": "auto",
             "default_seed": 42,
             "stdin": {"path": "-", "formats": ["edgelist", "json"]},
+            "json": {"nodes": "optional array of node IDs", "edges": "array of 2-item node-ID arrays"},
         },
         "capabilities": {
             "portfolio": {
