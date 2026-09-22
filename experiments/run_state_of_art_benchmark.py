@@ -222,6 +222,13 @@ def _kaminpar_graph(graph: nx.Graph, graph_id: str):
     return loaded
 
 
+def _kaminpar_eps(graph: nx.Graph, k: int) -> float:
+    n = graph.number_of_nodes()
+    ideal = n / k
+    upper = (n + k - 1) // k
+    return max(0.0, (upper / ideal) - 1.0) if ideal else 0.0
+
+
 def _kaminpar_instance(context_name: str):
     import kaminpar
 
@@ -251,7 +258,7 @@ def _kaminpar_partition(
     # KaMinPar exposes a process-level RNG seed; set it immediately before
     # each timed partition call so the seed is explicit and reproducible.
     kaminpar.reseed(int(seed))
-    partition = instance.compute_partition(loaded, k=k, eps=0.0)
+    partition = instance.compute_partition(loaded, k=k, eps=_kaminpar_eps(graph, k))
     return {
         "partition": [int(block) for block in partition],
         "edge_cut": int(kaminpar.edge_cut(loaded, partition)),
@@ -291,6 +298,7 @@ def _run_kaminpar(
             "context": context_name,
             "seed_control": "kaminpar.reseed",
             "graph_load_in_timing": False,
+            "minimal_balance_epsilon": _kaminpar_eps(graph, k),
         },
     }
 
