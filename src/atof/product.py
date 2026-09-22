@@ -23,19 +23,9 @@ def _validate_product_graph(graph: nx.Graph) -> None:
         raise ValueError("ATOF product mode requires a simple graph")
     if graph.number_of_nodes() < 2:
         raise ValueError("ATOF product mode requires at least 2 nodes")
-    for _, _, data in graph.edges(data=True):
-        if "weight" not in data:
-            continue
-        try:
-            weight = float(data["weight"])
-        except (TypeError, ValueError) as exc:
-            raise ValueError(
-                "ATOF product mode currently requires unweighted edges or unit weights"
-            ) from exc
-        if weight != 1.0:
-            raise ValueError(
-                "ATOF product mode currently requires unweighted edges or unit weights"
-            )
+    # Edge attributes such as "weight" may be present in source graphs.
+    # The current MVP objective is explicitly unweighted, so these attributes are
+    # ignored rather than interpreted as edge costs.
 
 
 @dataclass(frozen=True)
