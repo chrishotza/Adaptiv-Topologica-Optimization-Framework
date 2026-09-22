@@ -37,6 +37,14 @@ Use this order when an AI agent is driving the tool:
 2. inspect the environment and backend availability;
 3. solve with the shortest practical portfolio path.
 
+## Pipe an edge-list through stdin
+
+```bash
+printf "a b\nb c\nc d\n" | atof solve -
+```
+
+Use `-` as the graph path for shell pipelines. stdin currently accepts edge-list input; GraphML, GEXF, and GML use file paths.
+
 ## Profile
 
 ```bash
