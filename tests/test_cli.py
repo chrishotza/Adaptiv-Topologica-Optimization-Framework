@@ -49,6 +49,28 @@ def test_cli_version(capsys):
     assert capsys.readouterr().out.strip() == "0.6.0"
 
 
+def test_cli_solve_supports_kway_portfolio(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text(
+        "0 1\n1 2\n2 3\n3 4\n4 5\n5 0\n6 7\n7 8\n8 9\n9 10\n10 11\n11 6\n",
+        encoding="utf-8",
+    )
+
+    assert main([
+        "solve",
+        str(graph),
+        "--k",
+        "3",
+        "--iterations",
+        "3",
+    ]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["mode"] == "portfolio"
+    assert payload["result"]["k"] == 3
+    assert payload["result"]["balance_error"] == 0.0
+
+
 def test_cli_solve_json_file(tmp_path, capsys):
     graph = tmp_path / "graph.json"
     graph.write_text(
