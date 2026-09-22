@@ -21,6 +21,8 @@ class SoftBalanceReloc(BLOCReloc):
         iterations: int = 25,
         balance_slack: int = 1,
         balance_penalty: float = 0.5,
+        hybrid_period: int | None = None,
+        hybrid_samples: int = 100,
     ) -> PartitionResult:
         if iterations < 1:
             raise ValueError("iterations must be at least 1")
@@ -28,6 +30,10 @@ class SoftBalanceReloc(BLOCReloc):
             raise ValueError("balance_slack must be >= 0")
         if balance_penalty < 0:
             raise ValueError("balance_penalty must be >= 0")
+        if hybrid_period is not None and hybrid_period < 1:
+            raise ValueError("hybrid_period must be at least 1")
+        if hybrid_samples < 0:
+            raise ValueError("hybrid_samples must be >= 0")
 
         partition = initialize_balanced_partition(self.graph, self.k)
         counts = {block: 0 for block in range(self.k)}
@@ -48,6 +54,9 @@ class SoftBalanceReloc(BLOCReloc):
 
         accepted = 0
         rejected = 0
+        hybrid_passes = 0
+        hybrid_accepted = 0
+        hybrid_rejected = 0
         trace: list[dict[str, float | int]] = []
 
         for iteration in range(iterations):
@@ -116,6 +125,37 @@ class SoftBalanceReloc(BLOCReloc):
 
             accepted += iteration_accepted
             rejected += iteration_rejected
+
+            hybrid_triggered = 0
+            if hybrid_period and (iteration + 1) % hybrid_period == 0:
+                repair_count, best = self._repair(
+                    partition,
+                    counts,
+                    best,
+                    lower_size=lower_size,
+                    upper_size=upper_size,
+                )
+                accepted += repair_count
+                search_penalty = self._balance_penalty(
+                    counts,
+                    lower_size=lower_size,
+                    upper_size=upper_size,
+                )
+                search_score = best
+
+                h_accept, h_reject, best = self._two_swap(
+                    partition,
+                    tolerance=0.0,
+                    samples=hybrid_samples,
+                    best=best,
+                )
+                hybrid_passes += 1
+                hybrid_accepted += h_accept
+                hybrid_rejected += h_reject
+                accepted += h_accept
+                rejected += h_reject
+                hybrid_triggered = 1
+
             trace.append(
                 {
                     "iteration": iteration,
@@ -125,6 +165,7 @@ class SoftBalanceReloc(BLOCReloc):
                     "balance_penalty": search_penalty,
                     "accepted": iteration_accepted,
                     "rejected": iteration_rejected,
+                    "hybrid": hybrid_triggered,
                 }
             )
 
@@ -145,7 +186,7 @@ class SoftBalanceReloc(BLOCReloc):
             iterations=iterations,
             accepted_moves=accepted,
             rejected_moves=rejected,
-            hybrid_passes=0,
+            hybrid_passes=hybrid_passes,
             hybrid_probes=0,
             trace=tuple(trace),
         )
