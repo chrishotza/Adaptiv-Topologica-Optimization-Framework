@@ -84,6 +84,14 @@ atof optimize examples/demo.edgelist --engine bloc --variant baseline
 atof optimize examples/demo.edgelist --engine bloc --variant affinity
 ```
 
+Engine variant semantics are explicit:
+
+- `baseline` directly minimizes unweighted edge cut;
+- `affinity` minimizes a degree-affinity weighted surrogate while reporting unweighted `edge_cut`;
+- `auto` heuristically chooses between those variants.
+
+Use `objective.optimization_metric` to identify what the Engine actually optimized.
+
 ## ATOF Engine with k-way partitioning
 
 The native Engine supports `k>=2`:
@@ -92,7 +100,7 @@ The native Engine supports `k>=2`:
 atof optimize examples/demo.edgelist --engine bloc --k 4
 ```
 
-The Engine keeps the same unweighted edge-cut objective and balances nodes across the requested blocks.
+The Engine keeps balanced node counts across the requested blocks. The reported comparison metric remains unweighted edge cut.
 
 ## ATOF Portfolio
 
@@ -139,14 +147,20 @@ The public product contract requires:
 - undirected graphs;
 - simple graphs;
 - at least two nodes;
-- unweighted edge-cut objective; edge `weight` attributes are accepted but ignored;
+- unweighted graph model; edge `weight` attributes are accepted but ignored;
 - supported formats: edge-list, JSON, GraphML, GEXF, GML.
 
-Unsupported directed and multigraph inputs are rejected. Edge `weight` attributes are accepted as source metadata and ignored by the current unweighted objective.
+Unsupported directed and multigraph inputs are rejected. Edge `weight` attributes are accepted as source metadata and ignored by the current graph model.
 
 ## Provenance
 
 Full product and portfolio results can include graph fingerprint, seed, parameters, backend identity/version, and selection policy.
+
+Engine results additionally expose:
+
+- `objective.reported_metric`;
+- `objective.optimization_metric`;
+- variant-specific objective semantics.
 
 ## Claims
 
