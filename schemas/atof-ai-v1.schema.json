@@ -38,6 +38,7 @@
         "ai": {"type": "string"},
         "doctor": {"type": "string"},
         "solve": {"type": "string"},
+        "compare": {"type": "string"},
         "module": {"type": "string"},
         "profile": {"type": "string"},
         "optimize": {"type": "string"},
