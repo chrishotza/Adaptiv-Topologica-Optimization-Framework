@@ -76,6 +76,9 @@ def test_atof_benchmark_persists_marginal_events():
     assert "marginal_events" in result["metadata"]
     assert result["metadata"]["marginal_events"]
     event = result["metadata"]["marginal_events"][0]
+    assert "local_gain" in event
+    assert "local_work" in event
+    assert "local_gain_per_work" in event
     assert "hybrid_gain" in event
     assert "hybrid_work" in event
     assert "hybrid_gain_per_work" in event
