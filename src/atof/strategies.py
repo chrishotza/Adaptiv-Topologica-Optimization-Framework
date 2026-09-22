@@ -177,7 +177,7 @@ class BLOCReloc:
                     )
                 if should_hybrid:
                     hybrid_triggered = True
-                hybrid_start = best
+                    hybrid_start = best
                     h_accept, h_reject, best = self._two_swap(
                         partition,
                         tolerance=tolerance,
@@ -296,6 +296,7 @@ class BLOCReloc:
             if best + self._swap_delta(u, v, partition) < best - 1e-12:
                 return True
         return False
+
     def _two_swap(
         self,
         partition: Partition,
