@@ -36,6 +36,13 @@ Run the shortest practical AI path:
 atof solve examples/demo.edgelist
 ```
 
+The same CLI is available as a Python module:
+
+```bash
+python -m atof ai
+python -m atof solve examples/demo.edgelist
+```
+
 Request the partition mapping:
 
 ```bash

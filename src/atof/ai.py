@@ -19,6 +19,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "ai": "atof ai",
             "doctor": "atof doctor",
             "solve": "atof solve <graph>",
+            "module": "python -m atof",
             "profile": "atof profile <graph>",
             "optimize": "atof optimize <graph> --engine portfolio",
             "version": "atof --version",
@@ -69,6 +70,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "limits": [
             "portfolio mode currently supports k=2",
             "current common objective is unweighted edge cut",
+            "weight attributes are accepted as input metadata but ignored by the current unweighted objective",
             "weighted and multiway portfolio optimization are outside the current MVP contract",
         ],
     }

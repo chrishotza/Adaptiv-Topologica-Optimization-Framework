@@ -19,6 +19,37 @@ def test_cli_version(capsys):
     assert main(["--version"]) == 0
     assert capsys.readouterr().out.strip() == "0.6.0"
 
+
+def test_cli_solve_emits_compact_portfolio_result(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("0 1\n1 2\n2 3\n3 0\n", encoding="utf-8")
+
+    assert main(["solve", str(graph)]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["mode"] == "portfolio"
+    assert payload["graph"] == {"nodes": 4, "edges": 4}
+    assert payload["result"]["k"] == 2
+    assert payload["provenance"]["graph_fingerprint"]
+
+
+def test_cli_solve_exports_partition(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("a b\nb c\nc d\n", encoding="utf-8")
+    output = tmp_path / "partition.csv"
+
+    assert main([
+        "solve",
+        str(graph),
+        "--partition-output",
+        str(output),
+    ]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["mode"] == "portfolio"
+    assert output.read_text(encoding="utf-8").splitlines()[0] == "node,block"
+    assert len(output.read_text(encoding="utf-8").splitlines()) == 5
+
 def test_cli_optimize(tmp_path, capsys):
     graph = tmp_path / "graph.edgelist"
     graph.write_text("0 1\n1 2\n2 3\n3 4\n4 5\n", encoding="utf-8")
