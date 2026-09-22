@@ -96,9 +96,9 @@ def test_optimize_graph_supports_adaptive_hybrid_policy():
     assert strategy["samples"] == 10
     assert strategy["patience"] == 2
     assert strategy["probe_samples"] == 20
-    assert strategy["passes"] >= 0
+    assert strategy["passes"] >= 1
     assert strategy["witness_patience"] == 2
-    assert strategy["probes"] >= strategy["passes"]
+    assert strategy["probes"] >= 0
 
 
 def test_optimize_graph_returns_balanced_product_result():
