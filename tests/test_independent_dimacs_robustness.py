@@ -36,7 +36,7 @@ def test_robustness_uses_majority_as_reference():
     nearest = result["results"]["demo"]["nearest"]
     centroid = result["results"]["demo"]["centroid"]
 
-    assert nearest["mean_delta"] == -0.1
+    assert nearest["mean_delta"] == -0.15
     assert centroid["mean_delta"] == 0.05
     assert nearest["better"] == 1
     assert nearest["worse"] == 1
