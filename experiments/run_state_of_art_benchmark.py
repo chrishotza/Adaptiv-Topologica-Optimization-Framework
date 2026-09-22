@@ -389,6 +389,7 @@ def _summarize_graph(
     rows: list[dict],
     strategies: tuple[str, ...],
     expected_runs: int | None = None,
+    expected_seeds: tuple[int, ...] | None = None,
 ) -> dict:
     available = {
         strategy: [
@@ -408,6 +409,30 @@ def _summarize_graph(
     }
     if not means:
         return {"strategies": {}, "best_quality": None, "matched": False}
+
+    if expected_seeds is not None:
+        expected_seed_set = {int(seed) for seed in expected_seeds}
+        seed_incomplete = {
+            strategy: sorted(
+                int(row["seed"])
+                for row in available[strategy]
+            )
+            for strategy in strategies
+            if {
+                int(row["seed"])
+                for row in available[strategy]
+            } != expected_seed_set
+        }
+        if seed_incomplete:
+            return {
+                "strategies": means,
+                "best_quality": None,
+                "matched": False,
+                "incomplete_strategies": sorted(seed_incomplete),
+                "expected_runs": expected_runs,
+                "expected_seeds": sorted(expected_seed_set),
+                "observed_seeds": seed_incomplete,
+            }
 
     incomplete_strategies = (
         [
@@ -611,6 +636,7 @@ def run_state_of_art_benchmark(
             group,
             strategies,
             expected_runs=len(seeds),
+            expected_seeds=seeds,
         )
         for graph_id, group in graph_rows.items()
     }
