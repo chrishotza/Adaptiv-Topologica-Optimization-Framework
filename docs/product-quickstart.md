@@ -43,11 +43,14 @@ The default BLOC path uses the transparent heuristic selector and returns a mach
 
 ~~~bash
 atof solve graph.edgelist
+atof solve graph.edgelist --partition-output partition.csv
 atof optimize graph.edgelist --engine portfolio --compact
 atof optimize graph.edgelist --engine portfolio
 ~~~
 
 Portfolio mode currently supports k=2 and an unweighted edge-cut objective. It evaluates BLOC-RELOC, NetworkX Kernighan-Lin, and optional PyMetis/KaHIP backends when installed. Selection is empirical: lowest observed edge cut, then balance, runtime, and name as tie-breakers.
+
+The same portfolio output can be exported downstream with `--partition-output`; JSON, CSV, and TSV mappings are supported.
 
 Optional backends:
 
