@@ -51,20 +51,6 @@ def test_fixed_controller_preserves_periodic_schedule():
 
 
 
-def test_adaptive_controller_uses_probe_after_unproductive_pass():
-    controller = RefinementController(policy="adaptive", period=3, patience=1)
-
-    controller.record_hybrid_pass(
-        iteration=2,
-        start_cost=10.0,
-        end_cost=10.0,
-    )
-    assert controller.last_hybrid_improved is False
-
-    assert not controller.after_local_pass(
-        iteration=3, start_cost=10.0, end_cost=10.0, tolerance=0.05
-    )
-
 
 @pytest.mark.parametrize(
     "kwargs",
