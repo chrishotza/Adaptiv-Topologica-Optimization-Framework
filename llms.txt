@@ -1,0 +1,17 @@
+# ATOF
+
+> Open-source graph optimization interface designed for low-friction human and AI use.
+
+## Start here
+
+- atof ai — compact machine-readable capability manifest
+- atof profile <graph> --compact — low-token graph summary
+- atof optimize <graph> --engine portfolio --compact — practical portfolio result
+- AGENTS.md — agent operating rules
+- docs/ai-quickstart.md — AI-first interface contract
+- docs/product-quickstart.md — product usage
+- docs/benchmark-protocol.md — research protocol
+
+## Semantics
+
+ATOF currently exposes balanced, unweighted two-way partitioning. Portfolio selection is empirical on the available backends; it is not a universal optimality claim.
