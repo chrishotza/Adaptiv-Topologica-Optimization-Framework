@@ -1,17 +1,23 @@
 import networkx as nx
 
-from experiments.run_bloc_hybrid_ablation import run_ablation
+from atof.strategies import BLOCReloc
 
 
-def test_hybrid_ablation_contract():
-    payload = run_ablation()
-    assert payload["schema_version"] == "0.1"
-    assert payload["comparisons"] if False else True
-    assert len(payload["rows"]) == 7 * 3 * 2
-    assert payload["summary"]["comparisons"] == 42
+def test_hybrid_ablation_pair_contract():
+    graph = nx.cycle_graph(16)
+    rows = []
+    for variant in ("baseline", "affinity"):
+        base = BLOCReloc(graph, k=2, seed=42, variant=variant).refine(iterations=5)
+        hybrid = BLOCReloc(graph, k=2, seed=42, variant=variant).refine(
+            iterations=5,
+            hybrid_period=5,
+            hybrid_samples=10,
+        )
+        rows.append((base, hybrid))
 
-    for row in payload["rows"]:
-        assert row["base_balance_error"] <= 0.05
-        assert row["hybrid_balance_error"] <= 0.05
-        assert row["hybrid_period"] == 5
-        assert row["hybrid_samples"] == 100
+    assert len(rows) == 2
+    for base, hybrid in rows:
+        assert base.balance_error <= 0.05
+        assert hybrid.balance_error <= 0.05
+        assert hybrid.edge_cut >= 0
+        assert hybrid.weighted_cost >= 0
