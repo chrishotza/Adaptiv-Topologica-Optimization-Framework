@@ -60,3 +60,11 @@ def test_matched_graph_is_aggregated() -> None:
     assert aggregate["matched_graphs"] == 1
     assert aggregate["strategies"]["a"]["mean_relative_quality_gap"] == pytest.approx(0.0)
     assert aggregate["strategies"]["b"]["mean_relative_quality_gap"] == pytest.approx(0.2)
+
+def test_selected_k_values_are_allowed() -> None:
+    from experiments.run_kway_state_of_art_benchmark import K_VALUES, run_kway_state_of_art_benchmark
+
+    assert K_VALUES == (4, 8, 32, 64)
+    import inspect
+    signature = inspect.signature(run_kway_state_of_art_benchmark)
+    assert signature.parameters["k_values"].default == K_VALUES
