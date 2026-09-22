@@ -42,9 +42,13 @@ def test_policy_summary_counts_graphs_and_rows() -> None:
 def test_dominance_requires_quality_and_work_noninferiority() -> None:
     rows = [
         {"graph_id": "g1", "strategy": "fixed", "edge_cut": 10, "total_work": 100},
+        {"graph_id": "g1", "strategy": "fixed", "edge_cut": 14, "total_work": 140},
+        {"graph_id": "g2", "strategy": "fixed", "edge_cut": 10, "total_work": 100},
         {"graph_id": "g2", "strategy": "fixed", "edge_cut": 10, "total_work": 100},
         {"graph_id": "g1", "strategy": "adaptive", "edge_cut": 10, "total_work": 80},
+        {"graph_id": "g1", "strategy": "adaptive", "edge_cut": 10, "total_work": 80},
         {"graph_id": "g2", "strategy": "adaptive", "edge_cut": 9, "total_work": 120},
+        {"graph_id": "g2", "strategy": "adaptive", "edge_cut": 11, "total_work": 80},
     ]
     summary = _dominance_vs_fixed(rows, "adaptive")
     assert summary["dominates_fixed"] == 1
