@@ -1,0 +1,123 @@
+name: Open-source access benchmark
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "experiments/run_access_benchmark.py"
+      - "experiments/summarize_access_benchmark.py"
+      - "tests/test_access_benchmark.py"
+      - ".github/workflows/open-source-access-benchmark.yml"
+
+jobs:
+  benchmark:
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [atof, networkx, metis, kahip]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create isolated environment
+        run: python -m venv .venv
+
+      - name: Install selected tool
+        shell: bash
+        run: |
+          set -euo pipefail
+          source .venv/bin/activate
+          case "${{ matrix.tool }}" in
+            atof)
+              /usr/bin/time -f '%e' -o setup_seconds.txt python -m pip install --no-cache-dir -e .
+              ;;
+            networkx)
+              /usr/bin/time -f '%e' -o setup_seconds.txt python -m pip install --no-cache-dir networkx
+              ;;
+            metis)
+              /usr/bin/time -f '%e' -o setup_seconds.txt python -m pip install --no-cache-dir networkx pymetis
+              ;;
+            kahip)
+              /usr/bin/time -f '%e' -o setup_seconds.txt python -m pip install --no-cache-dir networkx kahip
+              ;;
+          esac
+          cat setup_seconds.txt
+
+      - name: Run isolated access benchmark
+        shell: bash
+        run: |
+          set -euo pipefail
+          source .venv/bin/activate
+          mkdir -p benchmark/${{ matrix.tool }}
+          ATOF_SETUP_SECONDS="$(cat setup_seconds.txt)" \
+            python experiments/run_access_benchmark.py \
+            --tool "${{ matrix.tool }}" \
+            --output "benchmark/${{ matrix.tool }}/access.json"
+
+      - name: Unit smoke test for benchmark
+        shell: bash
+        run: |
+          source .venv/bin/activate
+          python experiments/run_access_benchmark.py \
+            --tool "${{ matrix.tool }}" \
+            --output /tmp/access-smoke.json
+
+      - name: Upload raw record
+        uses: actions/upload-artifact@v4
+        with:
+          name: access-${{ matrix.tool }}
+          path: benchmark/${{ matrix.tool }}/access.json
+
+  summarize:
+    needs: benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download raw records
+        uses: actions/download-artifact@v4
+        with:
+          pattern: access-*
+          merge-multiple: false
+          path: access-artifacts
+
+      - name: Summarize
+        run: |
+          python experiments/summarize_access_benchmark.py \
+            --input-dir access-artifacts \
+            --output results/access-benchmark/latest.json \
+            --csv results/access-benchmark/latest.csv
+
+      - name: Validate records
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("results/access-benchmark/latest.json").read_text())
+          tools = {row["tool"] for row in data["records"]}
+          assert tools == {"atof", "networkx", "metis", "kahip"}
+          for row in data["records"]:
+              assert row["setup_seconds"] >= 0
+              assert row["import_seconds"] >= 0
+              assert row["first_partition_seconds"] >= 0
+              assert row["edge_cut"] >= 0
+              assert row["balance_error"] >= 0
+          print("validated access benchmark")
+          PY
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-open-source-access-benchmark
+          path: results/access-benchmark/
