@@ -19,6 +19,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "ai": "atof ai",
             "doctor": "atof doctor",
             "solve": "atof solve <graph>",
+            "module": "python -m atof",
             "profile": "atof profile <graph>",
             "optimize": "atof optimize <graph> --engine portfolio",
             "version": "atof --version",
