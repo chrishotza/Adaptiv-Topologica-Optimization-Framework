@@ -30,6 +30,26 @@ def _commit_sha() -> str | None:
         return None
 
 
+def _expected_balance_error(graph, k: int) -> float:
+    n = graph.number_of_nodes()
+    if n == 0:
+        return 0.0
+    lower = n // k
+    upper = (n + k - 1) // k
+    target = n / k
+    return max(abs(lower - target), abs(upper - target)) / target
+
+
+def _validate_exact_balance_error(
+    graph,
+    k: int,
+    balance_error: float,
+) -> bool:
+    return abs(
+        balance_error - _expected_balance_error(graph, k)
+    ) <= 1e-12
+
+
 def _run_policy(graph, *, seed: int, policy: str) -> dict:
     kwargs = {
         "iterations": ITERATIONS,
@@ -56,9 +76,18 @@ def _run_policy(graph, *, seed: int, policy: str) -> dict:
     total_work = sum(int(event["total_work"]) for event in result.trace)
     probe_work = sum(int(event["probe_work"]) for event in result.trace)
 
+    balance = float(result.balance_error)
+    if not _validate_exact_balance_error(graph, 2, balance):
+        raise ValueError(
+            "BLOC-RELOC returned a partition outside the exact "
+            "floor/ceil balance contract"
+        )
+
     return {
+        "nodes": int(graph.number_of_nodes()),
+        "edges": int(graph.number_of_edges()),
         "edge_cut": int(result.edge_cut),
-        "balance_error": float(result.balance_error),
+        "balance_error": balance,
         "total_work": int(total_work),
         "probe_work": int(probe_work),
         "hybrid_passes": int(result.hybrid_passes),
