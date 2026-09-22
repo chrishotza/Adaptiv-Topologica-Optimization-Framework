@@ -66,12 +66,6 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "portfolio": {
                 "k": ">=2",
                 "objective": "minimize unweighted edge cut subject to balanced k-way partition",
-                "backend_limits": {
-                    "NetworkX Kernighan-Lin": "k=2 only",
-                    "METIS via PyMetis": "k>=2",
-                    "KaHIP via KaFFPa-Strong": "k>=2",
-                    "BLOC-RELOC": "k>=2",
-                },
                 "backends": [
                     "BLOC-RELOC",
                     "NetworkX Kernighan-Lin",
