@@ -1,99 +1,117 @@
 # Product quickstart
 
-ATOF is a small command-line and Python interface for graph profiling and two-way partitioning.
+ATOF is an AI-first command-line and Python interface for reproducible graph profiling and two-way partitioning.
 
 ## Install
 
-~~~bash
+Core installation:
+
+```bash
 python -m pip install -e .
-~~~
+```
+
+Optional METIS and KaHIP engines:
+
+```bash
+python -m pip install -e ".[metis,kahip]"
+```
 
 ## AI-first path
 
-~~~bash
+```bash
 atof ai
 atof doctor
-atof solve graph.edgelist
-~~~
+atof solve examples/demo.edgelist
+```
 
 Use this order when an AI agent is driving the tool:
 
 1. discover the machine contract;
-2. inspect the environment and available backends;
-3. solve with the shortest portfolio path.
+2. inspect the environment and backend availability;
+3. solve with the shortest practical portfolio path.
 
 ## Profile
 
-~~~bash
-atof profile graph.edgelist
-atof profile graph.edgelist --compact
-~~~
+```bash
+atof profile examples/demo.edgelist
+atof profile examples/demo.edgelist --compact
+```
 
-Full profile output includes topology descriptors and a transparent heuristic recommendation. Compact output keeps only graph size, recommendation fields, and graph fingerprint.
+Full profile output contains structural descriptors and the transparent regime recommendation. Compact output keeps graph size, recommendation, and provenance.
 
-## Optimize with BLOC-RELOC
+## ATOF Engine
 
-~~~bash
-atof optimize graph.edgelist --engine bloc
-~~~
+Run ATOF's own BLOC-RELOC path:
 
-The default BLOC path uses the transparent heuristic selector and returns a machine-readable result with topology, move statistics, parameters, and provenance.
+```bash
+atof optimize examples/demo.edgelist --engine bloc
+```
 
-## Optimize with the open-source portfolio
+Select a BLOC variant explicitly:
 
-~~~bash
-atof solve graph.edgelist
-atof solve graph.edgelist --partition-output partition.csv
-atof optimize graph.edgelist --engine portfolio --compact
-atof optimize graph.edgelist --engine portfolio
-~~~
+```bash
+atof optimize examples/demo.edgelist --engine bloc --variant baseline
+atof optimize examples/demo.edgelist --engine bloc --variant affinity
+```
 
-Portfolio mode currently supports k=2 and an unweighted edge-cut objective. It evaluates BLOC-RELOC, NetworkX Kernighan-Lin, and optional PyMetis/KaHIP backends when installed. Selection is empirical: lowest observed edge cut, then balance, runtime, and name as tie-breakers.
+## ATOF Portfolio
 
-The same portfolio output can be exported downstream with `--partition-output`; JSON, CSV, and TSV mappings are supported.
+Run the common backend contract:
 
-Optional backends:
+```bash
+atof solve examples/demo.edgelist
+atof optimize examples/demo.edgelist --engine portfolio
+atof optimize examples/demo.edgelist --engine portfolio --compact
+```
 
-~~~bash
-python -m pip install -e ".[metis,kahip]"
-~~~
+Portfolio mode currently supports `k=2), undirected simple graphs, and an unweighted edge-cut objective. It evaluates the available BLOC, NetworkX Kernighan-Lin, and optional METIS/KaHIP engines.
 
-Unavailable optional engines are reported rather than silently hidden.
+The selected result is the minimum observed edge cut under the common contract, with balance and runtime used as tie-breakers.
+
+## Export a partition
+
+```bash
+atof solve examples/demo.edgelist --partition-output partition.csv
+atof optimize examples/demo.edgelist --engine portfolio --partition-output partition.json
+```
+
+Supported mapping formats are JSON, CSV, and TSV.
 
 ## Reuse from Python
 
-~~~python
+```python
 import networkx as nx
 from atof import optimize_graph, optimize_portfolio
 
 graph = nx.path_graph(20)
 
-bloc = optimize_graph(graph, k=2, seed=42, iterations=25)
-portfolio = optimize_portfolio(graph, k=2, seed=42, iterations=25)
+engine_result = optimize_graph(graph, k=2, seed=42, iterations=25)
+portfolio_result = optimize_portfolio(graph, k=2, seed=42, iterations=25)
 
-print(bloc.to_dict(include_partition=False))
-print(portfolio.to_dict(include_partition=False))
-~~~
+print(engine_result.to_dict(include_partition=False))
+print(portfolio_result.to_dict(include_partition=False))
+```
 
-## Input formats
+## Input contract
 
-The product loader supports edge-list, GraphML, GEXF, and GML. With format auto, GraphML/GEXF/GML are inferred from the file extension; other files default to edge-list parsing.
+The public product contract requires:
 
-## Export the BLOC partition
+- undirected graphs;
+- simple graphs;
+- at least two nodes;
+- unweighted edges;
+- supported formats: edge-list, GraphML, GEXF, GML.
 
-~~~bash
-atof optimize graph.edgelist --engine bloc --output result.json --partition-output partition.csv
-~~~
+Unsupported directed, multigraph, or weighted inputs are rejected rather than silently converted.
 
-Use --partition-format json or --partition-format tsv when needed. The exported mapping contains node and block fields.
+## Provenance
 
-## Contract and claims
+Full product and portfolio results can include graph fingerprint, seed, parameters, backend identity/version, and selection policy.
 
-ATOF deliberately separates implementation capability from comparative interpretation:
+## Claims
 
-- portfolio is a practical composition layer, not a universal optimum claim;
-- topology regime labels are descriptive heuristics;
-- benchmark claims must name the graph, corpus, objective, and environment;
-- full results preserve enough provenance for reproducible downstream use.
+ATOF deliberately separates implementation capability from comparative interpretation.
 
-See docs/ai-quickstart.md, docs/open-source-access-benchmark.md, and docs/claims.md.
+Benchmark claims should name the graph or corpus, objective, protocol, environment, and measured result.
+
+See [docs/claims.md](claims.md), [docs/architecture.md](architecture.md), and [docs/ai-quickstart.md](ai-quickstart.md).
