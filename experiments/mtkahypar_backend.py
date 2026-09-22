@@ -83,6 +83,11 @@ def run_mtkahypar(
         float(epsilon),
         mtkahypar.Objective.CUT,
     )
+    lower = graph.number_of_nodes() // k
+    upper = (graph.number_of_nodes() + k - 1) // k
+    num_upper = graph.number_of_nodes() - (lower * k)
+    target_weights = [upper] * num_upper + [lower] * (k - num_upper)
+    context.set_individual_target_block_weights(target_weights)
 
     mtkahypar.set_seed(int(seed))
     started = time.perf_counter()
@@ -107,6 +112,7 @@ def run_mtkahypar(
             "threads": 1,
             "seed_control": "mtkahypar.set_seed",
             "epsilon": float(epsilon),
+            "target_block_weights": target_weights,
             "graph_load_in_timing": False,
             "backend_init_in_timing": False,
         },
