@@ -66,10 +66,21 @@ COV-IA remains a separate prototype. Its adaptive-control ideas are documented a
 ## Quick start
 
 ~~~bash
+python -m pip install -e .
+atof profile graph.edgelist
+atof optimize graph.edgelist --output result.json
+~~~
+
+For development and the full test suite:
+
+~~~bash
 python -m pip install -e ".[dev]"
 pytest
-python examples/basic_usage.py
 ~~~
+
+## Product entry point
+
+The primary usable entry point is the `atof optimize` command. It profiles an edge-list graph, applies the transparent heuristic selector when `--variant auto` is used, runs balanced BLOC-RELOC refinement, and returns a machine-readable partition result. The selector is explicitly a heuristic baseline; the command does not claim global optimality. See `docs/product-quickstart.md`.
 
 ## Run the canonical benchmark
 
@@ -255,7 +266,7 @@ Statistical uncertainty is also evaluated at graph level, preserving the unit on
 
 ## Status
 
-Version 0.5.0 is the current public research baseline.
+Version 0.6.0 is the current public product baseline. The CLI now provides a direct profile-and-optimize workflow while the benchmark/research layer remains reproducible and separately documented.
 
 The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, graph-aware statistical uncertainty, NetworkX reference validation, a reproducible SNAP empirical corpus, and cross-corpus routing aggregation infrastructure.
 
