@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import json
+import pickle
+import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -133,13 +137,13 @@ def _kaminpar_graph(graph: nx.Graph, graph_id: str):
     return loaded
 
 
-def run_kaminpar(
+def _run_kaminpar_in_process(
     graph: nx.Graph,
     *,
     graph_id: str,
     seed: int,
     k: int,
-    context_name: str = "default",
+    context_name: str,
 ) -> tuple[dict[Any, int], int, float, float]:
     import kaminpar
 
@@ -183,13 +187,13 @@ def _mtkahypar_preset(name: str):
         raise ValueError(f"unknown Mt-KaHyPar preset: {name}") from exc
 
 
-def run_mtkahypar(
+def _run_mtkahypar_in_process(
     graph: nx.Graph,
     *,
     graph_id: str,
     seed: int,
     k: int,
-    preset: str = "default",
+    preset: str,
 ) -> tuple[dict[Any, int], int, float, float]:
     import mtkahypar
 
@@ -222,3 +226,111 @@ def run_mtkahypar(
     }
     edge_cut, balance = _partition_metrics(graph, partition, k)
     return partition, edge_cut, balance, runtime
+
+
+
+def _run_native_isolated(
+    graph: nx.Graph,
+    *,
+    strategy: str,
+    context: str,
+    graph_id: str,
+    seed: int,
+    k: int,
+) -> tuple[dict[Any, int], int, float, float]:
+    started = time.perf_counter()
+    with tempfile.NamedTemporaryFile(
+        prefix="atof-native-",
+        suffix=".pkl",
+        delete=False,
+    ) as handle:
+        input_path = Path(handle.name)
+        pickle.dump(graph, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+    try:
+        command = [
+            sys.executable,
+            "-m",
+            "atof.native_backend_worker",
+            "--strategy",
+            strategy,
+            "--context",
+            context,
+            "--graph",
+            str(input_path),
+            "--graph-id",
+            graph_id,
+            "--seed",
+            str(seed),
+            "--k",
+            str(k),
+        ]
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            env={**__import__("os").environ, "PYTHONUNBUFFERED": "1"},
+        )
+        if completed.returncode != 0:
+            detail = completed.stderr[-2000:] or completed.stdout[-2000:]
+            raise RuntimeError(
+                f"{strategy} isolated worker exited {completed.returncode}: {detail}"
+            )
+
+        try:
+            payload = json.loads(completed.stdout)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError(
+                f"{strategy} isolated worker returned invalid JSON"
+            ) from exc
+
+        nodes = list(graph.nodes())
+        membership = payload.get("membership")
+        if not isinstance(membership, list) or len(membership) != len(nodes):
+            raise RuntimeError(
+                f"{strategy} isolated worker returned invalid membership length"
+            )
+        partition = {
+            node: int(block)
+            for node, block in zip(nodes, membership)
+        }
+        edge_cut, balance = _partition_metrics(graph, partition, k)
+        return partition, edge_cut, balance, time.perf_counter() - started
+    finally:
+        input_path.unlink(missing_ok=True)
+
+
+def run_kaminpar(
+    graph: nx.Graph,
+    *,
+    graph_id: str,
+    seed: int,
+    k: int,
+    context_name: str = "default",
+) -> tuple[dict[Any, int], int, float, float]:
+    return _run_native_isolated(
+        graph,
+        strategy="kaminpar",
+        context=context_name,
+        graph_id=graph_id,
+        seed=seed,
+        k=k,
+    )
+
+
+def run_mtkahypar(
+    graph: nx.Graph,
+    *,
+    graph_id: str,
+    seed: int,
+    k: int,
+    preset: str = "default",
+) -> tuple[dict[Any, int], int, float, float]:
+    return _run_native_isolated(
+        graph,
+        strategy="mtkahypar",
+        context=preset,
+        graph_id=graph_id,
+        seed=seed,
+        k=k,
+    )
