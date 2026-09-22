@@ -40,8 +40,7 @@
         "module": {"type": "string"},
         "profile": {"type": "string"},
         "optimize": {"type": "string"},
-        "version": {"type": "string"},
-        "short_flags": {
+        "version": {"type": "string"},        "short_flags": {
           "type": "object",
           "required": [
             "compact",
@@ -52,77 +51,11 @@
             "output",
             "partition_output",
             "full",
-            "k",
-            "result_schema"
+            "k"
           ],
           "properties": {
             "compact": {"const": "-c"},
-            "engine": {"const": "-e"},
-            "seed": {"const": "-s"},
-            "iterations": {"const": "-i"},
-            "format": {"const": "-f"},
-            "output": {"const": "-o"},
-            "partition_output": {"const": "-p"},
-            "full": {"const": "-F"},
-            "k": {"const": "-k"}
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "input": {
-      "type": "object",
-      "required": [
-        "formats",
-        "default_format",
-        "default_seed",
-        "stdin",
-        "json",
-        "node_id_serialization"
-      ],
-      "properties": {
-        "formats": {
-          "type": "array",
-          "items": {"type": "string"}
-        },
-        "default_format": {"const": "auto"},
-        "default_seed": {"type": "integer"},
-        "json": {
-          "type": "object",
-          "required": ["nodes", "edges"],
-          "properties": {
-            "nodes": {"const": "optional array of node IDs"},
-            "edges": {"const": "array of 2-item node-ID arrays"}
-          },
-          "additionalProperties": false
-        },
-        "node_id_serialization": {"type": "string"},
-        "stdin": {
-          "type": "object",
-          "required": ["path", "formats"],
-          "properties": {
-            "path": {"const": "-"},
-            "formats": {
-              "type": "array",
-              "items": {"type": "string"}
-            }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
-    },
-    "capabilities": {
-      "type": "object",
-      "required": [
-        "engine",
-        "portfolio",
-        "exports",
-        "provenance"
-      ],
-      "properties": {
-        "engine": {
+            "engine": {
           "type": "object",
           "required": [
             "k",
@@ -134,7 +67,6 @@
           "properties": {
             "k": {"const": ">=2"},
             "result_schema": {"const": "atof.optimize.v1"},
-            "result_schema": {"const": "atof.portfolio.v1"},
             "objective": {"type": "string"},
             "backend": {"const": "BLOC-RELOC"},
             "variants": {
@@ -158,12 +90,14 @@
           "type": "object",
           "required": [
             "k",
+            "result_schema",
             "objective",
             "backends",
             "selection"
           ],
           "properties": {
             "k": {"const": ">=2"},
+            "result_schema": {"const": "atof.portfolio.v1"},
             "objective": {"type": "string"},
             "backends": {
               "type": "array",
