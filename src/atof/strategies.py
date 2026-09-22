@@ -28,6 +28,7 @@ class PartitionResult:
     accepted_moves: int
     rejected_moves: int
     hybrid_passes: int = 0
+    hybrid_probes: int = 0
     trace: tuple[dict[str, float | int], ...] = field(default_factory=tuple)
 
 
@@ -56,6 +57,7 @@ class BLOCReloc:
         self.k = k
         self.variant = variant
         self.rng = random.Random(seed)
+        self.probe_rng = random.Random(seed + 104729)
         self.degree = dict(graph.degree())
 
     def edge_cost(self, u: Hashable, v: Hashable) -> float:
@@ -74,6 +76,7 @@ class BLOCReloc:
         hybrid_samples: int = 1000,
         hybrid_policy: str = "fixed",
         hybrid_patience: int = 2,
+        hybrid_probe_samples: int = 20,
     ) -> PartitionResult:
         if iterations < 1:
             raise ValueError("iterations must be >= 1")
@@ -85,6 +88,8 @@ class BLOCReloc:
             raise ValueError("hybrid_policy must be 'fixed' or 'adaptive'")
         if hybrid_patience < 1:
             raise ValueError("hybrid_patience must be at least 1")
+        if hybrid_probe_samples < 0:
+            raise ValueError("hybrid_probe_samples must be >= 0")
         controller = RefinementController(
             policy=hybrid_policy,
             period=hybrid_period or max(iterations, 1),
@@ -153,27 +158,39 @@ class BLOCReloc:
                     iteration_accepted += 1
 
             hybrid_triggered = False
+            hybrid_probe_triggered = False
+            should_hybrid = False
             if hybrid_period and controller.after_local_pass(
                 iteration=iteration,
                 start_cost=iteration_start,
                 end_cost=best,
                 tolerance=tolerance,
             ):
-                hybrid_triggered = True
+                should_hybrid = True
+                if hybrid_policy == "adaptive":
+                    hybrid_probe_triggered = True
+                    controller.record_probe(iteration=iteration)
+                    should_hybrid = self._probe_two_swap(
+                        partition,
+                        samples=hybrid_probe_samples,
+                        best=best,
+                    )
+                if should_hybrid:
+                    hybrid_triggered = True
                 hybrid_start = best
-                h_accept, h_reject, best = self._two_swap(
-                    partition,
-                    tolerance=tolerance,
-                    samples=hybrid_samples,
-                    best=best,
-                )
-                controller.record_hybrid_pass(
-                    iteration=iteration,
-                    start_cost=hybrid_start,
-                    end_cost=best,
-                )
-                iteration_accepted += h_accept
-                iteration_rejected += h_reject
+                    h_accept, h_reject, best = self._two_swap(
+                        partition,
+                        tolerance=tolerance,
+                        samples=hybrid_samples,
+                        best=best,
+                    )
+                    controller.record_hybrid_pass(
+                        iteration=iteration,
+                        start_cost=hybrid_start,
+                        end_cost=best,
+                    )
+                    iteration_accepted += h_accept
+                    iteration_rejected += h_reject
 
             accepted += iteration_accepted
             rejected += iteration_rejected
@@ -185,6 +202,7 @@ class BLOCReloc:
                     "accepted": iteration_accepted,
                     "rejected": iteration_rejected,
                     "hybrid": int(hybrid_triggered),
+                    "hybrid_probe": int(hybrid_probe_triggered),
                 }
             )
 
@@ -197,6 +215,7 @@ class BLOCReloc:
             accepted_moves=accepted,
             rejected_moves=rejected,
             hybrid_passes=controller.hybrid_passes,
+            hybrid_probes=controller.probes,
             trace=tuple(trace),
         )
 
@@ -256,6 +275,27 @@ class BLOCReloc:
 
         return delta
 
+    def _probe_two_swap(
+        self,
+        partition: Partition,
+        *,
+        samples: int,
+        best: float,
+    ) -> bool:
+        """Return whether a cheap sampled swap probe found an improvement."""
+        if samples <= 0:
+            return False
+        nodes = list(self.graph.nodes())
+        if len(nodes) < 2:
+            return False
+
+        for _ in range(samples):
+            u, v = self.probe_rng.sample(nodes, 2)
+            if partition[u] == partition[v]:
+                continue
+            if best + self._swap_delta(u, v, partition) < best - 1e-12:
+                return True
+        return False
     def _two_swap(
         self,
         partition: Partition,
