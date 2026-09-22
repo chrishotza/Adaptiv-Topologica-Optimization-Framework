@@ -16,6 +16,8 @@ on:
       - "tests/test_kway_state_of_art_benchmark.py"
       - ".github/workflows/kway-state-of-art-benchmark.yml"
       - "src/atof/strategies.py"
+      - "src/atof/partition.py"
+      - "src/atof/backends.py"
 
 permissions:
   contents: read
