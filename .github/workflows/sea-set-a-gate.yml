@@ -13,15 +13,6 @@ on:
         required: true
         default: false
         type: boolean
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "experiments/run_sea_set_a_gate.py"
-      - "docs/sea2026-alignment.md"
-      - "docs/state-of-art-2026-map.md"
-      - ".github/workflows/sea-set-a-gate.yml"
-
 permissions:
   contents: read
 
@@ -70,7 +61,7 @@ jobs:
           python -m experiments.run_sea_set_a_gate \
             --set-a-dir data/set_a \
             --set-a-zip set_a.zip \
-            --limit \${{ github.event.inputs.limit || '12' }} \
+            --limit \${{ inputs.limit }} \
             --output results/state_of_art/set_a_gate.json
 
       - name: Upload gate artifacts
