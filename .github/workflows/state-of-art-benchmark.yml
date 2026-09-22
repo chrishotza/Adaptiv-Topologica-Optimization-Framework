@@ -48,6 +48,37 @@ jobs:
             --output results/state_of_art/latest.json \
             --cache-dir .cache/snap
 
+      - name: Validate complete benchmark manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/state_of_art/latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          expected_graphs = sum(
+              item["graph_count"] for item in payload["corpora"].values()
+          )
+          expected_strategies = 11
+          expected_seeds = [42, 101, 2024]
+          assert expected_graphs == 20
+          assert payload["k"] == 2
+          assert len(payload["candidate_strategies"]) == expected_strategies
+          assert payload["seeds"] == expected_seeds
+          assert len(payload["rows"]) == expected_graphs * len(expected_seeds) * expected_strategies
+          matched = [
+              summary for summary in payload["graph_summaries"].values()
+              if summary.get("matched")
+          ]
+          assert len(matched) == expected_graphs
+          assert len(payload["graph_metadata"]) == expected_graphs
+          for summary in matched:
+              assert set(summary["strategies"]) == set(payload["candidate_strategies"])
+          PY
+
       - name: Analyze fresh solver-router transfer
         run: |
           python -m experiments.run_solver_router_transfer \
@@ -60,14 +91,20 @@ jobs:
           import json
           from pathlib import Path
 
+          benchmark = json.loads(
+              Path("results/state_of_art/latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
           payload = json.loads(
               Path("results/state_of_art/solver_router_transfer.json").read_text(
                   encoding="utf-8"
               )
           )
           assert payload["unit_of_analysis"] == "graph"
-          assert payload["matched_graphs"] >= 2
+          assert payload["matched_graphs"] == 20
           assert payload["controls"] == ["majority", "global_mean"]
+          assert payload["source_commit"] == benchmark["commit_sha"]
           assert payload["oracle_unique_strategy_count"] >= 1
           assert set(payload["oracle_distribution"]) == set(payload["corpora"])
           assert set(payload["macro"]) == {
