@@ -85,8 +85,8 @@ class BLOCReloc:
             raise ValueError("tolerance must be >= 0")
         if hybrid_samples < 0:
             raise ValueError("hybrid_samples must be >= 0")
-        if hybrid_policy not in {"fixed", "adaptive"}:
-            raise ValueError("hybrid_policy must be 'fixed' or 'adaptive'")
+        if hybrid_policy not in {"fixed", "adaptive", "budgeted"}:
+            raise ValueError("hybrid_policy must be 'fixed', 'adaptive', or 'budgeted'")
         if hybrid_patience < 1:
             raise ValueError("hybrid_patience must be at least 1")
         if hybrid_probe_samples < 0:
@@ -98,6 +98,9 @@ class BLOCReloc:
             period=hybrid_period or max(iterations, 1),
             patience=hybrid_patience,
             witness_patience=hybrid_witness_patience,
+            sample_budget=hybrid_samples,
+            min_samples=max(1, hybrid_samples // 4),
+            max_samples=max(hybrid_samples, hybrid_samples * 2),
         )
 
         partition = initialize_balanced_partition(self.graph, self.k)
@@ -199,16 +202,22 @@ class BLOCReloc:
                 if should_hybrid:
                     hybrid_triggered = True
                     hybrid_start = best
+                    samples_used = (
+                        controller.sample_budget
+                        if hybrid_policy == "budgeted"
+                        else hybrid_samples
+                    )
                     h_accept, h_reject, best = self._two_swap(
                         partition,
                         tolerance=tolerance,
-                        samples=hybrid_samples,
+                        samples=samples_used,
                         best=best,
                     )
                     controller.record_hybrid_pass(
                         iteration=iteration,
                         start_cost=hybrid_start,
                         end_cost=best,
+                        samples_used=samples_used,
                     )
                     iteration_accepted += h_accept
                     iteration_rejected += h_reject
@@ -224,6 +233,12 @@ class BLOCReloc:
                     "rejected": iteration_rejected,
                     "hybrid": int(hybrid_triggered),
                     "hybrid_probe": int(hybrid_probe_triggered),
+                    "hybrid_samples": (
+                        controller.sample_history[-2]
+                        if hybrid_triggered and hybrid_policy == "budgeted"
+                        and len(controller.sample_history) >= 2
+                        else (hybrid_samples if hybrid_triggered else 0)
+                    ),
                 }
             )
 
