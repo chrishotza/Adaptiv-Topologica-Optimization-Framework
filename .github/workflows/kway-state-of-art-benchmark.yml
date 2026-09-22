@@ -88,7 +88,20 @@ jobs:
                   ]
                   assert len(strategy_rows) == len(expected_seeds)
                   assert {int(row["seed"]) for row in strategy_rows} == expected_seeds
-                  assert all(row["status"] == "ok" for row in strategy_rows)
+                  bad_rows = [
+                      {
+                          "graph_id": row["graph_id"],
+                          "strategy": row["strategy"],
+                          "seed": row["seed"],
+                          "status": row["status"],
+                          "error": row.get("error"),
+                      }
+                      for row in strategy_rows
+                      if row["status"] != "ok"
+                  ]
+                  if bad_rows:
+                      print(json.dumps({"invalid_rows": bad_rows}, indent=2, sort_keys=True))
+                  assert not bad_rows
 
               summary = payload["graph_summaries"][f"k={k}:{graph_id}"]
               assert summary["matched"] is True
