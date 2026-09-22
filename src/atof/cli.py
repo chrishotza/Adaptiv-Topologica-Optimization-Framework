@@ -117,14 +117,14 @@ def main(argv: list[str] | None = None) -> int:
     optimize_parser.add_argument(
         "--engine",
         "-e",
-        choices=("bloc", "portfolio"),
+        choices=_ENGINE_CHOICES,
         default="bloc",
         help="portfolio compares available open-source backends under one contract",
     )
     optimize_parser.add_argument(
         "--variant",
         "-v",
-        choices=("auto", "baseline", "affinity"),
+        choices=_BLOC_VARIANT_CHOICES,
         default="auto",
         help="BLOC-RELOC variant when --engine bloc is used",
     )
@@ -134,7 +134,7 @@ def main(argv: list[str] | None = None) -> int:
     optimize_parser.add_argument("--partition-output", type=Path)
     optimize_parser.add_argument(
         "--partition-format",
-        choices=("auto", "json", "csv", "tsv"),
+        choices=PARTITION_OUTPUT_FORMATS,
         default="auto",
     )
 
