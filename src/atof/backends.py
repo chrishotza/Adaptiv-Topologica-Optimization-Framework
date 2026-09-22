@@ -210,6 +210,11 @@ def _run_mtkahypar_in_process(
         0.0,
         mtkahypar.Objective.CUT,
     )
+    lower = graph.number_of_nodes() // k
+    upper = (graph.number_of_nodes() + k - 1) // k
+    num_upper = graph.number_of_nodes() - (lower * k)
+    target_weights = [upper] * num_upper + [lower] * (k - num_upper)
+    context.set_individual_target_block_weights(target_weights)
     loaded = initializer.graph_from_file(
         str(path),
         context,
