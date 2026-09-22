@@ -20,7 +20,9 @@ class RefinementController:
     patience: int = 2
     stalled_iterations: int = 0
     last_hybrid_iteration: int | None = None
+    last_probe_iteration: int | None = None
     hybrid_passes: int = 0
+    probes: int = 0
 
     def __post_init__(self) -> None:
         if self.policy not in POLICIES:
@@ -54,11 +56,16 @@ class RefinementController:
         if self.stalled_iterations < self.patience:
             return False
         if (
-            self.last_hybrid_iteration is not None
-            and iteration - self.last_hybrid_iteration < self.period
+            self.last_probe_iteration is not None
+            and iteration - self.last_probe_iteration < self.period
         ):
             return False
         return True
+
+    def record_probe(self, *, iteration: int) -> None:
+        """Record a cheap adaptive witness probe."""
+        self.probes += 1
+        self.last_probe_iteration = iteration
 
     def record_hybrid_pass(
         self,
