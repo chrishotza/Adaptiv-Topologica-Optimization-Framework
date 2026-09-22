@@ -71,7 +71,10 @@ def test_aggregate_uses_graphs_as_the_unit_of_analysis() -> None:
         "g1": {"strategies": {"a": {"relative_quality_gap": 0.0, "runtime_ratio_to_graph_median": 1.0}}},
         "g2": {"strategies": {"a": {"relative_quality_gap": 0.2, "runtime_ratio_to_graph_median": 2.0}}},
     }
-    aggregate = _aggregate_graph_summaries(graph_summaries, ("a",))
+    aggregate = _aggregate_graph_summaries(
+        {key: {**value, "matched": True} for key, value in graph_summaries.items()},
+        ("a",),
+    )
     assert aggregate["a"]["graphs_evaluated"] == 2
     assert aggregate["a"]["mean_relative_quality_gap"] == pytest.approx(0.1)
     assert aggregate["a"]["mean_runtime_ratio_to_graph_median"] == pytest.approx(1.5)
