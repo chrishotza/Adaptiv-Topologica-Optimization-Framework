@@ -120,23 +120,35 @@ def test_cli_solve_exports_partition(tmp_path, capsys):
     assert output.read_text(encoding="utf-8").splitlines()[0] == "node,block"
     assert len(output.read_text(encoding="utf-8").splitlines()) == 5
 
-def test_cli_optimize_rejects_kway_portfolio(capsys, tmp_path):
+def test_cli_optimize_portfolio_supports_kway(capsys, tmp_path):
     graph = tmp_path / "graph.edgelist"
-    graph.write_text("0 1\n1 2\n2 3\n", encoding="utf-8")
+    graph.write_text(
+        "0 1\n1 2\n2 3\n3 4\n4 5\n5 6\n6 7\n7 8\n8 9\n9 10\n10 11\n11 0\n",
+        encoding="utf-8",
+    )
 
-    code = main([
+    assert main([
         "optimize",
         str(graph),
         "--engine",
         "portfolio",
         "--k",
         "3",
-    ])
+        "--iterations",
+        "3",
+        "--compact",
+    ]) == 0
     payload = json.loads(capsys.readouterr().out)
 
-    assert code == 2
-    assert payload["schema"] == "atof.error.v1"
-    assert payload["error"]["type"] == "ValueError"
+    assert payload["mode"] == "portfolio"
+    assert payload["result"]["k"] == 3
+    assert payload["result"]["balance_error"] == 0.0
+    assert len(payload["result"]["partition"]) == 12
+    networkx_candidate = next(
+        item for item in payload["candidates"] if item["id"] == "networkx-kl"
+    )
+    assert not networkx_candidate["available"]
+    assert "k=2" in networkx_candidate["error"]
 
 
 
