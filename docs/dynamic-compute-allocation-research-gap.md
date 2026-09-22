@@ -94,6 +94,17 @@ No dynamic policy should become a public default because of an average improveme
 - reproducible seeds and provenance;
 - a statistically supported quality-versus-compute improvement against the strongest matched baseline.
 
+## Equal-work frontier gate
+
+The external controller artifact now persists a compact per-iteration structural-work curve for every graph×seed×policy. In addition to endpoint comparisons, the gate evaluates each controller against the fixed policy at the common per-graph, per-seed work budget: for each pair, it uses the best recorded edge cut reached at or before the smaller of the two final work totals, then aggregates seeds to the graph level.
+
+This separates two questions that endpoint metrics can conflate:
+
+- did the controller spend less or more total work?
+- at the same available work, did it reach a lower edge cut?
+
+The equal-work comparison is the primary evidence path for any future claim that marginal allocation creates a quality advantage rather than simply buying more computation.
+
 ## Current evidence boundary
 
 ATOF does not yet satisfy those conditions. The current credit-routing experiment was therefore kept out of main after observing individual quality regressions despite meaningful compute savings. The current state-of-art benchmark is intended to establish the stronger external baseline before revisiting dynamic allocation.
