@@ -1,12 +1,14 @@
 name: KaMinPar crash probe
 
 on:
-  push:
-    branches:
-      - research/diagnose-kaminpar-sigsegv
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -14,7 +16,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,6 +32,42 @@ jobs:
           python -m pip install -e .
           python -m pip install "kaminpar>=3.7.3,<4"
 
-      - name: Probe contexts
+      - name: Probe exact matrix
         run: |
-          python experiments/probe_kaminpar_sigsegv.py
+          python experiments/probe_kaminpar_sigsegv.py             --output results/kaminpar_sigsegv_probe.json
+
+      - name: Validate probe artifact
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/kaminpar_sigsegv_probe.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["total"] == payload["expected_total"] == 144
+          assert payload["graph"] == "development/barabasi_albert"
+          assert payload["graph_seed"] == 42
+          assert payload["solver_seeds"] == [42, 101, 2024]
+          assert payload["k_values"] == [4, 8, 32, 64]
+          assert payload["epsilons"] == [0.0, 0.03]
+          assert payload["contexts"] == [
+              "default",
+              "strong",
+              "fast",
+              "largek",
+              "largek-strong",
+              "largek-fast",
+          ]
+          assert len(payload["rows"]) == 144
+          PY
+
+      - name: Upload diagnostic artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: kaminpar-sigsegv-probe
+          path: results/kaminpar_sigsegv_probe.json
+          if-no-files-found: error
