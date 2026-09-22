@@ -9,7 +9,7 @@ import sys
 
 import networkx as nx
 
-from .provenance import graph_fingerprint
+from .provenance import graph_fingerprint, package_version
 from .selector import HeuristicRegimeSelector
 from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfile, TopologyProfiler
@@ -74,6 +74,8 @@ class OptimizationResult:
             block_sizes[key] = block_sizes.get(key, 0) + 1
 
         payload = {
+            "schema": "atof.optimize.v1",
+            "version": package_version("atof"),
             "mode": "optimize",
             "strategy": {
                 "requested": self.requested_variant,
