@@ -101,17 +101,25 @@ def _policy_summary(rows: list[dict], policy: str) -> dict:
     }
 
 
+def _graph_policy_means(rows: list[dict], policy: str) -> dict[str, dict[str, float]]:
+    grouped: dict[str, list[dict]] = {}
+    for row in rows:
+        if row["strategy"] != policy:
+            continue
+        grouped.setdefault(str(row["graph_id"]), []).append(row)
+
+    return {
+        graph_id: {
+            "edge_cut": sum(float(row["edge_cut"]) for row in values) / len(values),
+            "total_work": sum(float(row["total_work"]) for row in values) / len(values),
+        }
+        for graph_id, values in grouped.items()
+    }
+
+
 def _dominance_vs_fixed(rows: list[dict], policy: str) -> dict:
-    fixed = {
-        row["graph_id"]: row
-        for row in rows
-        if row["strategy"] == "fixed"
-    }
-    candidate = {
-        row["graph_id"]: row
-        for row in rows
-        if row["strategy"] == policy
-    }
+    fixed = _graph_policy_means(rows, "fixed")
+    candidate = _graph_policy_means(rows, policy)
     graphs = sorted(set(fixed) & set(candidate))
     dominated = []
     quality_better = []
@@ -119,15 +127,15 @@ def _dominance_vs_fixed(rows: list[dict], policy: str) -> dict:
     for graph_id in graphs:
         f = fixed[graph_id]
         c = candidate[graph_id]
-        quality_ok = float(c["edge_cut"]) <= float(f["edge_cut"])
-        work_ok = float(c["total_work"]) <= float(f["total_work"])
+        quality_ok = c["edge_cut"] <= f["edge_cut"]
+        work_ok = c["total_work"] <= f["total_work"]
         strict = (
-            float(c["edge_cut"]) < float(f["edge_cut"])
-            or float(c["total_work"]) < float(f["total_work"])
+            c["edge_cut"] < f["edge_cut"]
+            or c["total_work"] < f["total_work"]
         )
-        if quality_ok and float(c["edge_cut"]) < float(f["edge_cut"]):
+        if quality_ok and c["edge_cut"] < f["edge_cut"]:
             quality_better.append(graph_id)
-        if work_ok and float(c["total_work"]) < float(f["total_work"]):
+        if work_ok and c["total_work"] < f["total_work"]:
             work_lower.append(graph_id)
         if quality_ok and work_ok and strict:
             dominated.append(graph_id)
