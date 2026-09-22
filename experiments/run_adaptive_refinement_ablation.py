@@ -15,7 +15,8 @@ VARIANTS = ("baseline", "affinity")
 ITERATIONS = 25
 HYBRID_PERIOD = 5
 HYBRID_SAMPLES = 100
-HYBRID_PATIENCE = 5
+HYBRID_PATIENCE = 2
+HYBRID_PROBE_SAMPLES = 20
 
 
 def run_pair(graph, *, seed: int, variant: str) -> dict:
@@ -46,6 +47,7 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
         hybrid_samples=HYBRID_SAMPLES,
         hybrid_policy="adaptive",
         hybrid_patience=HYBRID_PATIENCE,
+        hybrid_probe_samples=HYBRID_PROBE_SAMPLES,
     )
     adaptive_runtime = time.perf_counter() - adaptive_started
     adaptive_payload = adaptive.to_dict(include_partition=False)
@@ -66,6 +68,7 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
         "hybrid_period": HYBRID_PERIOD,
         "hybrid_samples": HYBRID_SAMPLES,
         "hybrid_patience": HYBRID_PATIENCE,
+        "hybrid_probe_samples": HYBRID_PROBE_SAMPLES,
         "fixed_edge_cut": fixed_result["edge_cut"],
         "adaptive_edge_cut": adaptive_result["edge_cut"],
         "edge_cut_delta": adaptive_result["edge_cut"] - fixed_result["edge_cut"],
@@ -81,7 +84,9 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
         ),
         "fixed_passes": fixed_refinement["passes"],
         "adaptive_passes": adaptive_refinement["passes"],
+        "adaptive_probes": adaptive_refinement["probes"],
         "pass_delta": adaptive_refinement["passes"] - fixed_refinement["passes"],
+        "probe_delta": adaptive_refinement["probes"] - fixed_refinement["probes"],
         "fixed_selected": fixed_payload["strategy"]["selected"],
         "adaptive_selected": adaptive_payload["strategy"]["selected"],
     }
@@ -104,6 +109,7 @@ def run_benchmark() -> dict:
     deltas = [row["edge_cut_delta"] for row in rows]
     ratios = [row["runtime_ratio"] for row in rows if row["runtime_ratio"] is not None]
     pass_deltas = [row["pass_delta"] for row in rows]
+    probe_deltas = [row["probe_delta"] for row in rows]
 
     return {
         "schema_version": "0.1",
@@ -126,6 +132,9 @@ def run_benchmark() -> dict:
             "mean_runtime_ratio": sum(ratios) / len(ratios) if ratios else 0.0,
             "mean_hybrid_pass_delta": (
                 sum(pass_deltas) / len(pass_deltas) if pass_deltas else 0.0
+            ),
+            "mean_probe_delta": (
+                sum(probe_deltas) / len(probe_deltas) if probe_deltas else 0.0
             ),
         },
         "runtime_seconds": time.perf_counter() - started,
