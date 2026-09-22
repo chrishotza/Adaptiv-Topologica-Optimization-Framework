@@ -65,6 +65,13 @@ jobs:
               assert len(graph_rows) == 3 * 4
               assert sorted({row["seed"] for row in graph_rows}) == [42, 101, 2024]
               assert {row["strategy"] for row in graph_rows} == {"off", "fixed", "adaptive", "marginal"}
+              observed_pairs = {(int(row["seed"]), row["strategy"]) for row in graph_rows}
+              expected_pairs = {
+                  (seed, strategy)
+                  for seed in [42, 101, 2024]
+                  for strategy in ["off", "fixed", "adaptive", "marginal"]
+              }
+              assert observed_pairs == expected_pairs
           for row in payload["rows"]:
               assert row["total_work"] >= 0
               assert row["probe_work"] >= 0
