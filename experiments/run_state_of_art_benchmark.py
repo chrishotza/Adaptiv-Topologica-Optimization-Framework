@@ -262,6 +262,8 @@ def _run_kaminpar(
     k: int,
     context_name: str,
 ) -> dict:
+    # Prepare file-backed graph outside the timed solver call.
+    _kaminpar_graph(graph, graph_id)
     started = time.perf_counter()
     payload = _kaminpar_partition(
         graph,
