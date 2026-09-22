@@ -50,6 +50,9 @@ metis = [
 kahip = [
   "kahip>=3.25,<4",
 ]
+kaminpar = [
+  "kaminpar>=3.7.3,<4",
+]
 dev = [
   "pytest>=8.0",
   "jsonschema>=4.23",
