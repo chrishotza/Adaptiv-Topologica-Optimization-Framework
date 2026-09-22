@@ -50,6 +50,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "capabilities": {
             "engine": {
                 "k": ">=2",
+                "result_schema": "atof.optimize.v1",
                 "objective": (
                     "reports unweighted edge_cut; baseline minimizes unweighted "
                     "edge_cut, while affinity minimizes a degree-affinity weighted surrogate"
