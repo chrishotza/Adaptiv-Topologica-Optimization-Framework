@@ -17,13 +17,21 @@ def _sample_std(values: Sequence[float]) -> float:
     return sqrt(sum((value - mean) ** 2 for value in values) / (len(values) - 1))
 
 
+def _graph_key(row: Mapping) -> str:
+    """Return a collision-safe graph identifier when corpus metadata exists."""
+    graph_id = row.get("graph_id")
+    if graph_id:
+        return str(graph_id)
+    return str(row["graph"])
+
+
 def graph_metric_means(rows: Iterable[Mapping], *, strategy: str, metric: str = "edge_cut") -> dict[str, float]:
-    """Aggregate repeated seeds to one metric value per graph."""
+    """Aggregate repeated seeds to one metric value per graph instance."""
     grouped: dict[str, list[float]] = defaultdict(list)
     for row in rows:
         if str(row["strategy"]) != strategy:
             continue
-        grouped[str(row["graph"])].append(float(row[metric]))
+        grouped[_graph_key(row)].append(float(row[metric]))
     if not grouped:
         raise ValueError(f"strategy not found: {strategy}")
     return {graph: _mean(values) for graph, values in sorted(grouped.items())}
@@ -36,7 +44,7 @@ def paired_graph_differences(
     strategy_b: str,
     metric: str = "edge_cut",
 ) -> list[float]:
-    """Return paired graph-level differences A - B."""
+    """Return paired graph-instance differences A - B."""
     by_a = graph_metric_means(rows, strategy=strategy_a, metric=metric)
     by_b = graph_metric_means(rows, strategy=strategy_b, metric=metric)
     graphs = sorted(set(by_a) & set(by_b))
