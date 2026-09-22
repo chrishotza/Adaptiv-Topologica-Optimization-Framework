@@ -1,4 +1,7 @@
 # Python caches and test artifacts
+.ipynb_checkpoints/
+pip-wheel-metadata/
+.coverage.*
 __pycache__/
 *.py[cod]
 .pytest_cache/
