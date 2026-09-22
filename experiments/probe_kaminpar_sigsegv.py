@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import subprocess
 import sys
@@ -53,13 +54,22 @@ def _worker(
         ctx=kaminpar.context_by_name(context),
     )
     kaminpar.reseed(int(seed))
-    partition = instance.compute_partition(graph, k=k, eps=epsilon)
+    if epsilon == 0.0:
+        max_block_weight = math.ceil(graph.n() / k)
+        partition = instance.compute_partition(
+            graph, [max_block_weight] * k
+        )
+        constraint_mode = "absolute_max_block_weight"
+    else:
+        partition = instance.compute_partition(graph, k=k, eps=epsilon)
+        constraint_mode = "epsilon"
     print(
         json.dumps(
             {
                 "context": context,
                 "k": k,
                 "epsilon": epsilon,
+                "constraint_mode": constraint_mode,
                 "solver_seed": seed,
                 "nodes": len(partition),
             }
