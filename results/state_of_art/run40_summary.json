@@ -1,0 +1,125 @@
+{
+  "workflow_run": 40,
+  "commit": "340295b321dcbd42ad1126202afb8e35f71697eb",
+  "rows": 660,
+  "errors": 0,
+  "package_versions": {
+    "atof": "0.6.0",
+    "networkx": "3.7",
+    "pymetis": "2025.2.2",
+    "kahip": "3.25",
+    "kaminpar": "3.7.3",
+    "mtkahypar": "1.6.2"
+  },
+  "aggregate": {
+    "bloc_reloc_baseline": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 7.768006468235964,
+      "median_relative_quality_gap": 2.0676522687156753,
+      "mean_runtime_ratio_to_graph_median": 1.0291775943053527
+    },
+    "bloc_reloc_affinity": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 7.834887263995249,
+      "median_relative_quality_gap": 2.201876801225506,
+      "mean_runtime_ratio_to_graph_median": 1.1540059681358448
+    },
+    "bloc_reloc_hybrid_fixed": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 2.822368733857375,
+      "median_relative_quality_gap": 0.8444676694400044,
+      "mean_runtime_ratio_to_graph_median": 1.6150252050976082
+    },
+    "bloc_reloc_adaptive": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 2.8236754302534726,
+      "median_relative_quality_gap": 0.8394264792272907,
+      "mean_runtime_ratio_to_graph_median": 1.6237897454761563
+    },
+    "kernighan_lin": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 0.5425912159221402,
+      "median_relative_quality_gap": 0.10879629629629634,
+      "mean_runtime_ratio_to_graph_median": 0.764403689704406
+    },
+    "metis": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 0.19164336429191742,
+      "median_relative_quality_gap": 0.05392496392496396,
+      "mean_runtime_ratio_to_graph_median": 0.16756890263179627
+    },
+    "kahip": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 0.1798422498710054,
+      "median_relative_quality_gap": 0,
+      "mean_runtime_ratio_to_graph_median": 11.978529430849385
+    },
+    "kaminpar_default": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 0.16454370588321426,
+      "median_relative_quality_gap": 0.00404761904761902,
+      "mean_runtime_ratio_to_graph_median": 0.4669876755809936
+    },
+    "kaminpar_strong": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 0.16454370588321426,
+      "median_relative_quality_gap": 0.00404761904761902,
+      "mean_runtime_ratio_to_graph_median": 0.5061534489764219
+    },
+    "mtkahypar_default": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 0.10785944376920391,
+      "median_relative_quality_gap": 0,
+      "mean_runtime_ratio_to_graph_median": 0.8958138091758565
+    },
+    "mtkahypar_quality": {
+      "graphs_evaluated": 20,
+      "mean_relative_quality_gap": 0.11509511938250076,
+      "median_relative_quality_gap": 0,
+      "mean_runtime_ratio_to_graph_median": 0.9237256096547307
+    }
+  },
+  "tie_aware_best_graph_counts": {
+    "mtkahypar_default": 14,
+    "mtkahypar_quality": 12,
+    "kahip": 11,
+    "kaminpar_default": 10,
+    "kaminpar_strong": 10,
+    "metis": 8,
+    "kernighan_lin": 6,
+    "bloc_reloc_baseline": 1,
+    "bloc_reloc_hybrid_fixed": 1,
+    "bloc_reloc_adaptive": 1
+  },
+  "graphs_with_best_ties": 13,
+  "pairwise_vs_mtkahypar_default": {
+    "bloc_reloc_hybrid_fixed": {
+      "mean_gap_percent": 265.8185235316554,
+      "median_gap_percent": 59.944907004680836,
+      "better": 0,
+      "tied": 1,
+      "worse": 19
+    },
+    "bloc_reloc_adaptive": {
+      "mean_gap_percent": 265.8775180449501,
+      "median_gap_percent": 59.50333457603247,
+      "better": 0,
+      "tied": 1,
+      "worse": 19
+    },
+    "kaminpar_default": {
+      "mean_gap_percent": 5.603579228914669,
+      "median_gap_percent": 0,
+      "better": 3,
+      "tied": 9,
+      "worse": 8
+    },
+    "kaminpar_strong": {
+      "mean_gap_percent": 5.603579228914669,
+      "median_gap_percent": 0,
+      "better": 3,
+      "tied": 9,
+      "worse": 8
+    }
+  }
+}
