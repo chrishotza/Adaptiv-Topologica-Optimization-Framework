@@ -54,7 +54,7 @@ The Engine is ATOF's own product path.
 
 ### BLOC-RELOC
 
-`BLOCReloc` is the canonical local-refinement strategy in the public engine. It supports deterministic initialization, balance-preserving moves, baseline and degree-affinity variants, and optimization traces.
+`BLOCReloc` is the canonical local-refinement strategy in the public engine. It supports deterministic initialization, balance-preserving `k`-way moves for `k>=2`, baseline and degree-affinity variants, and optimization traces.
 
 ## ATOF Portfolio
 
