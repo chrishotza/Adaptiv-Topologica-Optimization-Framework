@@ -21,6 +21,33 @@ def test_cli_version(capsys):
     assert capsys.readouterr().out.strip() == "0.6.0"
 
 
+def test_cli_solve_json_file(tmp_path, capsys):
+    graph = tmp_path / "graph.json"
+    graph.write_text(
+        '{"nodes": ["a", "b", "c", "isolated"], "edges": [["a", "b"], ["b", "c"]]}',
+        encoding="utf-8",
+    )
+
+    assert main(["solve", str(graph)]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["mode"] == "portfolio"
+    assert payload["graph"] == {"nodes": 4, "edges": 2}
+
+
+def test_cli_solve_json_from_stdin(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "sys.stdin",
+        io.StringIO('{"nodes": ["a", "b", "c"], "edges": [["a", "b"], ["b", "c"]]}'),
+    )
+
+    assert main(["solve", "-", "--format", "json", "--iterations", "2"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["mode"] == "portfolio"
+    assert payload["graph"] == {"nodes": 3, "edges": 2}
+
+
 def test_cli_solve_from_stdin(monkeypatch, capsys):
     monkeypatch.setattr(
         "sys.stdin",
