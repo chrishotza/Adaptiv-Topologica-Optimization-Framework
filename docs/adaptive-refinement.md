@@ -4,16 +4,16 @@ ATOF now supports a state-aware refinement policy for the native BLOC-RELOC Engi
 
 ## Design principle
 
-The expensive two-node swap neighborhood should not be scheduled only by a fixed clock. The controller observes the objective gain of each local-relocation iteration and treats repeated low-gain iterations as a stagnation signal.
+The expensive two-node swap neighborhood should not be scheduled only by a fixed clock. The controller observes the objective gain of each local-relocation iteration and treats repeated low-gain iterations as a stagnation signal. In adaptive mode, a cheap sampled-swap probe is then used as a witness: the full hybrid pass is paid only when the probe finds an improving swap.
 
 With `--hybrid-policy adaptive`, ATOF:
 
 1. runs the normal relocation neighborhood;
 2. measures the local objective gain;
 3. counts consecutive low-gain iterations;
-4. triggers two-node swaps only after the configured patience threshold;
-5. enforces the hybrid period as a minimum cooldown between expensive hybrid passes;
-6. resets stagnation when the hybrid pass actually improves the objective.
+4. performs a cheap swap probe after the configured patience threshold;
+5. executes the full two-node swap pass only when that probe finds an improving move;
+6. uses the hybrid period as a minimum cooldown between adaptive probes and resets stagnation when the full hybrid pass actually improves the objective.
 
 The rule is deterministic for a fixed graph, seed, and configuration. It does not require a trained model.
 
@@ -35,7 +35,7 @@ State-aware schedule:
 atof optimize graph.edgelist --engine bloc --hybrid --hybrid-policy adaptive --hybrid-patience 2
 ```
 
-The machine-readable `atof.optimize.v1` result declares the policy, period, patience, and number of hybrid passes.
+The machine-readable `atof.optimize.v1` result declares the policy, period, patience, probe size, probe count, and number of full hybrid passes.
 
 ## Research protocol
 
