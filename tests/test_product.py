@@ -51,12 +51,22 @@ def test_optimize_graph_returns_balanced_product_result():
     result = optimize_graph(graph, k=2, seed=42, iterations=3, variant="baseline")
 
     payload = result.to_dict()
+    assert payload["schema"] == "atof.optimize.v1"
+    assert payload["version"] == "0.6.0"
     assert result.selected_variant == "baseline"
     assert payload["result"]["k"] == 2
     assert payload["result"]["balance_error"] == 0.0
     assert len(payload["result"]["partition"]) == 8
     assert payload["parameters"]["seed"] == 42
     assert payload["provenance"]["graph_fingerprint"]
+
+
+def test_engine_result_schema_is_published():
+    schema_path = Path(__file__).parents[1] / "schemas" / "atof-optimize-v1.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+    assert schema["properties"]["schema"]["const"] == "atof.optimize.v1"
+    assert "result" in schema["required"]
 
 
 def test_load_graph_supports_json(tmp_path: Path):

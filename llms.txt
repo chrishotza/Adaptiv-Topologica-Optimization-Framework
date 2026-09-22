@@ -37,6 +37,8 @@
 - `schemas/atof-ai-v1.schema.json` — capability schema
 - `schemas/atof-doctor-v1.schema.json` — doctor schema
 - `schemas/atof-error-v1.schema.json` — structured error schema
+- `schemas/atof-portfolio-v1.schema.json` — Portfolio result schema
+- `schemas/atof-optimize-v1.schema.json` — Engine result schema
 
 ## Product model
 

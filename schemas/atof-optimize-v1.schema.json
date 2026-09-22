@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-optimize-v1.schema.json",
+  "title": "ATOF Engine result",
+  "type": "object",
+  "required": [
+    "schema",
+    "version",
+    "mode",
+    "strategy",
+    "graph",
+    "parameters",
+    "objective",
+    "provenance",
+    "result"
+  ],
+  "properties": {
+    "schema": {"const": "atof.optimize.v1"},
+    "version": {"type": "string"},
+    "mode": {"const": "optimize"},
+    "file": {"type": "string"},
+    "strategy": {
+      "type": "object",
+      "required": ["requested", "selected", "selection_mode", "regime"],
+      "properties": {
+        "requested": {"type": "string"},
+        "selected": {"type": "string"},
+        "selection_mode": {"type": "string"},
+        "regime": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "graph": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": {"type": "integer", "minimum": 2},
+        "edges": {"type": "integer", "minimum": 0}
+      },
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "object",
+      "required": ["k", "seed", "iterations"],
+      "properties": {
+        "k": {"type": "integer", "minimum": 2},
+        "seed": {"type": "integer"},
+        "iterations": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "objective": {
+      "type": "object",
+      "required": [
+        "reported_metric",
+        "optimization_metric",
+        "direction",
+        "graph_model",
+        "variant_semantics"
+      ],
+      "properties": {
+        "reported_metric": {"const": "edge_cut"},
+        "optimization_metric": {"type": "string"},
+        "direction": {"const": "minimize"},
+        "graph_model": {"const": "unweighted"},
+        "variant_semantics": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "recommendation": {
+      "type": "object",
+      "required": ["primary", "alternatives", "rationale"],
+      "properties": {
+        "primary": {"type": "string"},
+        "alternatives": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "rationale": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["graph_fingerprint", "backend"],
+      "properties": {
+        "graph_fingerprint": {"type": "string"},
+        "backend": {"const": "BLOC-RELOC"}
+      },
+      "additionalProperties": false
+    },
+    "result": {
+      "type": "object",
+      "required": [
+        "k",
+        "edge_cut",
+        "balance_error"
+      ],
+      "properties": {
+        "k": {"type": "integer", "minimum": 2},
+        "iterations": {"type": "integer", "minimum": 1},
+        "edge_cut": {"type": "integer", "minimum": 0},
+        "weighted_cost": {"type": "number"},
+        "balance_error": {"type": "number", "minimum": 0},
+        "accepted_moves": {"type": "integer", "minimum": 0},
+        "rejected_moves": {"type": "integer", "minimum": 0},
+        "block_sizes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "partition": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
