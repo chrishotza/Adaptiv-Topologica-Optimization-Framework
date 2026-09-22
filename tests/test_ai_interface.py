@@ -23,6 +23,7 @@ def test_ai_manifest_is_stable_and_compact():
 
 def test_compact_result_drops_verbose_fields():
     payload = {
+        "schema": "atof.portfolio.v1",
         "mode": "portfolio",
         "version": "0.6.0",
         "strategy": {"selected": "NetworkX(Kernighan-Lin)"},
@@ -49,6 +50,7 @@ def test_compact_result_drops_verbose_fields():
     assert "topology" not in compact
     assert "partition" not in compact["result"]
     assert compact["result"]["edge_cut"] == 1
+    assert compact["schema"] == "atof.portfolio.v1"
 
 
 def test_ai_cli_emits_json(capsys):
