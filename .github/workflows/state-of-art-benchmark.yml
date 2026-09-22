@@ -25,7 +25,7 @@ jobs:
       - name: Install benchmark dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[analysis,metis,kahip,dev]"
+          python -m pip install -e ".[analysis,metis,kahip,kaminpar,dev]"
 
       - name: Run 20-graph benchmark
         run: |
