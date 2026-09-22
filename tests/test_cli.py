@@ -138,6 +138,30 @@ def test_cli_returns_structured_error_for_malformed_graphml(tmp_path, capsys):
     assert parsed["error"]["message"]
 
 
+def test_cli_profile_returns_structured_error_for_malformed_graphml(tmp_path, capsys):
+    graph = tmp_path / "broken.graphml"
+    graph.write_text("<graphml>", encoding="utf-8")
+
+    code = main(["profile", str(graph), "--format", "graphml"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert code == 2
+    assert parsed["schema"] == "atof.error.v1"
+    assert parsed["error"]["type"] == "ParseError"
+
+
+def test_cli_optimize_returns_structured_error_for_malformed_graphml(tmp_path, capsys):
+    graph = tmp_path / "broken.graphml"
+    graph.write_text("<graphml>", encoding="utf-8")
+
+    code = main(["optimize", str(graph), "--format", "graphml"])
+    parsed = json.loads(capsys.readouterr().out)
+
+    assert code == 2
+    assert parsed["schema"] == "atof.error.v1"
+    assert parsed["error"]["type"] == "ParseError"
+
+
 def test_cli_returns_structured_error_for_missing_graph(capsys):
     code = main(["solve", "does-not-exist.edgelist"])
     parsed = json.loads(capsys.readouterr().out)
