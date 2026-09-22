@@ -120,11 +120,10 @@ def _kaminpar_graph(graph: nx.Graph, graph_id: str):
 
 
 def _kaminpar_eps(graph: nx.Graph, k: int) -> float:
-    n = graph.number_of_nodes()
-    ideal = n / k
-    upper = (n + k - 1) // k
-    return max(0.0, (upper / ideal) - 1.0) if ideal else 0.0
-
+    del graph, k
+    # KaMinPar's bound is (1 + eps) * ceil(total_weight / k).
+    # eps=0 therefore permits exactly floor/ceil block sizes for unit weights.
+    return 0.0
 
 def _kaminpar_instance(context_name: str):
     import kaminpar
