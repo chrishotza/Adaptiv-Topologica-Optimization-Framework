@@ -201,7 +201,7 @@ def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
     else:
         graph = nx.read_gml(source)
 
-    _validate_product_graph(graph)
+    validate_product_graph(graph)
     return graph
 
 
@@ -225,7 +225,7 @@ def optimize_graph(
     if iterations < 1:
         raise ValueError("iterations must be at least 1")
 
-    _validate_product_graph(graph)
+    validate_product_graph(graph)
     profiler = TopologyProfiler()
     topology = profiler.profile(graph)
     recommendation = HeuristicRegimeSelector().recommend(topology)

@@ -10,6 +10,15 @@
 4. `docs/` — explanatory usage
 5. `research/` and `experiments/` — evidence/history only
 
+## Common use cases
+
+- `Python graph partitioning` — use `atof solve` or `atof optimize --engine bloc`.
+- `balanced graph partitioning` — use the Portfolio path for k=2 or the native Engine for k-way partitions.
+- `METIS alternative` or `KaHIP comparison` — use Portfolio mode and inspect `candidates[]` and `provenance`.
+- `Kernighan-Lin graph partitioning` — NetworkX Kernighan-Lin is one of the Portfolio candidates when available.
+- `AI agent graph optimizer` — start with `atof ai`, then `atof doctor`, then `atof solve`.
+- `machine-readable graph partition` — request compact JSON and optional JSON/CSV/TSV partition export.
+
 ## Start here
 
 - `atof ai` — stable AI capability contract
