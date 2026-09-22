@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tempfile
+import time
 from pathlib import Path
 
 import networkx as nx
@@ -84,9 +85,9 @@ def run_mtkahypar(
     )
 
     mtkahypar.set_seed(int(seed))
-    started = __import__("time").perf_counter()
+    started = time.perf_counter()
     partitioned = loaded.partition(context)
-    runtime = __import__("time").perf_counter() - started
+    runtime = time.perf_counter() - started
 
     partition = [int(block) for block in partitioned.get_partition()]
     partition_map = {
