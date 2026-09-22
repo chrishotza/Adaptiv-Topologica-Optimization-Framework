@@ -12,11 +12,13 @@ from experiments.run_kway_state_of_art_benchmark import (
 
 def test_kway_surface_matches_locked_protocol() -> None:
     assert K_VALUES == (4, 8, 32, 64)
-    assert len(STRATEGIES) == 8
+    assert len(STRATEGIES) == 10
     assert "metis" in STRATEGIES
     assert "kahip" in STRATEGIES
     assert "kaminpar_default" in STRATEGIES
     assert "kaminpar_strong" in STRATEGIES
+    assert "mtkahypar_default" in STRATEGIES
+    assert "mtkahypar_quality" in STRATEGIES
 
 
 def test_unmatched_graphs_do_not_enter_aggregate() -> None:
