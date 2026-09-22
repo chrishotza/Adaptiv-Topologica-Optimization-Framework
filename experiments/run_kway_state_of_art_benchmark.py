@@ -410,9 +410,21 @@ def _aggregate(
             summary["strategies"][strategy]["runtime_ratio_to_graph_median"]
             for summary in matched.values()
         ]
+        quality_ratios = [1.0 + value for value in gaps]
+        geometric_quality_ratio = (
+            statistics.geometric_mean(quality_ratios)
+            if quality_ratios
+            else 0.0
+        )
+        geometric_quality_gap = (
+            geometric_quality_ratio - 1.0 if quality_ratios else 0.0
+        )
         output["strategies"][strategy] = {
             "graphs": len(gaps),
             "mean_relative_quality_gap": _mean(gaps),
+            "geometric_mean_relative_quality_ratio": geometric_quality_ratio,
+            "geometric_mean_relative_quality_gap": geometric_quality_gap,
+            "geometric_mean_relative_quality_gap_percent": 100.0 * geometric_quality_gap,
             "mean_relative_quality_gap_percent": 100.0 * _mean(gaps),
             "median_relative_quality_gap": statistics.median(gaps) if gaps else 0.0,
             "median_relative_quality_gap_percent": 100.0 * (statistics.median(gaps) if gaps else 0.0),
