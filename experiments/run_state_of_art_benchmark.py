@@ -9,6 +9,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from importlib import metadata as importlib_metadata
 from typing import Callable
 
 import networkx as nx
@@ -37,6 +38,15 @@ CORE_STRATEGIES = (
     "kaminpar_strong",
 )
 
+
+def _package_versions() -> dict[str, str | None]:
+    versions: dict[str, str | None] = {}
+    for distribution in ("atof", "networkx", "pymetis", "kahip", "kaminpar"):
+        try:
+            versions[distribution] = importlib_metadata.version(distribution)
+        except importlib_metadata.PackageNotFoundError:
+            versions[distribution] = None
+    return versions
 
 def _commit_sha() -> str | None:
     try:
@@ -460,6 +470,7 @@ def run_state_of_art_benchmark(
         "python": sys.version,
         "platform": platform.platform(),
         "networkx": nx.__version__,
+        "package_versions": _package_versions(),
         "k": k,
         "seeds": list(seeds),
         "iterations": iterations,
