@@ -29,10 +29,36 @@ def test_training_controls_are_graph_level() -> None:
 
 def test_global_mean_control_uses_training_graph_values() -> None:
     training = [
-        {"strategy_means": {"a": 10.0, "b": 12.0}},
-        {"strategy_means": {"a": 11.0, "b": 8.0}},
+        {"strategy_metrics": {"a": {"edge_cut": 10.0}, "b": {"edge_cut": 12.0}}},
+        {"strategy_metrics": {"a": {"edge_cut": 11.0}, "b": {"edge_cut": 8.0}}},
     ]
     assert _global_mean_strategy(training) == "a"
+
+
+def test_runtime_and_dominance_are_reported() -> None:
+    rows = [
+        {
+            "router": "nearest",
+            "control": "majority",
+            "router_relative_regret": 0.0,
+            "control_relative_regret": 0.1,
+            "router_runtime_ratio": 0.8,
+            "control_runtime_ratio": 1.0,
+            "router_runtime_dominates_control": True,
+        },
+        {
+            "router": "nearest",
+            "control": "majority",
+            "router_relative_regret": 0.2,
+            "control_relative_regret": 0.1,
+            "router_runtime_ratio": 1.1,
+            "control_runtime_ratio": 1.0,
+            "router_runtime_dominates_control": False,
+        },
+    ]
+    summary = _summarize(rows, "nearest", "majority")
+    assert summary["joint_quality_runtime_dominance_rate"] == pytest.approx(0.5)
+    assert summary["mean_runtime_delta_router_minus_control"] == pytest.approx(-0.05)
 
 
 def test_summary_reports_paired_graph_delta() -> None:
