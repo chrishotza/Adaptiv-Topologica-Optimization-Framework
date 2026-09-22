@@ -13,7 +13,7 @@ from typing import Callable
 import networkx as nx
 
 from atof.strategies import BLOCReloc
-from experiments.run_cross_corpus_transfer import _load_corpora
+from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
 from experiments.run_kahip_validation import kahip_balanced_partition
 from experiments.run_metis_validation import metis_balanced_partition
 
@@ -256,7 +256,7 @@ def run_state_of_art_benchmark(
         raise ValueError("iterations must remain fixed at 25 for this protocol")
 
     started = time.perf_counter()
-    corpora, provenance = _load_corpora(cache_dir=cache_dir)
+    corpora, provenance = _load_expanded_corpora(cache_dir=cache_dir)
     strategies = CORE_STRATEGIES
     rows: list[dict] = []
 
