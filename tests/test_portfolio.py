@@ -1,7 +1,12 @@
 import pytest
 import networkx as nx
 
-from atof.portfolio import _run_kahip, optimize_portfolio
+from atof.portfolio import (
+    PortfolioCandidate,
+    _run_kahip,
+    _validate_candidate_partition,
+    optimize_portfolio,
+)
 
 
 def test_portfolio_finds_kernighan_lin_on_karate_club():
@@ -14,6 +19,53 @@ def test_portfolio_finds_kernighan_lin_on_karate_club():
     assert result.graph_fingerprint
     assert result.seed == 42
     assert result.iterations == 25
+
+
+
+
+def test_portfolio_candidate_validation_recomputes_metrics():
+    graph = nx.cycle_graph(6)
+    partition = {node: node % 3 for node in graph.nodes()}
+    candidate = PortfolioCandidate(
+        id="fake",
+        name="fake",
+        available=True,
+        edge_cut=999,
+        balance_error=999.0,
+        runtime_seconds=0.1,
+        partition=partition,
+        backend_version="test",
+        postprocess="none",
+    )
+
+    validated = _validate_candidate_partition(graph, 3, candidate)
+
+    assert validated.available
+    assert validated.edge_cut == 6
+    assert validated.balance_error == 0.0
+    assert validated.postprocess == "contract_validation"
+
+
+def test_portfolio_candidate_validation_rejects_bad_node_coverage():
+    graph = nx.path_graph(4)
+    candidate = PortfolioCandidate(
+        id="fake",
+        name="fake",
+        available=True,
+        edge_cut=0,
+        balance_error=0.0,
+        runtime_seconds=0.1,
+        partition={0: 0, 1: 1, 2: 0},
+        backend_version="test",
+        postprocess="none",
+    )
+
+    validated = _validate_candidate_partition(graph, 2, candidate)
+
+    assert not validated.available
+    assert validated.partition is None
+    assert validated.error
+    assert "coverage mismatch" in validated.error
 
 
 def test_portfolio_is_machine_readable():
