@@ -64,3 +64,13 @@ The reusable API returns both the topology profile and the partition result. Cal
 ## Input formats
 
 The product loader supports `edgelist`, `graphml`, `gexf`, and `gml`. With `--format auto`, GraphML/GEXF/GML are detected from the file extension; other files default to edge-list parsing.
+
+## Export the partition
+
+Write the node-to-block mapping for downstream tools:
+
+~~~bash
+atof optimize graph.edgelist --output result.json --partition-output partition.csv
+~~~
+
+Use `--partition-format json` or `--partition-format tsv` when needed. The exported file contains two fields: `node` and `block`.
