@@ -242,6 +242,32 @@ def test_cli_optimize_supports_kway_engine(tmp_path, capsys):
 
 
 
+def test_cli_optimize_hybrid_refinement(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("0 1\n1 2\n2 3\n3 4\n4 5\n5 0\n", encoding="utf-8")
+
+    assert main([
+        "optimize",
+        str(graph),
+        "--engine",
+        "bloc",
+        "--variant",
+        "baseline",
+        "--hybrid",
+        "--hybrid-period",
+        "5",
+        "--hybrid-samples",
+        "10",
+    ]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["strategy"]["hybrid_refinement"] == {
+        "enabled": True,
+        "period": 5,
+        "samples": 10,
+    }
+
+
 def test_cli_optimize_compact_preserves_engine_objective_semantics(tmp_path, capsys):
     graph = tmp_path / "graph.edgelist"
     graph.write_text("0 1\n1 2\n2 3\n3 4\n4 5\n5 0\n", encoding="utf-8")
