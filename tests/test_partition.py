@@ -39,3 +39,21 @@ def test_bloc_move_delta_matches_full_objective():
         after = bloc._objective(partition)
         partition[node] = source
         assert abs((after - before) - bloc._move_delta(node, source, target, partition)) < 1e-12
+
+
+def test_bloc_swap_delta_matches_full_objective():
+    graph = nx.gnp_random_graph(40, 0.12, seed=11)
+    for variant in ("baseline", "affinity"):
+        bloc = BLOCReloc(graph, k=3, seed=42, variant=variant)
+        partition = initialize_balanced_partition(graph, 3)
+        nodes = list(graph.nodes())
+        for u, v in zip(nodes[::3], nodes[1::3]):
+            if partition[u] == partition[v]:
+                continue
+            before = bloc._objective(partition)
+            delta = bloc._swap_delta(u, v, partition)
+            bu, bv = partition[u], partition[v]
+            partition[u], partition[v] = bv, bu
+            after = bloc._objective(partition)
+            partition[u], partition[v] = bu, bv
+            assert abs((after - before) - delta) < 1e-12
