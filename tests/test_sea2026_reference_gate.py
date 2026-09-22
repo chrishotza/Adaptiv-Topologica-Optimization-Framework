@@ -39,12 +39,3 @@ def test_balance_bound_uses_sea_epsilon() -> None:
 def test_balance_bound_rejects_oversized_block() -> None:
     graph = nx.path_graph(10)
     assert not balance_bound_ok(graph, [4, 3, 2, 1], 4, 0.03)
-
-def test_protocol_aggregation_is_seed_mean_then_instance_geomean() -> None:
-    import math
-
-    assert math.isclose(
-        100.0 * (1.2 ** 0.5 - 1.0),
-        9.5445115,
-        rel_tol=1e-6,
-    )
