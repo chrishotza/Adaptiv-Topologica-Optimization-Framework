@@ -49,6 +49,14 @@ Pipe an edge-list directly when the graph already exists in a shell or agent pip
 cat graph.edgelist | atof solve -
 ```
 
+JSON graphs use a minimal machine-friendly shape:
+
+```json
+{"nodes":["a","b"],"edges":[["a","b"]]}
+```
+
+Save it as `graph.json` and run `atof solve graph.json`, or pipe it with `atof solve - --format json`.
+
 Request the partition mapping:
 
 ```bash
@@ -184,7 +192,7 @@ See [docs/claims.md](docs/claims.md) and [docs/open-source-access-benchmark.md](
 | Graph model | undirected, simple |
 | Objective | balanced unweighted edge cut |
 | Partitioning | 2-way (`k=2`) |
-| Input | edge-list, GraphML, GEXF, GML |
+| Input | edge-list, JSON, GraphML, GEXF, GML |
 | Output | JSON + JSON/CSV/TSV partition mapping |
 | Optional engines | METIS / KaHIP |
 | Evidence | reproducible provenance + benchmark-qualified claims |
