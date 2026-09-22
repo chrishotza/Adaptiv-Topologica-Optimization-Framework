@@ -516,7 +516,18 @@ def run_kway_state_of_art_benchmark(
         )
         if completed.returncode == 0:
             try:
-                rows.extend(json.loads(completed.stdout))
+                payload_lines = [
+                    line.strip()
+                    for line in completed.stdout.splitlines()
+                    if line.strip()
+                ]
+                if not payload_lines:
+                    raise json.JSONDecodeError(
+                        "worker returned no JSON payload",
+                        completed.stdout,
+                        0,
+                    )
+                rows.extend(json.loads(payload_lines[-1]))
                 continue
             except json.JSONDecodeError:
                 error = f"invalid worker JSON for {strategy}"
