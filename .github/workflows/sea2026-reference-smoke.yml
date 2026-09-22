@@ -2,7 +2,7 @@ name: SEA 2026 reference gate
 # Research gate: exact 1.5.3 learned-coarsening snapshot vs matched baseline.
 
 concurrency:
-  group: \${{ github.workflow }}-\${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 on:
@@ -92,8 +92,8 @@ jobs:
           python -m experiments.run_sea2026_reference_gate \
             --binary sea-mtkahypar/build/mt-kahypar/application/MtKaHyPar \
             --set-a-dir data/set_a \
-            --limit "\${{ inputs.limit || '4' }}" \
-            --threads "\${{ inputs.threads || '4' }}" \
+            --limit "${{ inputs.limit || '4' }}" \
+            --threads "${{ inputs.threads || '4' }}" \
             --output results/state_of_art/sea2026_reference_gate.json
 
       - name: Upload exact reference artifacts
