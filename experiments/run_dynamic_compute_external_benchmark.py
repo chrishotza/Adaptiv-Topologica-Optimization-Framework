@@ -249,5 +249,15 @@ def run_benchmark(
 
 
 if __name__ == "__main__":
-    result = run_benchmark()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/state_of_art/dynamic_compute_external.json"),
+    )
+    parser.add_argument("--cache-dir", type=Path, default=None)
+    args = parser.parse_args()
+    result = run_benchmark(output_path=args.output, cache_dir=args.cache_dir)
     print(json.dumps(result["comparisons"], indent=2))
