@@ -100,3 +100,10 @@ The final reported Set A geometric means are 0.36 s and baseline-relative cut 0.
 These numbers are not ATOF measurements and are not directly comparable to our Python timings. They are the numerical target defining the external research frontier we need to reproduce under a controlled contract.
 
 The Zenodo record contains the public benchmark sets, training data, labels, and benchmark results. Its archive is very large, so ATOF should consume it selectively and record file hashes/provenance instead of vendoring the dataset.
+## Current ATOF integration status
+
+ATOF now has executable Python adapters for KaMinPar and Mt-KaHyPar. The k=2 benchmark includes KaMinPar default/strong plus Mt-KaHyPar default/quality; the k-way scaffold includes the same families for k=4, 8, 32, 64.
+
+Mt-KaHyPar default/quality are current upstream multilevel presets. They must not be described as the SEA 2026 learned-coarsening model: the SEA contribution adds a pre-trained neural score to the coarsening stage inside Mt-KaHyPar. The paper reports 0.3–1.4% quality improvement over its Mt-KaHyPar baseline with 14% average runtime overhead in the published AVX2 implementation. citeturn912242view1turn166650view0
+
+Zenodo provides the Set A/B benchmark files and a compact benchmark-results archive. Set A contains 118 unweighted METIS-format graphs, while the complete archived material totals 348.2 GB; the benchmark-results archive is only 2.5 MB. citeturn912242view0
