@@ -22,6 +22,7 @@ Returns backend availability, versions, input formats, and a compact runtime sum
 
 ~~~bash
 atof solve graph.edgelist
+atof solve graph.edgelist --partition-output partition.csv
 ~~~
 
 This is the shortest practical path: portfolio optimization, k=2, compact JSON output, default seed 42.
