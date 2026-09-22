@@ -1,0 +1,48 @@
+name: Neighborhood credit ablation
+
+on:
+  pull_request:
+    paths:
+      - "src/atof/neighborhood.py"
+      - "src/atof/strategies.py"
+      - "experiments/generate_suite.py"
+      - "experiments/run_neighborhood_credit_ablation.py"
+      - "tests/test_neighborhood.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ablation:
+    name: Compare fixed and neighborhood credit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Run credit ablation
+        run: python -m experiments.run_neighborhood_credit_ablation
+      - name: Validate ablation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/neighborhood-credit-ablation/latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["surface"] == "atof.strategies.BLOCReloc"
+          assert payload["summary"]["comparisons"] == 42
+          assert len(payload["rows"]) == 42
+          PY
+      - name: Upload ablation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: neighborhood-credit-ablation
+          path: results/neighborhood-credit-ablation/latest.json
