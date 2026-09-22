@@ -154,6 +154,7 @@ atof ai
 atof doctor
 atof solve graph.edgelist
 atof solve graph.edgelist --k 4
+atof compare graph.edgelist --k 4 --compact
 atof profile graph.edgelist --compact
 atof optimize graph.edgelist --engine portfolio --compact
 atof optimize graph.edgelist --engine portfolio --k 4 --compact
@@ -165,6 +166,7 @@ The stable contracts are:
 - `atof.doctor.v1` — environment and backend availability;
 - `atof.portfolio.v1` — stable Portfolio result envelope;
 - `atof.optimize.v1` — stable Engine result envelope;
+- `atof.compare.v1` — stable Engine-vs-Portfolio comparison envelope;
 - `schemas/` — machine-readable contract definitions.
 
 Use `--compact` for low-token orchestration. Use full JSON when topology, provenance, candidate details, or the node-to-block mapping is needed.
