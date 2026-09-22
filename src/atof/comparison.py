@@ -103,11 +103,13 @@ def compact_comparison(payload: dict[str, Any]) -> dict[str, Any]:
         "engine": {
             "schema": payload["engine"]["schema"],
             "strategy": payload["engine"]["strategy"],
+            "objective": payload["engine"]["objective"],
             "result": payload["engine"]["result"],
         },
         "portfolio": {
             "schema": payload["portfolio"]["schema"],
             "strategy": payload["portfolio"]["strategy"],
+            "objective": payload["portfolio"]["objective"],
             "result": payload["portfolio"]["result"],
             "candidates": [
                 {
