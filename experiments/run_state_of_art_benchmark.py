@@ -44,7 +44,7 @@ CORE_STRATEGIES = (
 
 def _package_versions() -> dict[str, str | None]:
     versions: dict[str, str | None] = {}
-    for distribution in ("atof", "networkx", "pymetis", "kahip", "kaminpar"):
+    for distribution in ("atof", "networkx", "pymetis", "kahip", "kaminpar", "mtkahypar"):
         try:
             versions[distribution] = importlib_metadata.version(distribution)
         except importlib_metadata.PackageNotFoundError:
