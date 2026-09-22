@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "source_workflow_run_id": 35672597211,
+  "graph_count": 26,
+  "bootstrap_resamples": 20000,
+  "bootstrap_seed": 2024,
+  "comparison": "router relative regret minus majority relative regret",
+  "results": {
+    "all_iqr_l2": {
+      "nearest": {"mean_delta": 0.0315499004776659, "bootstrap_95_ci": [-0.021782103301837715, 0.10144086657130684], "better": 2, "worse": 3, "ties": 21, "sign_test_p": 1.0, "corpus_mean_delta": {"development": 0.0, "dimacs": 0.18378769616722573, "external": 0.0, "snap": -0.04707146076400685, "snap_scalability": 0.0}},
+      "centroid": {"mean_delta": 0.4619529890281192, "bootstrap_95_ci": [-0.07954702937560619, 1.1806535761708385], "better": 5, "worse": 6, "ties": 15, "sign_test_p": 1.0, "corpus_mean_delta": {"development": 1.996173719897124, "dimacs": 0.03382430279544206, "external": 0.0, "snap": -0.04707146076400685, "snap_scalability": -0.6276517922457937}}
+    },
+    "global_paths_iqr_l2": {
+      "nearest": {"mean_delta": 0.00278407245484262, "bootstrap_95_ci": [-0.191083406608493, 0.16992663852539572], "better": 4, "worse": 5, "ties": 17, "sign_test_p": 1.0, "corpus_mean_delta": {"development": 0.1657142857142857, "dimacs": 0.17845048122302387, "external": 0.0, "snap": -0.04707146076400685, "snap_scalability": -0.6252960796427314}},
+      "centroid": {"mean_delta": 0.6391680087705806, "bootstrap_95_ci": [0.08071843123869406, 1.3472726991432642], "better": 6, "worse": 13, "ties": 7, "sign_test_p": 0.1670684814453125, "corpus_mean_delta": {"development": 1.996173719897124, "dimacs": 0.5249954100892076, "external": 0.0563271604938272, "snap": 0.19787904266355216, "snap_scalability": -0.6391343899122142}}
+    },
+    "global_paths_minmax_l2": {
+      "nearest": {"mean_delta": 0.0811289708890314, "bootstrap_95_ci": [-0.007375449970506826, 0.19836563205782953], "better": 2, "worse": 6, "ties": 18, "sign_test_p": 0.2890625, "corpus_mean_delta": {"development": 0.1657142857142857, "dimacs": 0.17845048122302387, "external": 0.0, "snap": -0.02140279700541902, "snap_scalability": 0.0023557126030624106}},
+      "centroid": {"mean_delta": 0.5912941908905865, "bootstrap_95_ci": [0.032653012996988515, 1.3067003643351254], "better": 5, "worse": 11, "ties": 10, "sign_test_p": 0.210113525390625, "corpus_mean_delta": {"development": 1.996173719897124, "dimacs": 0.5249954100892076, "external": 0.0, "snap": 0.02797727217946295, "snap_scalability": -0.6391343899122142}}
+    }
+  },
+  "interpretation": [
+    "Negative delta means lower graph-level relative regret than majority.",
+    "Positive delta means higher graph-level relative regret than majority.",
+    "Ties are excluded from the exact sign test.",
+    "This is a secondary graph-level robustness analysis of the frozen five-corpus protocol.",
+    "The result does not by itself justify changing the public/default router."
+  ]
+}
