@@ -93,7 +93,7 @@ provenance.graph_fingerprint
 candidates[] (Portfolio mode)
 ~~~
 
-atof.ai.v1, atof.doctor.v1, and the JSON schemas under schemas/ are the machine-facing source of truth.
+Machine-facing hierarchy: use `atof ai` for current capabilities and limits, `schemas/` for stable response shapes, and `AGENTS.md` for agent operating rules. Research and historical experiment material is evidence, not a capability contract.
 
 
 ## Structured errors
