@@ -30,3 +30,12 @@ def test_atof_partition_is_seed_deterministic():
     first, _ = partition_for("atof", graph, seed=42)
     second, _ = partition_for("atof", graph, seed=42)
     assert first == second
+
+
+def test_atof_portfolio_returns_machine_readable_result():
+    graph = nx.karate_club_graph()
+    result, _ = partition_for("atof_portfolio", graph, seed=42)
+    assert result["edge_cut"] >= 0
+    assert result["balance_error"] == 0.0
+    assert len(result["partition"]) == 34
+    assert result["selected_backend"]
