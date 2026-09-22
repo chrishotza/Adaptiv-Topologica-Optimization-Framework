@@ -2,6 +2,9 @@ name: State-of-art benchmark
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - research/state-of-art-benchmark
 
 permissions:
   contents: read
