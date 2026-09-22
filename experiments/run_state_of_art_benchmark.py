@@ -222,6 +222,19 @@ def _kaminpar_graph(graph: nx.Graph, graph_id: str):
     return loaded
 
 
+def _kaminpar_instance(context_name: str):
+    import kaminpar
+
+    context_factory = {
+        "default": kaminpar.default_context,
+        "strong": kaminpar.strong_context,
+    }[context_name]
+    instance = _KAMINPAR_INSTANCE_CACHE.get(context_name)
+    if instance is None:
+        instance = kaminpar.KaMinPar(num_threads=1, context=context_factory())
+        _KAMINPAR_INSTANCE_CACHE[context_name] = instance
+    return instance
+
 def _kaminpar_partition(
     graph: nx.Graph,
     *,
@@ -233,16 +246,7 @@ def _kaminpar_partition(
     import kaminpar
 
     loaded = _kaminpar_graph(graph, graph_id)
-    context_factory = {
-        "default": kaminpar.default_context,
-        "strong": kaminpar.strong_context,
-    }[context_name]
-
-    instance_key = context_name
-    instance = _KAMINPAR_INSTANCE_CACHE.get(instance_key)
-    if instance is None:
-        instance = kaminpar.KaMinPar(num_threads=1, context=context_factory())
-        _KAMINPAR_INSTANCE_CACHE[instance_key] = instance
+    instance = _kaminpar_instance(context_name)
 
     # KaMinPar exposes a process-level RNG seed; set it immediately before
     # each timed partition call so the seed is explicit and reproducible.
@@ -262,8 +266,9 @@ def _run_kaminpar(
     k: int,
     context_name: str,
 ) -> dict:
-    # Prepare file-backed graph outside the timed solver call.
+    # Prepare file-backed graph and backend instance outside the timed solver call.
     _kaminpar_graph(graph, graph_id)
+    _kaminpar_instance(context_name)
     started = time.perf_counter()
     payload = _kaminpar_partition(
         graph,
