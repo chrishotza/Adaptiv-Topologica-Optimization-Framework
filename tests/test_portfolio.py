@@ -1,7 +1,7 @@
 import pytest
 import networkx as nx
 
-from atof.portfolio import optimize_portfolio
+from atof.portfolio import _run_kahip, optimize_portfolio
 
 
 def test_portfolio_finds_kernighan_lin_on_karate_club():
@@ -51,6 +51,26 @@ def test_portfolio_supports_kway_without_optional_backends():
     )
     assert not networkx_candidate["available"]
     assert "k=2" in networkx_candidate["error"]
+
+
+
+
+def test_kahip_kway_balance_is_measured_across_all_blocks(monkeypatch):
+    graph = nx.cycle_graph(6)
+
+    class FakeKaHIP:
+        @staticmethod
+        def kaffpa(*args):
+            return 0, [0, 0, 0, 0, 1, 1]
+
+    monkeypatch.setitem(__import__("sys").modules, "kahip", FakeKaHIP())
+
+    partition, _, balance = _run_kahip(graph, seed=42, k=3)
+
+    assert set(partition.values()) == {0, 1, 2}
+    counts = [list(partition.values()).count(block) for block in range(3)]
+    assert counts == [2, 2, 2]
+    assert balance == 0.0
 
 
 def test_portfolio_reports_optional_backends_when_unavailable():
