@@ -16,7 +16,7 @@ ITERATIONS = 25
 HYBRID_PERIOD = 5
 MAX_SAMPLES = 100
 BATCH_SAMPLES = 20
-IDLE_PATIENCE = 2
+IDLE_PATIENCE = 4
 
 
 def run_pair(graph, *, seed: int, variant: str) -> dict:
