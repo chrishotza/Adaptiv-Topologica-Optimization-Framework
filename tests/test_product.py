@@ -7,6 +7,18 @@ import networkx as nx
 from atof.product import load_graph, optimize_graph
 
 
+def test_optimize_graph_supports_kway_engine():
+    graph = nx.cycle_graph(12)
+    result = optimize_graph(graph, k=4, seed=42, iterations=4, variant="baseline")
+
+    counts = [list(result.partition_result.partition.values()).count(block) for block in range(4)]
+
+    assert result.k == 4
+    assert sorted(counts) == [3, 3, 3, 3]
+    assert result.partition_result.balance_error == 0.0
+    assert set(result.partition_result.partition.values()) == {0, 1, 2, 3}
+
+
 def test_optimize_graph_returns_balanced_product_result():
     graph = nx.path_graph(8)
     result = optimize_graph(graph, k=2, seed=42, iterations=3, variant="baseline")
