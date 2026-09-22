@@ -10,7 +10,15 @@ atof ai
 
 The command returns compact JSON using schema atof.ai.v1. Use "atof ai --full" for the expanded manifest.
 
-## 2. Inspect a graph
+## 2. Fast solve
+
+~~~bash
+atof solve graph.edgelist
+~~~
+
+This is the shortest practical path: portfolio optimization, k=2, compact JSON output, default seed 42.
+
+## 3. Inspect a graph
 
 ~~~bash
 atof profile graph.edgelist --compact
@@ -18,7 +26,7 @@ atof profile graph.edgelist --compact
 
 This is the low-token path when an agent needs graph size and the current structural recommendation.
 
-## 3. Produce a practical partition
+## 4. Produce a practical partition
 
 ~~~bash
 atof optimize graph.edgelist --engine portfolio --compact
@@ -26,7 +34,7 @@ atof optimize graph.edgelist --engine portfolio --compact
 
 Portfolio mode evaluates the available open-source backends under the same current contract: balanced, unweighted, two-way edge cut. Optional METIS and KaHIP backends are used when their dependencies are installed.
 
-## 4. Ask for complete evidence
+## 5. Ask for complete evidence
 
 ~~~bash
 atof optimize graph.edgelist --engine portfolio
