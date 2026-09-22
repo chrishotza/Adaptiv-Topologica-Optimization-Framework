@@ -283,7 +283,7 @@ def _run_kahip(
     return (
         partition,
         _edge_cut(graph, partition),
-        abs(membership.count(0) - membership.count(1)) / len(nodes),
+        partition_balance_error(graph, partition, k),
     )
 
 
