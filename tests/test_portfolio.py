@@ -72,6 +72,8 @@ def test_portfolio_is_machine_readable():
     graph = nx.path_graph(10)
     result = optimize_portfolio(graph, k=2, seed=42, iterations=5, include_optional=False)
     payload = result.to_dict()
+    assert payload["schema"] == "atof.portfolio.v1"
+    assert payload["version"] == "0.6.0"
     assert payload["mode"] == "portfolio"
     assert payload["result"]["k"] == 2
     assert len(payload["result"]["partition"]) == 10
@@ -150,6 +152,18 @@ def test_portfolio_rejects_unsupported_graph_models():
     multigraph = nx.MultiGraph([(0, 1), (0, 1)])
     with pytest.raises(ValueError, match="simple graph"):
         optimize_portfolio(multigraph, include_optional=False)
+
+
+def test_portfolio_schema_is_published():
+    from pathlib import Path
+    import json
+
+    schema_path = Path(__file__).parents[1] / "schemas" / "atof-portfolio-v1.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+
+    assert schema["properties"]["schema"]["const"] == "atof.portfolio.v1"
+    assert "version" in schema["required"]
+    assert "candidates" in schema["required"]
 
 
 def test_portfolio_is_reproducible_for_same_seed():
