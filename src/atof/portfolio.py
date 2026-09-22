@@ -8,7 +8,10 @@ import networkx as nx
 
 from .provenance import graph_fingerprint, package_version
 from .backends import run_kaminpar, run_mtkahypar
-from .partition import balance_error as partition_balance_error
+from .partition import (
+    balance_error as partition_balance_error,
+    exact_balanced_block_weights,
+)
 from .product import validate_product_graph
 from .selector import HeuristicRegimeSelector
 from .strategies import BLOCReloc, PartitionResult
@@ -352,13 +355,15 @@ def _validate_candidate_partition(
             raise ValueError("partition labels must be in [0, k)")
 
         edge_cut = _edge_cut(graph, candidate.partition)
+        target_weights = exact_balanced_block_weights(
+            graph.number_of_nodes(),
+            k,
+        )
         counts = [
             sum(1 for block in labels if block == target)
             for target in range(k)
         ]
-        lower = graph.number_of_nodes() // k
-        upper = (graph.number_of_nodes() + k - 1) // k
-        if any(count < lower or count > upper for count in counts):
+        if sorted(counts) != sorted(target_weights):
             raise ValueError(
                 "partition violates exact floor/ceil balance contract"
             )
