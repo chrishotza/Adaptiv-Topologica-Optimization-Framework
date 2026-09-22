@@ -136,7 +136,6 @@ def test_cli_optimize_portfolio_supports_kway(capsys, tmp_path):
         "3",
         "--iterations",
         "3",
-        "--compact",
     ]) == 0
     payload = json.loads(capsys.readouterr().out)
 
