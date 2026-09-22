@@ -78,6 +78,8 @@ class BLOCReloc:
         hybrid_patience: int = 2,
         hybrid_probe_samples: int = 20,
         hybrid_witness_patience: int = 2,
+        hybrid_batch_samples: int = 20,
+        hybrid_idle_patience: int = 2,
     ) -> PartitionResult:
         if iterations < 1:
             raise ValueError("iterations must be >= 1")
@@ -85,14 +87,18 @@ class BLOCReloc:
             raise ValueError("tolerance must be >= 0")
         if hybrid_samples < 0:
             raise ValueError("hybrid_samples must be >= 0")
-        if hybrid_policy not in {"fixed", "adaptive"}:
-            raise ValueError("hybrid_policy must be 'fixed' or 'adaptive'")
+        if hybrid_policy not in {"fixed", "adaptive", "early_stop"}:
+            raise ValueError("hybrid_policy must be 'fixed', 'adaptive', or 'early_stop'")
         if hybrid_patience < 1:
             raise ValueError("hybrid_patience must be at least 1")
         if hybrid_probe_samples < 0:
             raise ValueError("hybrid_probe_samples must be >= 0")
         if hybrid_witness_patience < 1:
             raise ValueError("hybrid_witness_patience must be at least 1")
+        if hybrid_batch_samples < 1:
+            raise ValueError("hybrid_batch_samples must be at least 1")
+        if hybrid_idle_patience < 1:
+            raise ValueError("hybrid_idle_patience must be at least 1")
         controller = RefinementController(
             policy=hybrid_policy,
             period=hybrid_period or max(iterations, 1),
@@ -199,12 +205,28 @@ class BLOCReloc:
                 if should_hybrid:
                     hybrid_triggered = True
                     hybrid_start = best
-                    h_accept, h_reject, best = self._two_swap(
-                        partition,
-                        tolerance=tolerance,
-                        samples=hybrid_samples,
-                        best=best,
-                    )
+                    if hybrid_policy == "early_stop":
+                        (
+                            h_accept,
+                            h_reject,
+                            best,
+                            hybrid_samples_used,
+                        ) = self._two_swap_early_stop(
+                            partition,
+                            tolerance=tolerance,
+                            max_samples=hybrid_samples,
+                            batch_samples=hybrid_batch_samples,
+                            idle_patience=hybrid_idle_patience,
+                            best=best,
+                        )
+                    else:
+                        hybrid_samples_used = hybrid_samples
+                        h_accept, h_reject, best = self._two_swap(
+                            partition,
+                            tolerance=tolerance,
+                            samples=hybrid_samples_used,
+                            best=best,
+                        )
                     controller.record_hybrid_pass(
                         iteration=iteration,
                         start_cost=hybrid_start,
@@ -224,6 +246,7 @@ class BLOCReloc:
                     "rejected": iteration_rejected,
                     "hybrid": int(hybrid_triggered),
                     "hybrid_probe": int(hybrid_probe_triggered),
+                    "hybrid_samples": hybrid_samples_used if hybrid_triggered else 0,
                 }
             )
 
@@ -329,6 +352,44 @@ class BLOCReloc:
                 return True
         return False
 
+    def _two_swap_early_stop(
+        self,
+        partition: Partition,
+        *,
+        tolerance: float,
+        max_samples: int,
+        batch_samples: int,
+        idle_patience: int,
+        best: float,
+    ) -> tuple[int, int, float, int]:
+        """Run the hybrid in deterministic batches and stop after repeated idle batches."""
+        accepted = 0
+        rejected = 0
+        total_samples = 0
+        idle_batches = 0
+        remaining = max_samples
+
+        while remaining > 0:
+            batch = min(batch_samples, remaining)
+            batch_accepted, batch_rejected, best = self._two_swap(
+                partition,
+                tolerance=tolerance,
+                samples=batch,
+                best=best,
+            )
+            accepted += batch_accepted
+            rejected += batch_rejected
+            total_samples += batch
+            remaining -= batch
+
+            if batch_accepted == 0:
+                idle_batches += 1
+            else:
+                idle_batches = 0
+            if idle_batches >= idle_patience:
+                break
+
+        return accepted, rejected, best, total_samples
     def _two_swap(
         self,
         partition: Partition,
