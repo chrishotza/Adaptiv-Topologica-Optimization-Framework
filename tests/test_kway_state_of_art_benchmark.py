@@ -68,3 +68,16 @@ def test_selected_k_values_are_allowed() -> None:
     import inspect
     signature = inspect.signature(run_kway_state_of_art_benchmark)
     assert signature.parameters["k_values"].default == K_VALUES
+
+def test_exact_floor_ceil_balance_gate():
+    import networkx as nx
+    from experiments.run_kway_state_of_art_benchmark import (
+        _expected_balance_error,
+        _validate_exact_balance_error,
+    )
+
+    graph = nx.path_graph(10)
+
+    assert _expected_balance_error(graph, 3) == pytest.approx(0.2)
+    assert _validate_exact_balance_error(graph, 3, 0.2)
+    assert not _validate_exact_balance_error(graph, 3, 0.4)
