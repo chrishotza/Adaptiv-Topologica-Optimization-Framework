@@ -53,7 +53,7 @@ The benchmark records every graph/seed/strategy row, including failures, rather 
 
 For unit-weight graphs, the external multilevel backends are requested with epsilon=0, because their balance contract uses ceil(n/k); the benchmark then recomputes balance from the returned partition under ATOF's floor/ceil contract.
 
-Mt-KaHyPar is evaluated through its current Python binding with one CPU thread. Graph loading and backend initialization are outside the timed partition call. The default and quality presets are separate candidates; they are current multilevel baselines, not the SEA 2026 learned-coarsening model.
+Mt-KaHyPar is evaluated through its current Python binding with one CPU thread. Graph loading and backend initialization are outside the timed partition call. Native C/C++ backends are also isolated one strategy per worker process so extension runtimes cannot corrupt each other. The default and quality presets are separate candidates; they are current multilevel baselines, not the SEA 2026 learned-coarsening model.
 
 ## What is compared
 
