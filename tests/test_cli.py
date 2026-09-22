@@ -27,7 +27,7 @@ def test_ai_and_doctor_expose_same_input_contract(capsys):
     assert "json" in manifest["input"]["formats"]
     assert "str()" in manifest["input"]["node_id_serialization"]
     assert manifest["capabilities"]["engine"]["k"] == ">=2"
-    assert manifest["capabilities"]["portfolio"]["k"] == 2
+    assert manifest["capabilities"]["portfolio"]["k"] == ">=2"
 
 
 
