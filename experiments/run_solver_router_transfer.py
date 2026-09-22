@@ -201,6 +201,18 @@ def run_analysis(
         raise ValueError("not enough matched graph records for transfer analysis")
 
     corpora = sorted({record["corpus"] for record in records})
+    oracle_distribution = {
+        corpus: dict(
+            sorted(
+                Counter(
+                    record["oracle_strategy"]
+                    for record in records
+                    if record["corpus"] == corpus
+                ).items()
+            )
+        )
+        for corpus in corpora
+    }
     folds: dict[str, list[dict]] = {}
 
     for test_corpus in corpora:
@@ -337,6 +349,8 @@ def run_analysis(
         },
         "controls": CONTROLS,
         "corpora": corpora,
+        "oracle_distribution": oracle_distribution,
+        "oracle_unique_strategy_count": len({record["oracle_strategy"] for record in records}),
         "matched_graphs": len(records),
         "rows": all_rows,
         "folds": folds,
