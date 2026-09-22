@@ -86,6 +86,9 @@ jobs:
               assert "edge_cut_vs_fixed" in payload["comparisons"][policy]
               assert "total_work_vs_fixed" in payload["comparisons"][policy]
               assert "dominance_vs_fixed" in payload["comparisons"][policy]
+              assert "equal_work_vs_fixed" in payload["comparisons"][policy]
+              equal_work = payload["comparisons"][policy]["equal_work_vs_fixed"]
+              assert equal_work["graphs"] == 20
               assert set(payload["by_corpus"][policy]) == set(payload["corpora"])
               assert sum(
                   item["graphs"] for item in payload["by_corpus"][policy].values()
