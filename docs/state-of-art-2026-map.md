@@ -115,3 +115,47 @@ Jet is a GPU-oriented multilevel graph partitioner whose refinement and coarseni
 - G-kway: https://doi.org/10.1145/3734522
 
 These methods belong to a different hardware regime. ATOF's CPU benchmark must not mix their throughput numbers with CPU wall-clock measurements; the correct comparison is algorithmic quality at matched hardware or a separate hardware-specific track.
+
+## 11. State-of-the-art coverage model for ATOF
+
+The research program is organized around **coverage**, not a single leaderboard position.
+
+| Frontier | What the external state of the art does | ATOF status |
+|---|---|---|
+| Mature multilevel quality | Mt-KaHyPar and KaMinPar combine coarsening, refinement, parallel engineering, and multiple quality/speed configurations | Product adapters + matched research benchmark |
+| Learned internal heuristics | SEA 2026 inserts a pre-trained model into Mt-KaHyPar coarsening rather than replacing the solver with end-to-end ML | Exact software snapshot smoke-tested; matched multi-graph benchmark pending |
+| Near-linear multilevel scaling | ESA 2025 integrates edge sparsification into KaMinPar to force geometric hierarchy shrinkage, reporting linear expected work with limited average quality loss | Not yet integrated; separate scalability track |
+| Large-k / extreme scale | KaMinPar explicitly targets very large k and large shared/distributed-memory graphs | Current product accepts k-way requests; large-scale corpus track pending |
+| Multi-constraint hypergraph partitioning | ESA 2026 improves rebalancing inside Mt-KaHyPar for multi-constraint hypergraph objectives | Adjacent capability; ATOF graph product remains unweighted/single-constraint |
+| Dynamic compute allocation | The research opportunity is to decide what computation to spend next based on observed marginal return, rather than merely selecting one static solver | ATOF's distinctive experimental track |
+
+### Coverage principle
+
+ATOF does not need to reproduce every implementation detail of every frontier algorithm inside its own codebase. The useful target is to provide:
+
+1. a common machine-readable contract;
+2. reproducible access to major open-source solvers when available;
+3. provenance and validation around every candidate result;
+4. a benchmark layer that can reproduce important published protocols;
+5. an adaptive orchestration layer that can decide where additional compute is worth spending.
+
+This makes the product useful even when an external solver remains stronger on a particular graph family.
+
+### Immediate frontier gates
+
+- **G1 — Product parity:** expose mature open-source backends directly through the solve/portfolio product path.
+- **G2 — k-way parity:** complete k={4,8,32,64} matched evaluation on the locked corpus.
+- **G3 — SEA parity:** execute the exact 1.5.3 learned-coarsening snapshot on a matched subset of Set A.
+- **G4 — Set A:** materialize the 118-graph evaluation surface with hashes and source provenance.
+- **G5 — Dynamic allocation:** evaluate quality-vs-structural-work curves against fixed strong baselines.
+- **G6 — Scale track:** evaluate large Set I/R-style instances separately from desktop-scale quality experiments.
+
+The external frontier therefore becomes a **living test surface** for ATOF rather than a fixed list of competitors.
+
+### External references
+
+- SEA 2026 learned coarsening: https://doi.org/10.4230/LIPIcs.SEA.2026.25
+- SEA 2026 Mt-KaHyPar artifact 1.5.3: https://doi.org/10.4230/artifacts.26212
+- ESA 2025 linear-time multilevel partitioning: https://doi.org/10.4230/LIPIcs.ESA.2025.32
+- KaMinPar artifact: https://doi.org/10.4230/artifacts.24666
+- ESA 2026 multi-constraint hypergraph rebalancing: https://doi.org/10.4230/LIPIcs.ESA.2026.12
