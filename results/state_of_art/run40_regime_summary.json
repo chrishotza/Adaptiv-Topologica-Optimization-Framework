@@ -1,0 +1,46 @@
+{
+  "source_artifact": "State-of-art benchmark #40",
+  "source_commit": "ba3ddcf579b3256688c87fd967bccda7a60119ff",
+  "overall_mean_gap_recovery_percent": 48.555979430491206,
+  "overall_median_gap_recovery_percent": 58.92857142857143,
+  "by_corpus": {
+    "development": {
+      "graphs": 7,
+      "mean_gap_recovery_percent": 76.62669940629466,
+      "median_gap_recovery_percent": 76.04166666666666,
+      "mean_gap_residual_percent": 23.37330059370534
+    },
+    "external": {
+      "graphs": 3,
+      "mean_gap_recovery_percent": 74.99315818281337,
+      "median_gap_recovery_percent": 82.14285714285714,
+      "mean_gap_residual_percent": 18.755131362889983
+    },
+    "snap": {
+      "graphs": 6,
+      "mean_gap_recovery_percent": 24.858822035803467,
+      "median_gap_recovery_percent": 23.729461618734977,
+      "mean_gap_residual_percent": 75.14117796419653
+    },
+    "snap_scalability": {
+      "graphs": 3,
+      "mean_gap_recovery_percent": 4.014768857336521,
+      "median_gap_recovery_percent": 4.3523503596796855,
+      "mean_gap_residual_percent": 95.98523114266348
+    }
+  },
+  "lowest_recovery": [
+    {"graph_id":"snap_scalability/ca_hepth","gap_recovery_percent":1.152943577185983},
+    {"graph_id":"snap/college_msg","gap_recovery_percent":1.9279454722492693},
+    {"graph_id":"snap_scalability/ca_grqc","gap_recovery_percent":4.352350359679685},
+    {"graph_id":"snap/email_eu_core","gap_recovery_percent":4.716981132075502},
+    {"graph_id":"snap_scalability/wiki_vote","gap_recovery_percent":6.539012635143894}
+  ],
+  "highest_recovery": [
+    {"graph_id":"external/karate_club","gap_recovery_percent":83.9080459770115},
+    {"graph_id":"development/cycle","gap_recovery_percent":82.79569892473119},
+    {"graph_id":"external/davis_southern_women","gap_recovery_percent":82.14285714285714},
+    {"graph_id":"development/path","gap_recovery_percent":81.72043010752688},
+    {"graph_id":"development/barabasi_albert","gap_recovery_percent":80.0}
+  ]
+}
