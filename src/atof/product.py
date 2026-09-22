@@ -27,6 +27,13 @@ def _validate_product_graph(graph: nx.Graph) -> None:
         raise ValueError("ATOF product mode requires a simple graph")
     if graph.number_of_nodes() < 2:
         raise ValueError("ATOF product mode requires at least 2 nodes")
+    # Machine-readable partition outputs canonicalize node IDs with str().
+    # Reject collisions such as 1 and "1" before serialization can merge them.
+    serialized_ids = [str(node) for node in graph.nodes()]
+    if len(serialized_ids) != len(set(serialized_ids)):
+        raise ValueError(
+            "ATOF product mode requires node IDs to be unique after string serialization"
+        )
     # Edge attributes such as "weight" may be present in source graphs.
     # The current MVP graph model is explicitly unweighted, so these attributes
     # are ignored rather than interpreted as edge costs.
