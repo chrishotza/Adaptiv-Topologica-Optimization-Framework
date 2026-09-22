@@ -75,7 +75,8 @@
         "default_format",
         "default_seed",
         "stdin",
-        "json"
+        "json",
+        "node_id_serialization"
       ],
       "properties": {
         "formats": {
