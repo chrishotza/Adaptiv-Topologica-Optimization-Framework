@@ -219,3 +219,30 @@ def test_backend_manifest_includes_state_of_art_backends():
     assert "kaminpar-strong" in ids
     assert "mtkahypar-default" in ids
     assert "mtkahypar-quality" in ids
+
+
+def test_portfolio_candidate_validation_rejects_non_floor_ceil_balance():
+    graph = nx.path_graph(10)
+    partition = {
+        0: 0, 1: 0, 2: 0, 3: 0,
+        4: 1, 5: 1, 6: 1, 7: 1,
+        8: 2, 9: 2,
+    }
+    candidate = PortfolioCandidate(
+        id="fake",
+        name="fake",
+        available=True,
+        edge_cut=0,
+        balance_error=0.0,
+        runtime_seconds=0.1,
+        partition=partition,
+        backend_version="test",
+        postprocess="none",
+    )
+
+    validated = _validate_candidate_partition(graph, 3, candidate)
+
+    assert not validated.available
+    assert validated.partition is None
+    assert validated.error
+    assert "floor/ceil balance contract" in validated.error
