@@ -10,6 +10,16 @@ from experiments.run_kway_state_of_art_benchmark import (
 )
 
 
+def test_worker_decoder_uses_last_nonempty_stdout_line() -> None:
+    from experiments.run_kway_state_of_art_benchmark import _decode_worker_rows
+
+    assert _decode_worker_rows('native warning\n[{"status": "ok"}]\n') == [
+        {"status": "ok"}
+    ]
+    with pytest.raises(ValueError, match="must be a list"):
+        _decode_worker_rows('{"status": "ok"}\n')
+
+
 def test_kway_surface_matches_locked_protocol() -> None:
     assert K_VALUES == (4, 8, 32, 64)
     assert len(STRATEGIES) == 10
