@@ -154,12 +154,12 @@ def _run_kaminpar_in_process(
 
     loaded = _kaminpar_graph(graph, graph_id)
     instance = _kaminpar_context(context_name)
-    max_block_weight = (graph.number_of_nodes() + k - 1) // k
     kaminpar.reseed(int(seed))
     started = time.perf_counter()
     membership = instance.compute_partition(
         loaded,
-        max_block_weights=[max_block_weight] * k,
+        k=k,
+        eps=0.0,
     )
     runtime = time.perf_counter() - started
     membership = rebalance_kway(graph, [int(block) for block in membership], k)
