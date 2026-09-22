@@ -89,7 +89,7 @@ ATOF is built around a simple interface problem:
 - AI agents need small, explicit, machine-readable contracts;
 - benchmark claims need provenance instead of hand-written summaries.
 
-ATOF provides one surface over a small portfolio of open backends and keeps the evidence boundary explicit.
+ATOF provides one surface over a growing portfolio of open backends and keeps the evidence boundary explicit. The repository's state-of-the-art lab is intentionally open: contributors can add backends, reproduce published protocols, and turn validated research advances into usable capabilities.
 
 ## Product architecture
 
@@ -297,6 +297,8 @@ Comparative statements should name the graph or corpus, objective, protocol, env
 - [Claims and evidence](docs/claims.md)
 - [Open-source access benchmark](docs/open-source-access-benchmark.md)
 - [Benchmark protocol](docs/benchmark-protocol.md)
+- [Open state-of-the-art lab](docs/state-of-art-open-lab.md)
+- [Contributing](CONTRIBUTING.md)
 - [Research findings](research/generalization-findings-2026-09-21.md)
 - [AI agent rules](AGENTS.md)
 - [llms.txt](llms.txt)
