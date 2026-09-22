@@ -108,9 +108,8 @@ class OptimizationResult:
         return payload
 
 
-def _load_json_graph(source: Path) -> nx.Graph:
-    """Load ATOF's minimal JSON graph contract."""
-    payload = json.loads(source.read_text(encoding="utf-8"))
+def _load_json_graph_payload(payload: object) -> nx.Graph:
+    """Load ATOF's minimal JSON graph contract from a decoded payload."""
     if not isinstance(payload, dict):
         raise ValueError("JSON graph must be an object")
     edges = payload.get("edges", [])
@@ -134,15 +133,22 @@ def _load_json_graph(source: Path) -> nx.Graph:
     return graph
 
 
+def _load_json_graph(source: Path) -> nx.Graph:
+    return _load_json_graph_payload(json.loads(source.read_text(encoding="utf-8")))
+
+
 def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
     """Load an unweighted graph from a supported file format.
 
     Use "-" as the path to read an edge-list graph from stdin.
     """
     if str(path) == "-":
-        if format not in {"auto", "edgelist"}:
-            raise ValueError("stdin input currently supports edge-list format only")
-        graph = nx.read_edgelist(StringIO(sys.stdin.read()), data=False)
+        if format not in {"auto", "edgelist", "json"}:
+            raise ValueError("stdin input currently supports edge-list and JSON formats")
+        if format == "json":
+            graph = _load_json_graph_payload(json.loads(sys.stdin.read()))
+        else:
+            graph = nx.read_edgelist(StringIO(sys.stdin.read()), data=False)
         _validate_product_graph(graph)
         return graph
 
