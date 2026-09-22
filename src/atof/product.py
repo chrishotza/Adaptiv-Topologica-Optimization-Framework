@@ -4,10 +4,9 @@ from dataclasses import dataclass
 import csv
 import json
 from pathlib import Path
-from typing import Mapping
-
 import networkx as nx
 
+from .provenance import graph_fingerprint
 from .selector import HeuristicRegimeSelector
 from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfile, TopologyProfiler
@@ -30,6 +29,7 @@ class OptimizationResult:
     alternatives: tuple[str, ...]
     rationale: str
     partition_result: PartitionResult
+    seed: int
 
     @property
     def selection_mode(self) -> str:
@@ -53,6 +53,20 @@ class OptimizationResult:
             "graph": {
                 "nodes": self.graph.number_of_nodes(),
                 "edges": self.graph.number_of_edges(),
+            },
+            "parameters": {
+                "k": self.k,
+                "seed": self.seed,
+                "iterations": result.iterations,
+            },
+            "objective": {
+                "name": "edge_cut",
+                "direction": "minimize",
+                "graph_model": "unweighted",
+            },
+            "provenance": {
+                "graph_fingerprint": graph_fingerprint(self.graph),
+                "backend": "BLOC-RELOC",
             },
             "topology": self.topology.to_dict(),
             "recommendation": {
@@ -146,6 +160,7 @@ def optimize_graph(
         alternatives=tuple(recommendation.alternatives),
         rationale=recommendation.rationale,
         partition_result=result,
+        seed=seed,
     )
 
 
