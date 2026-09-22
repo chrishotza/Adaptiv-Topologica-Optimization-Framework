@@ -192,6 +192,40 @@ class BLOCReloc:
                 delta -= cost
         return delta
 
+    def _swap_delta(
+        self,
+        u: Hashable,
+        v: Hashable,
+        partition: Mapping[Hashable, int],
+    ) -> float:
+        """Return the exact weighted-cut change for swapping two node blocks.
+
+        Only edges incident to ``u`` or ``v`` can change crossing status. The
+        direct ``u-v`` edge, when present, remains crossing because the two
+        nodes exchange distinct blocks, so it contributes zero and is skipped.
+        """
+        block_u = partition[u]
+        block_v = partition[v]
+        delta = 0.0
+
+        for neighbor in self.graph.neighbors(u):
+            if neighbor == v:
+                continue
+            cost = self.edge_cost(u, neighbor)
+            old_cross = partition[neighbor] != block_u
+            new_cross = partition[neighbor] != block_v
+            delta += cost * (int(new_cross) - int(old_cross))
+
+        for neighbor in self.graph.neighbors(v):
+            if neighbor == u:
+                continue
+            cost = self.edge_cost(v, neighbor)
+            old_cross = partition[neighbor] != block_v
+            new_cross = partition[neighbor] != block_u
+            delta += cost * (int(new_cross) - int(old_cross))
+
+        return delta
+
     def _two_swap(
         self,
         partition: Partition,
@@ -215,14 +249,13 @@ class BLOCReloc:
             if block_u == block_v:
                 continue
 
-            partition[u], partition[v] = block_v, block_u
-            candidate = self._objective(partition)
+            candidate = best + self._swap_delta(u, v, partition)
 
             if candidate < best - 1e-12:
+                partition[u], partition[v] = block_v, block_u
                 best = candidate
                 accepted += 1
             else:
-                partition[u], partition[v] = block_u, block_v
                 rejected += 1
 
         return accepted, rejected, best
