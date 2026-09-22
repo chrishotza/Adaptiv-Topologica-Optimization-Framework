@@ -161,6 +161,18 @@ def main(argv: list[str] | None = None) -> int:
         default=100,
         help="two-node swap samples per hybrid pass",
     )
+    optimize_parser.add_argument(
+        "--hybrid-policy",
+        choices=("fixed", "adaptive"),
+        default="fixed",
+        help="hybrid trigger policy: periodic or state-aware adaptive",
+    )
+    optimize_parser.add_argument(
+        "--hybrid-patience",
+        type=int,
+        default=2,
+        help="stalled local iterations required by the adaptive policy",
+    )
     optimize_parser.add_argument("--format", "-f", choices=_FORMAT_CHOICES, default="auto")
     optimize_parser.add_argument("--output", "-o", type=Path)
     optimize_parser.add_argument("--compact", "-c", action="store_true")
@@ -293,6 +305,8 @@ def main(argv: list[str] | None = None) -> int:
                     hybrid=args.hybrid,
                     hybrid_period=args.hybrid_period,
                     hybrid_samples=args.hybrid_samples,
+                    hybrid_policy=args.hybrid_policy,
+                    hybrid_patience=args.hybrid_patience,
                 )
             payload = result.to_dict()
             payload["file"] = str(args.path)
