@@ -16,6 +16,20 @@ from .topology import TopologyProfiler
 _FORMAT_CHOICES = ("auto", "edgelist", "graphml", "gexf", "gml")
 
 
+def _emit_error(exc: Exception) -> int:
+    payload = {
+        "schema": "atof.error.v1",
+        "name": "atof",
+        "version": __version__,
+        "error": {
+            "type": type(exc).__name__,
+            "message": str(exc),
+        },
+    }
+    print(compact_json(payload))
+    return 2
+
+
 def _profile(path: Path, format: str = "auto") -> dict:
     graph = load_graph(path, format=format)
     profile = TopologyProfiler().profile(graph)
@@ -138,88 +152,97 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "solve":
-        graph = load_graph(args.path, format=args.format)
-        result = optimize_portfolio(
-            graph,
-            k=2,
-            seed=args.seed,
-            iterations=args.iterations,
-        )
-        if args.partition_output is not None:
-            write_partition_mapping(
-                result.selected_partition,
-                args.partition_output,
-                format=args.partition_format,
-            )
-        payload = compact_result(result.to_dict())
-        encoded = compact_json(payload)
-        if args.output is None:
-            print(encoded)
-        else:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(encoded + "\n", encoding="utf-8")
-            print(str(args.output))
-        return 0
-
-    if args.command == "profile":
-        payload = _profile(args.path, args.format)
-        if args.compact:
-            compact = {
-                "mode": "profile",
-                "version": payload["version"],
-                "graph": payload["graph"],
-                "recommendation": {
-                    "regime": payload["recommendation"]["regime"],
-                    "primary": payload["recommendation"]["primary"],
-                    "alternatives": payload["recommendation"]["alternatives"],
-                },
-                "provenance": payload["provenance"],
-            }
-            print(compact_json(compact))
-        else:
-            print(json.dumps(payload, indent=2, sort_keys=True))
-        return 0
-
-    if args.command == "optimize":
-        graph = load_graph(args.path, format=args.format)
-        if args.engine == "portfolio":
+        try:
+            graph = load_graph(args.path, format=args.format)
             result = optimize_portfolio(
                 graph,
-                k=args.k,
+                k=2,
                 seed=args.seed,
                 iterations=args.iterations,
             )
-        else:
-            result = optimize_graph(
-                graph,
-                k=args.k,
-                seed=args.seed,
-                iterations=args.iterations,
-                variant=args.variant,
-            )
-        payload = result.to_dict()
-        payload["file"] = str(args.path)
-        payload["version"] = __version__
-        if args.compact:
-            encoded = compact_json(compact_result(payload))
-        else:
-            encoded = json.dumps(payload, indent=2, sort_keys=True)
-        if args.partition_output is not None:
-            if args.engine == "bloc":
-                write_partition(result, args.partition_output, format=args.partition_format)
-            else:
+            if args.partition_output is not None:
                 write_partition_mapping(
                     result.selected_partition,
                     args.partition_output,
                     format=args.partition_format,
                 )
-        if args.output is None:
-            print(encoded)
-        else:
-            args.output.parent.mkdir(parents=True, exist_ok=True)
-            args.output.write_text(encoded + "\n", encoding="utf-8")
-            print(str(args.output))
-        return 0
+            payload = compact_result(result.to_dict())
+            encoded = compact_json(payload)
+            if args.output is None:
+                print(encoded)
+            else:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(encoded + "\n", encoding="utf-8")
+                print(str(args.output))
+            return 0
+        except (OSError, ValueError, RuntimeError) as exc:
+            return _emit_error(exc)
+
+    if args.command == "profile":
+        try:
+            payload = _profile(args.path, args.format)
+            if args.compact:
+                compact = {
+                    "mode": "profile",
+                    "version": payload["version"],
+                    "graph": payload["graph"],
+                    "recommendation": {
+                        "regime": payload["recommendation"]["regime"],
+                        "primary": payload["recommendation"]["primary"],
+                        "alternatives": payload["recommendation"]["alternatives"],
+                    },
+                    "provenance": payload["provenance"],
+                }
+                print(compact_json(compact))
+            else:
+                print(json.dumps(payload, indent=2, sort_keys=True))
+            return 0
+        except (OSError, ValueError, RuntimeError) as exc:
+            return _emit_error(exc)
+
+    if args.command == "optimize":
+        try:
+            graph = load_graph(args.path, format=args.format)
+            if args.engine == "portfolio":
+                result = optimize_portfolio(
+                    graph,
+                    k=args.k,
+                    seed=args.seed,
+                    iterations=args.iterations,
+                )
+            else:
+                result = optimize_graph(
+                    graph,
+                    k=args.k,
+                    seed=args.seed,
+                    iterations=args.iterations,
+                    variant=args.variant,
+                )
+            payload = result.to_dict()
+            payload["file"] = str(args.path)
+            payload["version"] = __version__
+            if args.compact:
+                encoded = compact_json(compact_result(payload))
+            else:
+                encoded = json.dumps(payload, indent=2, sort_keys=True)
+            if args.partition_output is not None:
+                if args.engine == "bloc":
+                    write_partition(result, args.partition_output, format=args.partition_format)
+                else:
+                    write_partition_mapping(
+                        result.selected_partition,
+                        args.partition_output,
+                        format=args.partition_format,
+                    )
+            if args.output is None:
+                print(encoded)
+            else:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(encoded + "\n", encoding="utf-8")
+                print(str(args.output))
+            return 0
+        except (OSError, ValueError, RuntimeError) as exc:
+            return _emit_error(exc)
 
     parser.print_help()
     return 0
