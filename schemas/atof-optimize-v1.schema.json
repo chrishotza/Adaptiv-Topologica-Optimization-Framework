@@ -97,13 +97,8 @@
       "type": "object",
       "required": [
         "k",
-        "iterations",
         "edge_cut",
-        "weighted_cost",
-        "balance_error",
-        "accepted_moves",
-        "rejected_moves",
-        "block_sizes"
+        "balance_error"
       ],
       "properties": {
         "k": {"type": "integer", "minimum": 2},
