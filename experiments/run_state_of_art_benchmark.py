@@ -452,12 +452,12 @@ def _aggregate_graph_summaries(
         values = [
             data["strategies"][strategy]["relative_quality_gap"]
             for data in graph_summaries.values()
-            if strategy in data["strategies"]
+            if data.get("matched") and strategy in data["strategies"]
         ]
         runtimes = [
             data["strategies"][strategy]["runtime_ratio_to_graph_median"]
             for data in graph_summaries.values()
-            if strategy in data["strategies"]
+            if data.get("matched") and strategy in data["strategies"]
         ]
         excess = [
             data["strategies"][strategy]["edge_cut"]
