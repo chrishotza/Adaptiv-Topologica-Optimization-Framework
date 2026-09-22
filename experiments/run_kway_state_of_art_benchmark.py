@@ -500,7 +500,7 @@ def run_kway_state_of_art_benchmark(
                             "error": error,
                         })
     graph_summaries: dict[str, dict] = {}
-    for k in K_VALUES:
+    for k in k_values:
         grouped: dict[str, list[dict]] = {}
         for row in rows:
             if row["k"] != k:
@@ -522,7 +522,7 @@ def run_kway_state_of_art_benchmark(
             },
             STRATEGIES,
         )
-        for k in K_VALUES
+        for k in k_values
     }
 
     payload = {
