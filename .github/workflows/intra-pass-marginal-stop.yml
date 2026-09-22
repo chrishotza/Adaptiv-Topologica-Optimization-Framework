@@ -1,0 +1,45 @@
+name: Intra-pass marginal stop ablation
+
+on:
+  pull_request:
+    paths:
+      - "src/atof/refinement.py"
+      - "src/atof/strategies.py"
+      - "experiments/generate_suite.py"
+      - "experiments/run_intra_pass_marginal_stop.py"
+      - "tests/test_refinement.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ablation:
+    name: Compare fixed and intra-pass marginal stop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Run intra-pass ablation
+        run: python -m experiments.run_intra_pass_marginal_stop
+      - name: Validate ablation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(
+              Path("results/intra-pass-marginal-stop/latest.json").read_text(encoding="utf-8")
+          )
+          assert payload["surface"] == "atof.strategies.BLOCReloc"
+          assert payload["summary"]["comparisons"] == 42
+          assert len(payload["rows"]) == 42
+          PY
+      - name: Upload ablation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: intra-pass-marginal-stop
+          path: results/intra-pass-marginal-stop/latest.json
