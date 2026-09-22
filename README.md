@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue.svg)](pyproject.toml)
 
-**ATOF** gives humans and AI agents one machine-readable path to profile a graph, inspect available optimization engines, run a reproducible two-way partition, and export the result.
+**ATOF** gives humans and AI agents one machine-readable path to profile a graph, inspect available optimization engines, run a reproducible balanced partition, and export the result.
 
 Maintained by **Chris Hotza — Investigador Independiente**.
 
@@ -191,13 +191,14 @@ See [docs/claims.md](docs/claims.md) and [docs/open-source-access-benchmark.md](
 |---|---|
 | Graph model | undirected, simple |
 | Objective | balanced unweighted edge cut |
-| Partitioning | 2-way (`k=2`) |
+| Engine partitioning | `k>=2` |
+| Portfolio partitioning | 2-way (`k=2`) |
 | Input | edge-list, JSON, GraphML, GEXF, GML |
 | Output | JSON + JSON/CSV/TSV partition mapping |
 | Optional engines | METIS / KaHIP |
 | Evidence | reproducible provenance + benchmark-qualified claims |
 
-Weighted and multiway portfolio optimization are intentionally outside the current MVP contract.
+Weighted optimization remains outside the current product contract. Portfolio mode remains `k=2`; ATOF Engine supports balanced `k>=2` unweighted partitioning.
 
 ## Repository map
 
