@@ -306,7 +306,11 @@ def _kaminpar_partition(
     # KaMinPar exposes a process-level RNG seed; set it immediately before
     # each timed partition call so the seed is explicit and reproducible.
     kaminpar.reseed(int(seed))
-    partition = instance.compute_partition(loaded, k=k, eps=_kaminpar_eps(graph, k))
+    max_block_weight = (graph.number_of_nodes() + k - 1) // k
+    partition = instance.compute_partition(
+        loaded,
+        max_block_weights=[max_block_weight] * k,
+    )
     return {
         "partition": [int(block) for block in partition],
         "edge_cut": int(kaminpar.edge_cut(loaded, partition)),
@@ -346,7 +350,7 @@ def _run_kaminpar(
             "context": context_name,
             "seed_control": "kaminpar.reseed",
             "graph_load_in_timing": False,
-            "minimal_balance_epsilon": _kaminpar_eps(graph, k),
+            "max_block_weight": (graph.number_of_nodes() + k - 1) // k,
         },
     }
 
