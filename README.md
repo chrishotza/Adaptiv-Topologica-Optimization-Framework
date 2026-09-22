@@ -141,7 +141,7 @@ The portfolio is the composition layer:
 - METIS via PyMetis, when installed;
 - KaHIP via KaFFPa-Strong, when installed.
 
-The current portfolio contract is intentionally narrow: **k=2, undirected, simple, unweighted graphs, minimizing balanced edge cut**.
+The current portfolio contract uses **k-way balanced partitioning for k>=2** on undirected, simple, unweighted graphs. NetworkX Kernighan-Lin remains a k=2 candidate; METIS, KaHIP, and the native BLOC-RELOC paths can serve k-way requests.
 
 Selection is empirical: lowest observed edge cut, then balance, runtime, and backend name as tie-breakers.
 
@@ -155,6 +155,7 @@ atof doctor
 atof solve graph.edgelist
 atof profile graph.edgelist --compact
 atof optimize graph.edgelist --engine portfolio --compact
+atof optimize graph.edgelist --engine portfolio --k 4 --compact
 ```
 
 The stable contracts are:
@@ -213,13 +214,13 @@ See [docs/claims.md](docs/claims.md) and [docs/open-source-access-benchmark.md](
 | Portfolio objective | balanced unweighted edge cut |
 | Engine partitioning | `k>=2` |
 | Engine objective | baseline: unweighted edge cut; affinity: degree-affinity weighted surrogate; both report unweighted edge cut |
-| Portfolio partitioning | 2-way (`k=2`) |
+| Portfolio partitioning | k-way (`k>=2`) |
 | Input | edge-list, JSON, GraphML, GEXF, GML |
 | Output | JSON + JSON/CSV/TSV partition mapping |
 | Optional engines | METIS / KaHIP |
 | Evidence | reproducible provenance + benchmark-qualified claims |
 
-The public graph model remains unweighted: source edge `weight` attributes are accepted as metadata but ignored. Portfolio mode remains `k=2`; ATOF Engine supports balanced `k>=2` unweighted partitioning with variant-specific optimization semantics.
+The public graph model remains unweighted: source edge `weight` attributes are accepted as metadata but ignored. Portfolio mode supports balanced `k>=2` unweighted partitioning; NetworkX Kernighan-Lin is available only for `k=2`, while METIS/KaHIP and ATOF Engine support k-way requests.
 
 ## Repository map
 

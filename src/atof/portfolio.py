@@ -7,6 +7,7 @@ from typing import Any, Callable
 import networkx as nx
 
 from .provenance import graph_fingerprint, package_version
+from .partition import balance_error as partition_balance_error
 from .product import validate_product_graph
 from .selector import HeuristicRegimeSelector
 from .strategies import BLOCReloc, PartitionResult
@@ -82,7 +83,7 @@ class PortfolioOptimizationResult:
                 "name": "edge_cut",
                 "direction": "minimize",
                 "graph_model": "unweighted_undirected",
-                "balance": "two-way balanced",
+                "balance": "balanced k-way partition",
             },
             "topology": self.topology.to_dict(),
             "result": {
@@ -120,29 +121,36 @@ def _edge_cut(graph: nx.Graph, partition: dict[Any, int]) -> int:
     return sum(partition[u] != partition[v] for u, v in graph.edges())
 
 
-def _rebalance_two_way(
+def _rebalance_kway(
     graph: nx.Graph,
     membership: list[int],
+    k: int,
 ) -> list[int]:
+    """Repair a partition to floor/ceil block sizes with deterministic local moves."""
     if len(membership) != graph.number_of_nodes():
         raise ValueError("membership length must match graph node count")
-    if set(membership) - {0, 1}:
-        raise ValueError("membership must contain only 0 and 1")
-
-    target_zero = graph.number_of_nodes() // 2
-    current_zero = membership.count(0)
-    if current_zero == target_zero:
-        return list(membership)
+    if k < 2:
+        raise ValueError("k must be at least 2")
+    if any(block < 0 or block >= k for block in membership):
+        raise ValueError("membership contains an invalid block label")
 
     nodes = list(graph.nodes())
     index = {node: i for i, node in enumerate(nodes)}
     result = list(membership)
-    source = 0 if current_zero > target_zero else 1
-    target = 1 - source
-    moves = abs(current_zero - target_zero)
+    counts = [result.count(block) for block in range(k)]
+    lower = graph.number_of_nodes() // k
+    upper = (graph.number_of_nodes() + k - 1) // k
 
-    for _ in range(moves):
-        candidates: list[tuple[int, str, int]] = []
+    while True:
+        oversized = [block for block, count in enumerate(counts) if count > upper]
+        undersized = [block for block, count in enumerate(counts) if count < lower]
+        if not oversized and not undersized:
+            return result
+
+        source = min(oversized)
+        targets = tuple(undersized)
+
+        candidates: list[tuple[int, str, int, int]] = []
         for node in nodes:
             i = index[node]
             if result[i] != source:
@@ -152,15 +160,24 @@ def _rebalance_two_way(
                 for neighbor in graph.neighbors(node)
                 if result[index[neighbor]] == source
             )
-            target_neighbors = graph.degree(node) - source_neighbors
-            delta = source_neighbors - target_neighbors
-            candidates.append((delta, repr(node), i))
+            for target in targets:
+                target_neighbors = sum(
+                    1
+                    for neighbor in graph.neighbors(node)
+                    if result[index[neighbor]] == target
+                )
+                delta = source_neighbors - target_neighbors
+                candidates.append((delta, repr(node), i, target))
+
         if not candidates:
             raise RuntimeError("could not repair partition balance")
-        _, _, chosen = min(candidates)
-        result[chosen] = target
 
-    return result
+        _, _, chosen, target = min(candidates)
+        result[chosen] = target
+        counts[source] -= 1
+        counts[target] += 1
+
+
 
 
 def _run_bloc(
@@ -169,10 +186,11 @@ def _run_bloc(
     seed: int,
     iterations: int,
     variant: str,
+    k: int,
 ) -> tuple[dict[Any, int], int, float]:
     result: PartitionResult = BLOCReloc(
         graph,
-        k=2,
+        k=k,
         seed=seed,
         variant=variant,
     ).refine(iterations=iterations)
@@ -184,7 +202,11 @@ def _run_kernighan_lin(
     *,
     seed: int,
     iterations: int,
+    k: int,
 ) -> tuple[dict[Any, int], int, float]:
+    if k != 2:
+        raise ValueError("NetworkX Kernighan-Lin supports only k=2")
+
     from networkx.algorithms.community import kernighan_lin_bisection
 
     left, right = kernighan_lin_bisection(
@@ -204,6 +226,7 @@ def _run_metis(
     graph: nx.Graph,
     *,
     seed: int,
+    k: int,
 ) -> tuple[dict[Any, int], int, float]:
     import pymetis
 
@@ -214,18 +237,18 @@ def _run_metis(
         for node in nodes
     ]
     raw = pymetis.part_graph(
-        2,
+        k,
         adjacency=adjacency,
-        tpwgts=[0.5, 0.5],
+        tpwgts=[1.0 / k] * k,
         recursive=True,
         options=pymetis.Options(seed=seed),
     )
-    membership = _rebalance_two_way(graph, list(raw.vertex_part))
+    membership = _rebalance_kway(graph, list(raw.vertex_part), k)
     partition = {node: membership[index[node]] for node in nodes}
     return (
         partition,
         _edge_cut(graph, partition),
-        abs(membership.count(0) - membership.count(1)) / len(nodes),
+        partition_balance_error(graph, partition, k),
     )
 
 
@@ -233,6 +256,7 @@ def _run_kahip(
     graph: nx.Graph,
     *,
     seed: int,
+    k: int,
 ) -> tuple[dict[Any, int], int, float]:
     import kahip
 
@@ -248,13 +272,13 @@ def _run_kahip(
         xadj,
         [1] * len(adjncy),
         adjncy,
-        2,
+        k,
         0.03,
         1,
         int(seed),
         2,
     )
-    membership = _rebalance_two_way(graph, [int(block) for block in raw_membership])
+    membership = _rebalance_kway(graph, [int(block) for block in raw_membership], k)
     partition = {node: membership[index[node]] for node in nodes}
     return (
         partition,
@@ -322,10 +346,12 @@ def optimize_portfolio(
     include_optional: bool = True,
 ) -> PortfolioOptimizationResult:
     """Evaluate available open-source backends under one auditable contract."""
-    if k != 2:
-        raise ValueError("portfolio mode currently supports k=2")
+    if k < 2:
+        raise ValueError("portfolio mode requires k>=2")
     if iterations < 1:
         raise ValueError("iterations must be at least 1")
+    if k > graph.number_of_nodes():
+        raise ValueError("k cannot exceed the number of graph nodes")
     validate_product_graph(graph)
 
     topology = TopologyProfiler().profile(graph)
@@ -342,6 +368,7 @@ def optimize_portfolio(
                 seed=seed,
                 iterations=iterations,
                 variant="baseline",
+                k=k,
             ),
         ),
         _candidate(
@@ -354,18 +381,35 @@ def optimize_portfolio(
                 seed=seed,
                 iterations=iterations,
                 variant="affinity",
+                k=k,
             ),
         ),
-        _candidate(
-            backend_id="networkx-kl",
-            name="NetworkX(Kernighan-Lin)",
-            package="networkx",
-            postprocess="none",
-            runner=lambda: _run_kernighan_lin(
-                graph,
-                seed=seed,
-                iterations=iterations,
-            ),
+        (
+            _candidate(
+                backend_id="networkx-kl",
+                name="NetworkX(Kernighan-Lin)",
+                package="networkx",
+                postprocess="none",
+                runner=lambda: _run_kernighan_lin(
+                    graph,
+                    seed=seed,
+                    iterations=iterations,
+                    k=k,
+                ),
+            )
+            if k == 2
+            else PortfolioCandidate(
+                id="networkx-kl",
+                name="NetworkX(Kernighan-Lin)",
+                available=False,
+                edge_cut=None,
+                balance_error=None,
+                runtime_seconds=None,
+                partition=None,
+                backend_version=package_version("networkx"),
+                postprocess="not_applicable_for_k_way",
+                error="NetworkX Kernighan-Lin supports only k=2",
+            )
         ),
     ]
 
@@ -377,14 +421,14 @@ def optimize_portfolio(
                     name="METIS(PyMetis)",
                     package="pymetis",
                     postprocess="balance_repair",
-                    runner=lambda: _run_metis(graph, seed=seed),
+                    runner=lambda: _run_metis(graph, seed=seed, k=k),
                 ),
                 _candidate(
                     backend_id="kahip",
                     name="KaHIP(KaFFPa-Strong)",
                     package="kahip",
                     postprocess="balance_repair",
-                    runner=lambda: _run_kahip(graph, seed=seed),
+                    runner=lambda: _run_kahip(graph, seed=seed, k=k),
                 ),
             ]
         )

@@ -28,6 +28,31 @@ def test_portfolio_is_machine_readable():
     assert payload["provenance"]["graph_fingerprint"] == result.graph_fingerprint
 
 
+
+
+def test_portfolio_supports_kway_without_optional_backends():
+    graph = nx.cycle_graph(12)
+    result = optimize_portfolio(
+        graph,
+        k=3,
+        seed=42,
+        iterations=5,
+        include_optional=False,
+    )
+    payload = result.to_dict()
+
+    assert payload["parameters"]["k"] == 3
+    assert payload["result"]["k"] == 3
+    assert payload["result"]["balance_error"] == 0.0
+    assert len(payload["result"]["partition"]) == 12
+    assert set(payload["result"]["partition"].values()) == {0, 1, 2}
+    networkx_candidate = next(
+        item for item in payload["candidates"] if item["id"] == "networkx-kl"
+    )
+    assert not networkx_candidate["available"]
+    assert "k=2" in networkx_candidate["error"]
+
+
 def test_portfolio_reports_optional_backends_when_unavailable():
     graph = nx.path_graph(10)
     result = optimize_portfolio(graph, k=2, seed=42, iterations=5, include_optional=True)

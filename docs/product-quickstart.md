@@ -110,9 +110,10 @@ Run the common backend contract:
 atof solve examples/demo.edgelist
 atof optimize examples/demo.edgelist --engine portfolio
 atof optimize examples/demo.edgelist --engine portfolio --compact
+atof optimize examples/demo.edgelist --engine portfolio --k 4 --compact
 ```
 
-Portfolio mode currently supports `k=2`, undirected simple graphs, and an unweighted edge-cut objective. For `k>2`, use the native Engine. It evaluates the available BLOC, NetworkX Kernighan-Lin, and optional METIS/KaHIP engines.
+Portfolio mode supports `k>=2`, undirected simple graphs, and an unweighted edge-cut objective. NetworkX Kernighan-Lin participates for `k=2`; METIS and KaHIP participate in k-way requests when installed, alongside the native BLOC variants.
 
 The selected result is the minimum observed edge cut under the common contract, with balance and runtime used as tie-breakers.
 
