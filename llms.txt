@@ -1,22 +1,39 @@
 # ATOF
 
-> Open-source graph optimization interface designed for low-friction human and AI use.
+> Open-source graph optimization interface designed for humans and AI agents.
 
 ## Start here
 
-- atof ai — stable AI capability manifest
-- atof doctor — current environment/backend availability
-- atof solve <graph> — shortest portfolio solve path
-- atof profile <graph> --compact — low-token graph summary
-- atof optimize <graph> --engine portfolio --compact — detailed compact result
-- AGENTS.md — agent operating rules
-- docs/ai-quickstart.md — AI-first interface contract
-- docs/claims.md — evidence-backed product claims
-- docs/product-quickstart.md — product usage
-- docs/open-source-access-benchmark.md — access benchmark protocol
-- schemas/atof-ai-v1.schema.json — AI manifest schema
-- schemas/atof-doctor-v1.schema.json — environment report schema
+- `atof ai` — stable AI capability contract
+- `atof doctor` — runtime and backend inspection
+- `atof solve examples/demo.edgelist` — shortest practical portfolio path
+- `atof profile <graph> --compact` — low-token topology summary
+- `atof optimize <graph> --engine portfolio --compact` — explicit portfolio path
+- `AGENTS.md` — agent operating rules
+- `docs/ai-quickstart.md` — machine-facing interface
+- `docs/product-quickstart.md` — product usage
+- `docs/architecture.md` — Engine vs Portfolio architecture
+- `docs/claims.md` — evidence boundary
+- `schemas/atof-ai-v1.schema.json` — capability schema
+- `schemas/atof-doctor-v1.schema.json` — doctor schema
+- `schemas/atof-error-v1.schema.json` — structured error schema
 
-## Semantics
+## Product model
 
-ATOF currently exposes balanced, unweighted two-way partitioning. Portfolio selection is empirical on available backends; it is not a universal optimality claim.
+ATOF Engine = native BLOC-RELOC path with topology profiling.
+
+ATOF Portfolio = empirical composition over the available open backends.
+
+Current portfolio contract = k=2, undirected, simple, unweighted edge cut.
+
+## Machine behavior
+
+- Default output is JSON.
+- Use `--compact` for low-token orchestration.
+- Preserve seed and graph fingerprint for reproducibility.
+- Optional backend failures are explicit.
+- Unsupported graph models are rejected rather than silently normalized.
+
+## Evidence rule
+
+Comparative claims must identify the graph/corpus, objective, protocol, and environment. Do not infer universal superiority from a single benchmark.
