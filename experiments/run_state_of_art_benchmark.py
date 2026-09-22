@@ -450,6 +450,8 @@ def _summarize_graph(
         "strategies": means,
         "best_quality": best_quality,
         "best_edge_cut": best_edge_cut,
+        "matched": True,
+        "expected_runs": expected_runs,
     }
 
 
@@ -473,7 +475,9 @@ def _aggregate_graph_summaries(
             data["strategies"][strategy]["edge_cut"]
             - data["best_edge_cut"]
             for data in graph_summaries.values()
-            if strategy in data["strategies"] and data.get("best_edge_cut") is not None
+            if data.get("matched")
+            and strategy in data["strategies"]
+            and data.get("best_edge_cut") is not None
         ]
         summary[strategy] = {
             "graphs_evaluated": len(values),
