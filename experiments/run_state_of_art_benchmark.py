@@ -140,6 +140,8 @@ def _run_atof(
                     "local_gain": float(event["local_gain"]),
                     "hybrid_gain": float(event["hybrid_gain"]),
                     "hybrid_work": int(event["hybrid_work"]),
+                    "probe_work": int(event["probe_work"]),
+                    "total_work": int(event["total_work"]),
                     "hybrid_gain_per_work": float(event["hybrid_gain_per_work"]),
                     "hybrid": int(event["hybrid"]),
                     "hybrid_probe": int(event["hybrid_probe"]),
