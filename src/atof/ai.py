@@ -68,7 +68,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             },
             "comparison": {
                 "result_schema": "atof.compare.v1",
-                "scope": "compare native Engine and Portfolio under identical parameters",
+                "scope": "Engine vs Portfolio",
             },
             "portfolio": {
                 "k": ">=2",
