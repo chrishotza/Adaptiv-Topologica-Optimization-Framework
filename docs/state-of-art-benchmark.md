@@ -43,11 +43,15 @@ The first locked comparison contains:
 6. METIS;
 7. KaHIP;
 8. KaMinPar default;
-9. KaMinPar strong.
+9. KaMinPar strong;
+10. Mt-KaHyPar default;
+11. Mt-KaHyPar quality.
 
 The hybrid settings are fixed at period 5 and 100 sampled two-swaps. The adaptive controller uses 20 boundary-aware witness samples and a witness patience of 2.
 
 The benchmark records every graph/seed/strategy row, including failures, rather than silently dropping unavailable candidates.
+
+Mt-KaHyPar is evaluated through its current Python binding with one CPU thread. Graph loading and backend initialization are outside the timed partition call. The default and quality presets are separate candidates; they are current multilevel baselines, not the SEA 2026 learned-coarsening model.
 
 ## What is compared
 
@@ -103,10 +107,14 @@ Learned graph-partitioning approaches are also part of the research surface. PR-
 
 Gate A — current PR: establish a single reproducible 20-graph comparison for k=2.
 
-Gate B: add a verified KaMinPar adapter and run it under the same graph-level accounting. The adapter must preserve provenance and must not fabricate seed comparability if the binding does not expose a seed control.
+Gate B: KaMinPar integration is implemented and covered by the k=2 benchmark contract.
 
-Gate C: run a matched k-way study (at minimum k=4) over the subset of candidates that support the same contract.
+Gate C: the matched k-way scaffold is implemented for k=4,8,32,64 across the 20-graph corpus, but it is not yet an executed result.
 
-Gate D: evaluate the research question that is specific to ATOF: whether dynamic allocation of local versus hybrid refinement work can move the Pareto frontier of quality versus compute, rather than merely changing which static solver wins.
+Gate D: integrate the current Mt-KaHyPar backend as a direct baseline; this is implemented for default and quality presets. The SEA 2026 learned-coarsening model is still a separate research target.
+
+Gate E: evaluate whether dynamic allocation of local versus hybrid refinement work can move the Pareto frontier of quality versus compute, rather than merely changing which static solver wins.
+
+Gate F: selectively reproduce the SEA 2026 Set A experiment and preserve strict graph-level training/test separation.
 
 Only after those gates are green should a stronger state-of-art claim be considered.
