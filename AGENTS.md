@@ -7,13 +7,15 @@ ATOF is an open-source graph optimization framework. Optimize for **fast machine
 1. Read the command "atof ai" for the current machine contract.
 2. Prefer "atof optimize <graph> --engine portfolio --compact" for a practical result.
 3. Use "atof profile <graph> --compact" when only topology/regime context is needed.
-4. Use "--seed" for reproducibility.
-5. Inspect full JSON only when topology or the node-to-block mapping is required.
+4. Use "atof solve <graph>" as the shortest practical portfolio path.
+5. Use "--seed" for reproducibility.
+6. Inspect full JSON only when topology or the node-to-block mapping is required.
 
 ## Canonical commands
 
 ~~~bash
 atof ai
+atof solve graph.edgelist
 atof profile graph.edgelist --compact
 atof optimize graph.edgelist --engine portfolio --compact
 atof optimize graph.edgelist --engine portfolio --output result.json
