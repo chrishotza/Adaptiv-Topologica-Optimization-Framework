@@ -93,6 +93,7 @@
           },
           "additionalProperties": false
         },
+        "node_id_serialization": {"type": "string"},
         "stdin": {
           "type": "object",
           "required": ["path", "formats"],
