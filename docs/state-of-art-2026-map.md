@@ -104,6 +104,6 @@ The Zenodo record contains the public benchmark sets, training data, labels, and
 
 ATOF now has executable Python adapters for KaMinPar and Mt-KaHyPar. The k=2 benchmark includes KaMinPar default/strong plus Mt-KaHyPar default/quality; the k-way scaffold includes the same families for k=4, 8, 32, 64.
 
-Mt-KaHyPar default/quality are current upstream multilevel presets. They must not be described as the SEA 2026 learned-coarsening model: the SEA contribution adds a pre-trained neural score to the coarsening stage inside Mt-KaHyPar. The paper reports 0.3–1.4% quality improvement over its Mt-KaHyPar baseline with 14% average runtime overhead in the published AVX2 implementation. citeturn912242view1turn166650view0
+Mt-KaHyPar default/quality are current upstream multilevel presets. They must not be described as the SEA 2026 learned-coarsening model: the SEA contribution adds a pre-trained neural score to the coarsening stage inside Mt-KaHyPar. The paper reports 0.3–1.4% quality improvement over its Mt-KaHyPar baseline with 14% average runtime overhead in the published AVX2 implementation (DOI: https://doi.org/10.4230/LIPIcs.SEA.2026.25).
 
-Zenodo provides the Set A/B benchmark files and a compact benchmark-results archive. Set A contains 118 unweighted METIS-format graphs, while the complete archived material totals 348.2 GB; the benchmark-results archive is only 2.5 MB. citeturn912242view0
+Zenodo provides the Set A/B benchmark files and a compact benchmark-results archive. Set A contains 118 unweighted METIS-format graphs, while the complete archived material totals 348.2 GB; the benchmark-results archive is only 2.5 MB (DOI: https://doi.org/10.5281/zenodo.19387774).
