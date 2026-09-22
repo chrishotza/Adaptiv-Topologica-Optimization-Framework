@@ -156,7 +156,7 @@ def measure(tool: str) -> dict:
         "repeated_partition_seconds": repeated_partition_seconds,
         "first_result": first_result,
         "repeated_results": repeated_results,
-        "determinism_check": repeated_results[0] == repeated_results[0],
+        "determinism_check": repeated_results[0] == partition_for(tool, graph, seed)[0],
         "setup_seconds": float(os.environ.get("ATOF_SETUP_SECONDS", "nan")),
     }
 
