@@ -44,6 +44,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 "nodes": "optional array of node IDs",
                 "edges": "array of 2-item node-ID arrays",
             },
+            "node_id_serialization": "partition outputs canonicalize node IDs with str(); collisions after string conversion are rejected",
         },
         "capabilities": {
             "engine": {
