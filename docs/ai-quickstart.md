@@ -57,12 +57,13 @@ Use this when the agent needs graph size and structural recommendation without t
 atof optimize graph.edgelist --engine bloc --k 4 --compact
 ~~~
 
-Use Engine mode when the task needs more than two balanced blocks. Portfolio mode remains `k=2`.
+Use Engine mode when the task needs more than two balanced blocks. Portfolio mode supports `k>=2`. NetworkX Kernighan-Lin is available only for `k=2`; METIS and KaHIP can serve k-way requests when installed.
 
 ## 8. Full evidence
 
 ~~~bash
 atof optimize graph.edgelist --engine portfolio
+atof optimize graph.edgelist --engine portfolio --k 4
 ~~~
 
 Full output includes candidate results, topology, provenance, and the selected node-to-block mapping.
