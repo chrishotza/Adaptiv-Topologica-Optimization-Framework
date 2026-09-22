@@ -142,7 +142,7 @@ def _run_external(
 ) -> dict:
     del k
     started = time.perf_counter()
-    payload = runner(graph, seed)
+    payload = runner(graph, seed=seed)
     return {
         "edge_cut": int(payload["edge_cut"]),
         "balance_error": float(payload["balance_error"]),
