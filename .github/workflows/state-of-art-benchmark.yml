@@ -7,6 +7,10 @@ on:
       - main
     paths:
       - "experiments/run_state_of_art_benchmark.py"
+      - "experiments/mtkahypar_backend.py"
+      - "pyproject.toml"
+      - "tests/test_state_of_art_benchmark.py"
+      - "tests/test_mtkahypar_backend.py"
       - "docs/state-of-art-benchmark.md"
       - "docs/state-of-art-2026-map.md"
       - ".github/workflows/state-of-art-benchmark.yml"
