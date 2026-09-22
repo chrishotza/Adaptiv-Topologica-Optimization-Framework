@@ -170,6 +170,7 @@ class BLOCReloc:
             hybrid_probe_triggered = False
             hybrid_gain = 0.0
             hybrid_work = 0
+            probe_work = 0
             should_hybrid = False
             if hybrid_period and controller.after_local_pass(
                 iteration=iteration,
@@ -188,7 +189,7 @@ class BLOCReloc:
                         should_hybrid = True
                     else:
                         hybrid_probe_triggered = True
-                        witness = self._probe_two_swap(
+                        witness, probe_work = self._probe_two_swap(
                             partition,
                             samples=hybrid_probe_samples,
                             best=best,
@@ -242,6 +243,8 @@ class BLOCReloc:
                     ),
                     "hybrid_gain": hybrid_gain,
                     "hybrid_work": hybrid_work,
+                    "probe_work": probe_work,
+                    "total_work": local_work + hybrid_work + probe_work,
                     "hybrid_samples": (
                         int(pass_samples) if hybrid_triggered else 0
                     ),
@@ -329,10 +332,10 @@ class BLOCReloc:
         *,
         samples: int,
         best: float,
-    ) -> bool:
-        """Return whether a boundary-aware sampled swap finds an improvement."""
+    ) -> tuple[bool, int]:
+        """Return witness result and structural work spent by the probe."""
         if samples <= 0:
-            return False
+            return False, 0
 
         boundary = [
             node
@@ -346,15 +349,18 @@ class BLOCReloc:
 
         blocks = list(by_block)
         if len(blocks) < 2:
-            return False
+            return False, 0
 
+        work = 0
         for _ in range(samples):
             block_u, block_v = self.probe_rng.sample(blocks, 2)
             u = self.probe_rng.choice(by_block[block_u])
             v = self.probe_rng.choice(by_block[block_v])
+            direct_edge = self.graph.has_edge(u, v)
+            work += self.graph.degree(u) + self.graph.degree(v) - (2 if direct_edge else 0)
             if best + self._swap_delta(u, v, partition) < best - 1e-12:
-                return True
-        return False
+                return True, work
+        return False, work
 
     def _two_swap(
         self,
