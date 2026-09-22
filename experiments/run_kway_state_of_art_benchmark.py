@@ -135,7 +135,7 @@ def _kaminpar_instance(context_name: str):
     }[context_name]
     instance = _KAMINPAR_INSTANCE_CACHE.get(context_name)
     if instance is None:
-        instance = kaminpar.KaMinPar(num_threads=1, context=factory())
+        instance = kaminpar.KaMinPar(1, factory())
         _KAMINPAR_INSTANCE_CACHE[context_name] = instance
     return instance
 
