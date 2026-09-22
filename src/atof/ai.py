@@ -66,6 +66,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             },
             "portfolio": {
                 "k": ">=2",
+                "result_schema": "atof.portfolio.v1",
                 "objective": "minimize unweighted edge cut subject to balanced k-way partition",
                 "backends": [
                     "BLOC-RELOC",
@@ -154,6 +155,7 @@ def compact_result(payload: dict) -> dict:
     strategy = payload.get("strategy", {})
     graph = payload.get("graph", {})
     compact = {
+        "schema": payload.get("schema"),
         "mode": payload.get("mode"),
         "version": payload.get("version", __version__),
         "graph": {
