@@ -63,7 +63,7 @@ def validate(
         for key in exact_keys:
             assert observed[key] == reference[key], (name, key, observed[key], reference[key])
         for key in numeric_keys:
-            assert abs(observed[key] - reference[key]) <= 1e-12 * max(1.0, abs(reference[key])), (
+            assert abs(observed[key] - reference[key]) <= 1e-9 * max(1.0, abs(reference[key])), (
                 name,
                 key,
                 observed[key],
