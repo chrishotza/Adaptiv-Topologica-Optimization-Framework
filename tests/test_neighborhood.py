@@ -41,7 +41,7 @@ def test_credit_policy_is_deterministic_for_fixed_seed():
 
 @pytest.mark.parametrize("policy", ["fixed", "adaptive", "credit"])
 def test_supported_hybrid_policies(policy):
-    result = BLOCReloc(nx.path_graph(12), k=4, seed=42).refine(
+    result = BLOCReloc(nx.path_graph(12), k=3, seed=42).refine(
         iterations=5,
         hybrid_period=5,
         hybrid_samples=20,
