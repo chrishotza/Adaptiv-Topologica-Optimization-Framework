@@ -18,6 +18,7 @@ from atof.strategies import BLOCReloc
 from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
 from experiments.run_kahip_validation import kahip_balanced_partition
 from experiments.run_metis_validation import metis_balanced_partition
+from experiments.mtkahypar_backend import run_mtkahypar
 
 SEEDS = (42, 101, 2024)
 ITERATIONS = 25
@@ -36,6 +37,8 @@ CORE_STRATEGIES = (
     "kahip",
     "kaminpar_default",
     "kaminpar_strong",
+    "mtkahypar_default",
+    "mtkahypar_quality",
 )
 
 
@@ -189,6 +192,24 @@ def _strategy_run(
     if strategy == "kaminpar_strong":
         return _run_kaminpar(
             graph, graph_id=graph_id, seed=seed, k=k, context_name="strong"
+        )
+    if strategy == "mtkahypar_default":
+        return run_mtkahypar(
+            graph,
+            graph_id=graph_id,
+            seed=seed,
+            k=k,
+            preset="default",
+            epsilon=_kaminpar_eps(graph, k),
+        )
+    if strategy == "mtkahypar_quality":
+        return run_mtkahypar(
+            graph,
+            graph_id=graph_id,
+            seed=seed,
+            k=k,
+            preset="quality",
+            epsilon=_kaminpar_eps(graph, k),
         )
     raise ValueError(f"unknown strategy: {strategy}")
 
