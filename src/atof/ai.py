@@ -15,7 +15,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "name": "atof",
         "version": __version__,
         "purpose": "AI-first graph optimization interface.",
-        "primary_flow": "ai->doctor->solve->compact JSON",
+        "primary_flow": "ai->doctor->solve->compact",
         "commands": {
             "ai": "atof ai",
             "doctor": "atof doctor",
@@ -46,16 +46,13 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 "nodes": "optional array of node IDs",
                 "edges": "array of 2-item node-ID arrays",
             },
-            "node_id_serialization": "partition outputs canonicalize node IDs with str(); collisions after string conversion are rejected",
+            "node_id_serialization": "partition outputs stringify node IDs; string collisions are rejected",
         },
         "capabilities": {
             "engine": {
                 "k": ">=2",
                 "result_schema": "atof.optimize.v1",
-                "objective": (
-                    "reports unweighted edge_cut; baseline minimizes unweighted "
-                    "edge_cut, while affinity minimizes a degree-affinity weighted surrogate"
-                ),
+                "objective": "baseline minimizes unweighted edge_cut; affinity uses a degree-affinity surrogate",
                 "backend": "BLOC-RELOC",
                 "variants": {
                     "baseline": "direct unweighted edge-cut minimization",
@@ -103,7 +100,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "default": "JSON",
             "compact": "low-token graph/result summary",
             "full": "topology, candidates, provenance, and selected node-to-block mapping",
-            "objective_metric_rule": "In Engine mode, objective.optimization_metric names the optimized scalar; result.weighted_cost is the internal reported objective value and is not an input edge-weight cost.",
+            "objective_metric_rule": "Engine objective.optimization_metric names the optimized scalar; weighted_cost is internal, not an input edge-weight cost.",
         },
         "claim_policy": {
             "rule": "claims are tied to code, tests, or named benchmarks",
