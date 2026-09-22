@@ -5,6 +5,7 @@ import json
 from . import __version__
 from .backends import inspect_backends
 from .provenance import runtime_metadata
+from .product import SUPPORTED_INPUT_FORMATS
 
 
 def build_ai_manifest(*, full: bool = False) -> dict:
@@ -35,7 +36,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             },
         },
         "input": {
-            "formats": ["edgelist", "json", "graphml", "gexf", "gml"],
+            "formats": [item for item in SUPPORTED_INPUT_FORMATS if item != "auto"],
             "default_format": "auto",
             "default_seed": 42,
             "stdin": {"path": "-", "formats": ["edgelist", "json"]},
@@ -103,7 +104,7 @@ def build_doctor_report(*, full: bool = False) -> dict:
         "version": __version__,
         "runtime": runtime_metadata(),
         "backends": backends,
-        "input_formats": ["edgelist", "json", "graphml", "gexf", "gml"],
+        "input_formats": [item for item in SUPPORTED_INPUT_FORMATS if item != "auto"],
         "portfolio_ready": any(
             item["available"] and item["id"] == "networkx-kl"
             for item in backends
