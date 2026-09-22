@@ -49,6 +49,8 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
         "variant": variant,
         "iterations": ITERATIONS,
         "hybrid_period": HYBRID_PERIOD,
+        "k_fixed": K,
+        "k_credit": K,
         "k": K,
         "hybrid_samples": HYBRID_SAMPLES,
         "fixed_edge_cut": fixed.edge_cut,
