@@ -66,7 +66,12 @@ result.k
 result.edge_cut
 result.balance_error
 provenance.graph_fingerprint
-candidates[] (portfolio mode)
+candidates[] (Portfolio mode)
 ~~~
 
 atof.ai.v1, atof.doctor.v1, and the JSON schemas under schemas/ are the machine-facing source of truth.
+
+
+## Structured errors
+
+Invalid paths and unsupported product inputs return a machine-readable `atof.error.v1` response instead of requiring an agent to parse a traceback. See `schemas/atof-error-v1.schema.json`.

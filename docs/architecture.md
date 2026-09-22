@@ -1,23 +1,108 @@
 # Architecture
 
-ATOF separates graph description, strategy execution, adaptive routing, and evidence.
+ATOF has two product layers and a separate research/evidence layer.
 
-## Topology profiler
+```text
+Input graph
+    |
+    v
+ATOF Interface
+    |
+    +----------------------+
+    |                      |
+    v                      v
+ATOF Engine          ATOF Portfolio
+    |                      |
+Topology profile      Common backend contract
+Regime baseline             |
+BLOC-RELOC          +-------+--------+--------+
+    |               |       |        |        |
+    |             BLOC   NetworkX  METIS    KaHIP
+    |               |       |        |        |
+    +---------------+-------+--------+--------+
+                    |
+                    v
+          Validation + provenance
+                    |
+                    v
+             JSON / partition map
+```
 
-`TopologyProfiler` turns a graph into an interpretable structural profile. The profile is descriptive; it does not itself prove that a regime requires a particular strategy.
+## ATOF Interface
 
-## Strategy layer
+The interface is designed for both humans and AI agents.
 
-`BLOCReloc` is the canonical local-refinement strategy in the public core. It supports deterministic initialization, baseline cut, degree-affinity costs, balance-preserving node moves, optional sampled two-swaps, and iteration traces.
+The primary machine-facing commands are:
 
-## Selector layer
+- `atof ai` — stable `atof.ai.v1` capability manifest;
+- `atof doctor` — stable `atof.doctor.v1` environment report;
+- `atof solve` — shortest practical portfolio path;
+- `atof profile` — structural graph description;
+- `atof optimize` — explicit engine and variant control.
 
-`HeuristicRegimeSelector` is a transparent routing baseline. It is not a trained meta-selector and should not be presented as universally validated until benchmarked on held-out data.
+## ATOF Engine
 
-## Benchmark layer
+The Engine is ATOF's own product path.
 
-`benchmark_bloc` returns records containing graph, variant, seed, edge cut, weighted objective, balance error, and trace information.
+### Topology profiler
 
-## Evidence layer
+`TopologyProfiler` converts an input graph into an interpretable structural profile. The profile is descriptive; it does not prove that a regime requires a particular strategy.
 
-Canonical implementation and historical evidence remain separate so exploratory artifacts do not silently become validation claims.
+### Regime selector
+
+`HeuristicRegimeSelector` is a transparent descriptive baseline. It is intentionally not presented as a universally validated meta-optimizer.
+
+### BLOC-RELOC
+
+`BLOCReloc` is the canonical local-refinement strategy in the public engine. It supports deterministic initialization, balance-preserving moves, baseline and degree-affinity variants, and optimization traces.
+
+## ATOF Portfolio
+
+Portfolio mode is the composition layer over several available engines.
+
+The current common contract is deliberately narrow:
+
+- undirected graph;
+- simple graph;
+- unweighted edges;
+- two-way partitioning (`k=2`);
+- balanced edge-cut objective.
+
+Available candidates are reported explicitly. Optional backend failures are recorded instead of hidden.
+
+Selection is empirical:
+
+1. minimize observed edge cut;
+2. prefer lower balance error;
+3. prefer lower runtime;
+4. prefer stable backend-name ordering.
+
+This is a selection policy, not a proof of global optimality.
+
+## Provenance
+
+Product results can include:
+
+- graph SHA-256 fingerprint;
+- seed;
+- iteration parameters;
+- backend identity and version;
+- portfolio selection policy;
+- post-processing status;
+- backend availability.
+
+The provenance layer makes results suitable for reproducible automation and AI-to-tool handoff.
+
+## Research layer
+
+The research layer is intentionally separate from the public product contract.
+
+It contains:
+
+- benchmark runners;
+- routing experiments;
+- external and SNAP validation;
+- statistical analysis;
+- frozen research artifacts.
+
+Research findings are not automatically product guarantees.

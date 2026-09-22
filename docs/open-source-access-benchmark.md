@@ -40,10 +40,10 @@ Open-source licensing proves the first. The measurements below test the second.
 
 ## Capability comparison
 
-The first comparison surface is intentionally modest:
+The first comparison surface is intentionally modest. ATOF is shown in two rows because the native Engine and the multi-backend Portfolio answer different product questions:
 
 - ATOF BLOC product API / CLI;
-- ATOF portfolio mode over the same open backends;
+- ATOF Portfolio mode over the same open backends;
 - NetworkX Kernighan-Lin as a Python-native baseline;
 - METIS;
 - KaHIP.

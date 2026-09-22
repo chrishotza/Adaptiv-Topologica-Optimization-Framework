@@ -52,3 +52,9 @@ def test_cli_optimize_writes_json(tmp_path, capsys):
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["strategy"]["selected"] == "BLOCReloc(baseline)"
     assert capsys.readouterr().out.strip() == str(output)
+def test_cli_returns_structured_error_for_missing_graph(capsys):
+    code = main(["solve", "does-not-exist.edgelist"])
+    parsed = json.loads(capsys.readouterr().out)
+    assert code == 2
+    assert parsed["schema"] == "atof.error.v1"
+    assert parsed["error"]["type"] == "FileNotFoundError"
