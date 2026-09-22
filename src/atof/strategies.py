@@ -85,8 +85,10 @@ class BLOCReloc:
             raise ValueError("tolerance must be >= 0")
         if hybrid_samples < 0:
             raise ValueError("hybrid_samples must be >= 0")
-        if hybrid_policy not in {"fixed", "adaptive"}:
-            raise ValueError("hybrid_policy must be 'fixed' or 'adaptive'")
+        if hybrid_policy not in {"fixed", "adaptive", "marginal"}:
+            raise ValueError(
+                "hybrid_policy must be 'fixed', 'adaptive', or 'marginal'"
+            )
         if hybrid_patience < 1:
             raise ValueError("hybrid_patience must be at least 1")
         if hybrid_probe_samples < 0:
@@ -174,6 +176,7 @@ class BLOCReloc:
                 start_cost=iteration_start,
                 end_cost=best,
                 tolerance=tolerance,
+                local_work=local_work,
             ):
                 should_hybrid = True
                 if hybrid_policy == "adaptive":
@@ -204,10 +207,13 @@ class BLOCReloc:
                 if should_hybrid:
                     hybrid_triggered = True
                     hybrid_start = best
+                    pass_samples = controller.hybrid_sample_budget(
+                        hybrid_samples
+                    )
                     h_accept, h_reject, best, hybrid_work = self._two_swap(
                         partition,
                         tolerance=tolerance,
-                        samples=hybrid_samples,
+                        samples=pass_samples,
                         best=best,
                     )
                     hybrid_gain = hybrid_start - best
@@ -215,6 +221,7 @@ class BLOCReloc:
                         iteration=iteration,
                         start_cost=hybrid_start,
                         end_cost=best,
+                        work=hybrid_work,
                     )
                     iteration_accepted += h_accept
                     iteration_rejected += h_reject
@@ -235,6 +242,9 @@ class BLOCReloc:
                     ),
                     "hybrid_gain": hybrid_gain,
                     "hybrid_work": hybrid_work,
+                    "hybrid_samples": (
+                        int(pass_samples) if hybrid_triggered else 0
+                    ),
                     "hybrid_gain_per_work": (
                         hybrid_gain / hybrid_work if hybrid_work else 0.0
                     ),
