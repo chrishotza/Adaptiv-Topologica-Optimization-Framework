@@ -13,7 +13,7 @@ from importlib import metadata as importlib_metadata
 
 import networkx as nx
 
-from atof.partition import exact_partition_balance_error
+from atof.partition import exact_partition_balance_error, rebalance_kway
 from atof.portfolio import _run_kahip, _run_metis
 from atof.strategies import BLOCReloc
 from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
@@ -186,9 +186,14 @@ def _run_kaminpar(
         loaded,
         max_block_weights=[max_block_weight] * k,
     )
+    membership = rebalance_kway(
+        graph,
+        [int(block) for block in partition],
+        k,
+    )
     partition_map = {
         node: int(block)
-        for node, block in zip(graph.nodes(), partition)
+        for node, block in zip(graph.nodes(), membership)
     }
     exact_balance = _exact_partition_balance_error(graph, partition_map, k)
     return {
