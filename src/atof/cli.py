@@ -7,7 +7,7 @@ from pathlib import Path
 from . import __version__
 from .ai import build_ai_manifest, build_doctor_report, compact_json, compact_result
 from .portfolio import optimize_portfolio
-from .product import load_graph, optimize_graph, write_partition
+from .product import load_graph, optimize_graph, write_partition, write_partition_mapping
 from .provenance import graph_fingerprint
 from .selector import HeuristicRegimeSelector
 from .topology import TopologyProfiler
@@ -69,6 +69,12 @@ def main(argv: list[str] | None = None) -> int:
     solve_parser.add_argument("--iterations", "-i", type=int, default=25)
     solve_parser.add_argument("--format", "-f", choices=_FORMAT_CHOICES, default="auto")
     solve_parser.add_argument("--output", "-o", type=Path)
+    solve_parser.add_argument("--partition-output", "-p", type=Path)
+    solve_parser.add_argument(
+        "--partition-format",
+        choices=("auto", "json", "csv", "tsv"),
+        default="auto",
+    )
 
     profile_parser = subparsers.add_parser("profile", help="profile a graph")
     profile_parser.add_argument("path", type=Path)
@@ -139,6 +145,12 @@ def main(argv: list[str] | None = None) -> int:
             seed=args.seed,
             iterations=args.iterations,
         )
+        if args.partition_output is not None:
+            write_partition_mapping(
+                result.selected_partition,
+                args.partition_output,
+                format=args.partition_format,
+            )
         payload = compact_result(result.to_dict())
         encoded = compact_json(payload)
         if args.output is None:
@@ -193,9 +205,14 @@ def main(argv: list[str] | None = None) -> int:
         else:
             encoded = json.dumps(payload, indent=2, sort_keys=True)
         if args.partition_output is not None:
-            if args.engine != "bloc":
-                raise ValueError("--partition-output currently requires --engine bloc")
-            write_partition(result, args.partition_output, format=args.partition_format)
+            if args.engine == "bloc":
+                write_partition(result, args.partition_output, format=args.partition_format)
+            else:
+                write_partition_mapping(
+                    result.selected_partition,
+                    args.partition_output,
+                    format=args.partition_format,
+                )
         if args.output is None:
             print(encoded)
         else:
