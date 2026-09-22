@@ -16,7 +16,7 @@ from .topology import TopologyProfile, TopologyProfiler
 
 
 SUPPORTED_INPUT_FORMATS = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
-_PARTITION_OUTPUT_FORMATS = ("auto", "json", "csv", "tsv")
+PARTITION_OUTPUT_FORMATS = ("auto", "json", "csv", "tsv")
 
 
 def _validate_product_graph(graph: nx.Graph) -> None:
@@ -248,8 +248,8 @@ def write_partition_mapping(
             ".csv": "csv",
             ".tsv": "tsv",
         }.get(target.suffix.lower(), "csv")
-    if selected not in {"json", "csv", "tsv"}:
-        raise ValueError("format must be one of: auto, json, csv, tsv")
+    if selected not in PARTITION_OUTPUT_FORMATS:
+        raise ValueError("format must be one of: " + ", ".join(PARTITION_OUTPUT_FORMATS))
 
     target.parent.mkdir(parents=True, exist_ok=True)
     rows = [
