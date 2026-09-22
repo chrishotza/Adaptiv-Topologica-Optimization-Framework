@@ -15,6 +15,7 @@ from typing import Callable
 import networkx as nx
 
 from atof.strategies import BLOCReloc
+from atof.topology import TopologyProfiler
 from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
 from experiments.run_kahip_validation import kahip_balanced_partition
 from experiments.run_metis_validation import metis_balanced_partition
@@ -633,6 +634,17 @@ def run_state_of_art_benchmark(
     for row in rows:
         graph_rows.setdefault(row["graph_id"], []).append(row)
 
+    topology_profiler = TopologyProfiler()
+    graph_metadata = {
+        f"{corpus}/{graph_name}": {
+            "nodes": graph.number_of_nodes(),
+            "edges": graph.number_of_edges(),
+            "topology": topology_profiler.profile(graph).to_dict(),
+        }
+        for corpus, graphs in corpora.items()
+        for graph_name, graph in graphs.items()
+    }
+
     graph_summaries = {
         graph_id: _summarize_graph(
             group,
@@ -681,6 +693,7 @@ def run_state_of_art_benchmark(
         },
         "rows": rows,
         "graph_summaries": graph_summaries,
+        "graph_metadata": graph_metadata,
         "aggregate": _aggregate_graph_summaries(graph_summaries, strategies),
         "limitations": [
             "This is a balanced-bisection comparison, so it does not replace k-way evaluation.",
