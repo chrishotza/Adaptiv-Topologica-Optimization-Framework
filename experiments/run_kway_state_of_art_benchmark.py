@@ -409,12 +409,15 @@ def run_kway_state_of_art_benchmark(
     output_path: str | Path = "results/state_of_art/kway_latest.json",
     *,
     cache_dir: str | Path | None = None,
+    k_values: tuple[int, ...] = K_VALUES,
 ) -> dict:
     started = time.perf_counter()
+    if not k_values or any(k not in K_VALUES for k in k_values):
+        raise ValueError(f"k_values must be a non-empty subset of {K_VALUES}")
     corpora, provenance = _load_expanded_corpora(cache_dir=cache_dir)
     rows: list[dict] = []
 
-    for k in K_VALUES:
+    for k in k_values:
         for corpus, graphs in corpora.items():
             for graph_name, graph in graphs.items():
                 graph_id = f"{corpus}/{graph_name}"
@@ -460,6 +463,8 @@ def run_kway_state_of_art_benchmark(
             "experiments.run_isolated_kway_backend",
             "--strategy",
             strategy,
+            "--k",
+            *[str(k) for k in k_values],
         ]
         if cache_dir is not None:
             command.extend(["--cache-dir", str(cache_dir)])
@@ -477,7 +482,7 @@ def run_kway_state_of_art_benchmark(
                 error = f"invalid worker JSON for {strategy}"
         else:
             error = f"isolated worker exit {completed.returncode}: {completed.stderr[-1000:]}"
-        for k in K_VALUES:
+        for k in k_values:
             for corpus, graphs in corpora.items():
                 for graph_name, graph in graphs.items():
                     graph_id = f"{corpus}/{graph_name}"
@@ -538,7 +543,7 @@ def run_kway_state_of_art_benchmark(
         "package_versions": _package_versions(),
         "seeds": list(SEEDS),
         "iterations": ITERATIONS,
-        "k_values": list(K_VALUES),
+        "k_values": list(k_values),
         "candidate_strategies": list(STRATEGIES),
         "isolated_native_strategies": list(ISOLATED_STRATEGIES),
         "corpora": {
@@ -573,10 +578,13 @@ def main() -> int:
         default=Path("results/state_of_art/kway_latest.json"),
     )
     parser.add_argument("--cache-dir", type=Path, default=None)
+    parser.add_argument("--k", type=int, choices=K_VALUES, action="append", default=None)
     args = parser.parse_args()
+    selected_k_values = tuple(args.k) if args.k else K_VALUES
     payload = run_kway_state_of_art_benchmark(
         output_path=args.output,
         cache_dir=args.cache_dir,
+        k_values=selected_k_values,
     )
     print(json.dumps(payload["aggregate"], indent=2))
     return 0
