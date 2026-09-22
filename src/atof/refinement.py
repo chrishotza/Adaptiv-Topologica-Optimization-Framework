@@ -23,6 +23,7 @@ class RefinementController:
     last_probe_iteration: int | None = None
     hybrid_passes: int = 0
     probes: int = 0
+    last_hybrid_improved: bool | None = None
 
     def __post_init__(self) -> None:
         if self.policy not in POLICIES:
@@ -77,5 +78,6 @@ class RefinementController:
         """Record the result of a hybrid pass and reset stagnation when useful."""
         self.hybrid_passes += 1
         self.last_hybrid_iteration = iteration
-        if end_cost < start_cost - 1e-12:
+        self.last_hybrid_improved = end_cost < start_cost - 1e-12
+        if self.last_hybrid_improved:
             self.stalled_iterations = 0
