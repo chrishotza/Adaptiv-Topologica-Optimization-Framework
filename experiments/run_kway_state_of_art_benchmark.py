@@ -13,7 +13,7 @@ from importlib import metadata as importlib_metadata
 
 import networkx as nx
 
-from atof.partition import exact_partition_balance_error, rebalance_kway
+from atof.partition import exact_balanced_block_weights, exact_partition_balance_error, rebalance_kway
 from atof.portfolio import _run_kahip, _run_metis
 from atof.strategies import BLOCReloc
 from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
@@ -181,12 +181,13 @@ def _run_kaminpar(
     started = time.perf_counter()
     loaded = _kaminpar_graph(graph, graph_id)
     kaminpar.reseed(int(seed))
-    # Use KaMinPar's public k/epsilon interface.  The exact floor/ceil
-    # contract is enforced by the common post-partition validator/repair.
+    # KaMinPar 3.7.3 treats epsilon=0 as an unconfigured max-weight
+    # constraint. Encode the exact floor/ceil ATOF contract with absolute
+    # capacities whose sum is exactly n.
+    max_block_weights = exact_balanced_block_weights(graph.number_of_nodes(), k)
     partition = _kaminpar_instance(context_name).compute_partition(
         loaded,
-        k=k,
-        eps=0.0,
+        max_block_weights,
     )
     membership = rebalance_kway(
         graph,

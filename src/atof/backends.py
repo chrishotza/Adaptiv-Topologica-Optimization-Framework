@@ -156,10 +156,14 @@ def _run_kaminpar_in_process(
     instance = _kaminpar_context(context_name)
     kaminpar.reseed(int(seed))
     started = time.perf_counter()
+    # KaMinPar 3.7.3 rejects the convenience epsilon=0 path because
+    # epsilon==0 leaves its max-weight constraint unconfigured internally.
+    # Absolute floor/ceil capacities encode the exact ATOF contract without
+    # relying on relaxed-balance repair afterward.
+    max_block_weights = exact_balanced_block_weights(graph.number_of_nodes(), k)
     membership = instance.compute_partition(
         loaded,
-        k=k,
-        eps=0.0,
+        max_block_weights,
     )
     runtime = time.perf_counter() - started
     membership = rebalance_kway(graph, [int(block) for block in membership], k)
