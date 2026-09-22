@@ -29,7 +29,7 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
     fixed_runtime = time.perf_counter() - fixed_started
 
     credit_started = time.perf_counter()
-    credit = BLOCReloc(graph, k=2, seed=seed, variant=variant).refine(
+    credit = BLOCReloc(graph, k=K, seed=seed, variant=variant).refine(
         iterations=ITERATIONS,
         hybrid_period=HYBRID_PERIOD,
         hybrid_samples=HYBRID_SAMPLES,
