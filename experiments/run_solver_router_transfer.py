@@ -58,11 +58,14 @@ def _load_records(path: Path) -> list[dict]:
         if not summary.get("matched"):
             continue
         item = metadata[graph_id]
-        strategy_means = {
-            name: float(values["edge_cut"])
+        strategy_metrics = {
+            name: {
+                "edge_cut": float(values["edge_cut"]),
+                "runtime_seconds": float(values["runtime_seconds"]),
+            }
             for name, values in summary["strategies"].items()
         }
-        if len(strategy_means) != len(payload["candidate_strategies"]):
+        if len(strategy_metrics) != len(payload["candidate_strategies"]):
             continue
         corpus, graph_name = graph_id.split("/", 1)
         records.append(
@@ -72,7 +75,7 @@ def _load_records(path: Path) -> list[dict]:
                 "graph": graph_name,
                 "topology": item["topology"],
                 "oracle_strategy": str(summary["best_quality"]),
-                "strategy_means": strategy_means,
+                "strategy_metrics": strategy_metrics,
             }
         )
 
@@ -82,8 +85,8 @@ def _load_records(path: Path) -> list[dict]:
 def _global_mean_strategy(training: list[dict]) -> str:
     strategy_values: dict[str, list[float]] = {}
     for record in training:
-        for strategy, value in record["strategy_means"].items():
-            strategy_values.setdefault(strategy, []).append(value)
+        for strategy, values in record["strategy_metrics"].items():
+            strategy_values.setdefault(strategy, []).append(float(values["edge_cut"]))
     return min(
         strategy_values,
         key=lambda strategy: (_mean(strategy_values[strategy]), strategy),
@@ -96,12 +99,44 @@ def _majority_strategy(training: list[dict]) -> str:
 
 
 def _regret(record: dict, selected: str) -> float:
-    oracle_value = float(record["strategy_means"][record["oracle_strategy"]])
-    selected_value = float(record["strategy_means"][selected])
+    oracle_value = float(record["strategy_metrics"][record["oracle_strategy"]]["edge_cut"])
+    selected_value = float(record["strategy_metrics"][selected]["edge_cut"])
     return (
         (selected_value - oracle_value) / oracle_value
         if oracle_value
         else 0.0
+    )
+
+
+def _runtime_ratio(record: dict, selected: str) -> float:
+    runtimes = sorted(
+        float(values["runtime_seconds"])
+        for values in record["strategy_metrics"].values()
+    )
+    median_runtime = runtimes[len(runtimes) // 2]
+    selected_runtime = float(
+        record["strategy_metrics"][selected]["runtime_seconds"]
+    )
+    return selected_runtime / median_runtime if median_runtime else 0.0
+
+
+def _runtime_dominates(record: dict, selected: str, control: str) -> bool:
+    selected_cut = float(
+        record["strategy_metrics"][selected]["edge_cut"]
+    )
+    control_cut = float(
+        record["strategy_metrics"][control]["edge_cut"]
+    )
+    selected_runtime = float(
+        record["strategy_metrics"][selected]["runtime_seconds"]
+    )
+    control_runtime = float(
+        record["strategy_metrics"][control]["runtime_seconds"]
+    )
+    return (
+        selected_cut <= control_cut
+        and selected_runtime <= control_runtime
+        and (selected_cut < control_cut or selected_runtime < control_runtime)
     )
 
 
@@ -114,10 +149,19 @@ def _summarize(rows: list[dict], router: str, control: str) -> dict:
         float(row["router_relative_regret"]) - float(row["control_relative_regret"])
         for row in subset
     ]
+    runtime_deltas = [
+        float(row["router_runtime_ratio"]) - float(row["control_runtime_ratio"])
+        for row in subset
+    ]
     lower, upper = bootstrap_mean_ci(
         deltas,
         resamples=20000,
         seed=2026,
+    )
+    runtime_lower, runtime_upper = bootstrap_mean_ci(
+        runtime_deltas,
+        resamples=20000,
+        seed=2027,
     )
     return {
         "graphs": len(subset),
@@ -130,6 +174,17 @@ def _summarize(rows: list[dict], router: str, control: str) -> dict:
         "mean_delta_router_minus_control": _mean(deltas),
         "bootstrap_95_ci": [lower, upper],
         "exact_sign_flip_p_one_sided": _exact_sign_flip_p_one_sided(deltas),
+        "mean_router_runtime_ratio": _mean(
+            [float(row["router_runtime_ratio"]) for row in subset]
+        ),
+        "mean_control_runtime_ratio": _mean(
+            [float(row["control_runtime_ratio"]) for row in subset]
+        ),
+        "mean_runtime_delta_router_minus_control": _mean(runtime_deltas),
+        "runtime_bootstrap_95_ci": [runtime_lower, runtime_upper],
+        "joint_quality_runtime_dominance_rate": _mean(
+            [float(row["router_runtime_dominates_control"]) for row in subset]
+        ),
         "router_better_graphs": sum(delta < 0 for delta in deltas),
         "router_worse_graphs": sum(delta > 0 for delta in deltas),
         "ties": sum(delta == 0 for delta in deltas),
@@ -190,6 +245,13 @@ def run_analysis(
                             "control_strategy": control_strategy,
                             "router_relative_regret": _regret(record, selected),
                             "control_relative_regret": _regret(record, control_strategy),
+                            "router_runtime_ratio": _runtime_ratio(record, selected),
+                            "control_runtime_ratio": _runtime_ratio(record, control_strategy),
+                            "router_runtime_dominates_control": _runtime_dominates(
+                                record,
+                                selected,
+                                control_strategy,
+                            ),
                         }
                     )
         folds[test_corpus] = fold_rows
