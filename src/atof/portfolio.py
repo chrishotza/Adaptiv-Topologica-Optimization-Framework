@@ -352,6 +352,16 @@ def _validate_candidate_partition(
             raise ValueError("partition labels must be in [0, k)")
 
         edge_cut = _edge_cut(graph, candidate.partition)
+        counts = [
+            sum(1 for block in labels if block == target)
+            for target in range(k)
+        ]
+        lower = graph.number_of_nodes() // k
+        upper = (graph.number_of_nodes() + k - 1) // k
+        if any(count < lower or count > upper for count in counts):
+            raise ValueError(
+                "partition violates exact floor/ceil balance contract"
+            )
         balance = partition_balance_error(graph, candidate.partition, k)
         postprocess = candidate.postprocess
         if postprocess == "none":
