@@ -120,6 +120,7 @@ def test_selected_k_values_are_allowed() -> None:
 def test_exact_floor_ceil_balance_gate():
     import networkx as nx
     from experiments.run_kway_state_of_art_benchmark import (
+        _exact_partition_balance_error,
         _expected_balance_error,
         _validate_exact_balance_error,
     )
@@ -129,3 +130,18 @@ def test_exact_floor_ceil_balance_gate():
     assert _expected_balance_error(graph, 3) == pytest.approx(0.2)
     assert _validate_exact_balance_error(graph, 3, 0.2)
     assert not _validate_exact_balance_error(graph, 3, 0.4)
+
+    graph_33 = nx.path_graph(33)
+    valid = {
+        node: block
+        for block in range(8)
+        for node in range(
+            sum(5 if i < 1 else 4 for i in range(block)),
+            sum(5 if i < 1 else 4 for i in range(block + 1)),
+        )
+    }
+    assert _exact_partition_balance_error(graph_33, valid, 8) == pytest.approx(7 / 132)
+    invalid = dict(valid)
+    invalid[32] = 0
+    with pytest.raises(ValueError, match="floor/ceil"):
+        _exact_partition_balance_error(graph_33, invalid, 8)
