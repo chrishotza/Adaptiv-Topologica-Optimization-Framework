@@ -15,6 +15,8 @@ def test_optimize_graph_returns_balanced_product_result():
     assert payload["result"]["k"] == 2
     assert payload["result"]["balance_error"] == 0.0
     assert len(payload["result"]["partition"]) == 8
+    assert payload["parameters"]["seed"] == 42
+    assert payload["provenance"]["graph_fingerprint"]
 
 
 def test_load_graph_supports_graphml(tmp_path: Path):
