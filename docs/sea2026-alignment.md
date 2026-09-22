@@ -14,7 +14,7 @@ SEA evaluates k in {4, 8, 32, 64}, epsilon=0.03, five randomized runs per graph/
 
 ATOF now has a direct exact-software reference gate for the SEA 2026 Mt-KaHyPar artifact. It builds archived revision 6d12d9cf210390624f3757e9b5399469d2d2ae68 (software version 1.5.3), downloads the public Set A corpus with its published MD5, and executes the learned configuration against a controlled baseline configuration on a selectable subset of Set A.
 
-The gate records the exact command, graph/seed/k identity, partition block counts, edge cut, runtime, and executable output tails. It also computes paired learned-vs-baseline cut deltas and a geometric mean of the per-case cut ratios. This creates an inspectable reference layer before attempting full 118-graph reproduction.
+The gate records the exact command, graph/seed/k identity, partition block counts, edge cut, runtime, and executable output tails. It preserves seed-level paired results and additionally aggregates each graph×k instance by arithmetic mean across seeds, then aggregates those instances by geometric mean. This mirrors the published aggregation hierarchy while keeping the raw runs auditable.
 
 ## Important training/test boundary
 

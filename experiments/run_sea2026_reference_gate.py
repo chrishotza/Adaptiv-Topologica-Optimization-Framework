@@ -329,6 +329,69 @@ def run_reference_gate(
         row["baseline_runtime_seconds"] for row in paired
     ]
 
+    # Match the paper-style aggregation hierarchy: arithmetic mean across
+    # seeds for each graph×k instance, then geometric mean across instances.
+    instance_groups: dict[tuple[str, int, str], list[dict]] = {}
+    for row in valid:
+        key = (row["graph_id"], int(row["k"]), row["configuration"])
+        instance_groups.setdefault(key, []).append(row)
+
+    instance_summaries: dict[tuple[str, int], dict[str, dict]] = {}
+    for key, group in instance_groups.items():
+        graph_id, k, configuration = key
+        instance_summaries.setdefault((graph_id, k), {})[configuration] = {
+            "seed_count": len(group),
+            "edge_cut_mean": statistics.fmean(
+                float(row["edge_cut"]) for row in group
+            ),
+            "runtime_mean_seconds": statistics.fmean(
+                float(row["runtime_seconds"]) for row in group
+            ),
+        }
+
+    protocol_pairs: list[dict] = []
+    for (graph_id, k), configurations in sorted(instance_summaries.items()):
+        learned_instance = configurations.get("learned")
+        baseline_instance = configurations.get("baseline")
+        if learned_instance is None or baseline_instance is None:
+            continue
+        baseline_cut = baseline_instance["edge_cut_mean"]
+        protocol_pairs.append({
+            "graph_id": graph_id,
+            "k": k,
+            "seed_count_learned": learned_instance["seed_count"],
+            "seed_count_baseline": baseline_instance["seed_count"],
+            "learned_edge_cut_mean": learned_instance["edge_cut_mean"],
+            "baseline_edge_cut_mean": baseline_cut,
+            "relative_cut_delta": (
+                (learned_instance["edge_cut_mean"] - baseline_cut) / baseline_cut
+                if baseline_cut
+                else 0.0
+            ),
+            "learned_runtime_mean_seconds": learned_instance[
+                "runtime_mean_seconds"
+            ],
+            "baseline_runtime_mean_seconds": baseline_instance[
+                "runtime_mean_seconds"
+            ],
+        })
+
+    protocol_deltas = [
+        row["relative_cut_delta"] for row in protocol_pairs
+    ]
+    protocol_cut_ratios = [1.0 + delta for delta in protocol_deltas]
+    protocol_learned_runtime = [
+        row["learned_runtime_mean_seconds"] for row in protocol_pairs
+    ]
+    protocol_baseline_runtime = [
+        row["baseline_runtime_mean_seconds"] for row in protocol_pairs
+    ]
+    protocol_learned_runtime_ratios = [
+        row["learned_runtime_mean_seconds"] / row["baseline_runtime_mean_seconds"]
+        for row in protocol_pairs
+        if row["baseline_runtime_mean_seconds"] > 0
+    ]
+
     return {
         "schema_version": "0.1",
         "protocol": "SEA 2026 exact-software reference gate",
@@ -358,6 +421,16 @@ def run_reference_gate(
         "selected_graphs": len(selected),
         "rows": rows,
         "paired_rows": paired,
+        "instance_summaries": [
+            {
+                "graph_id": graph_id,
+                "k": k,
+                **summary_by_configuration,
+            }
+            for (graph_id, k), summary_by_configuration
+            in sorted(instance_summaries.items())
+        ],
+        "protocol_pairs": protocol_pairs,
         "summary": {
             "total_rows": len(rows),
             "ok_rows": sum(row.get("status") == "ok" for row in rows),
@@ -380,6 +453,33 @@ def run_reference_gate(
             "mean_baseline_runtime_seconds": (
                 statistics.fmean(baseline_runtime)
                 if baseline_runtime else None
+            ),
+            "protocol_instances": len(protocol_pairs),
+            "protocol_mean_relative_cut_delta": (
+                statistics.fmean(protocol_deltas)
+                if protocol_deltas else None
+            ),
+            "protocol_geometric_mean_cut_ratio": (
+                statistics.geometric_mean(protocol_cut_ratios)
+                if protocol_cut_ratios else None
+            ),
+            "protocol_geometric_mean_cut_gap_percent": (
+                100.0 * (
+                    statistics.geometric_mean(protocol_cut_ratios) - 1.0
+                )
+                if protocol_cut_ratios else None
+            ),
+            "protocol_mean_learned_runtime_seconds": (
+                statistics.fmean(protocol_learned_runtime)
+                if protocol_learned_runtime else None
+            ),
+            "protocol_mean_baseline_runtime_seconds": (
+                statistics.fmean(protocol_baseline_runtime)
+                if protocol_baseline_runtime else None
+            ),
+            "protocol_geometric_mean_runtime_ratio": (
+                statistics.geometric_mean(protocol_learned_runtime_ratios)
+                if protocol_learned_runtime_ratios else None
             ),
         },
         "runtime_seconds": time.perf_counter() - started,
