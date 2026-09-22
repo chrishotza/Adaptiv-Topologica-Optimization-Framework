@@ -397,7 +397,9 @@ def _aggregate(
         output["strategies"][strategy] = {
             "graphs": len(gaps),
             "mean_relative_quality_gap": _mean(gaps),
+            "mean_relative_quality_gap_percent": 100.0 * _mean(gaps),
             "median_relative_quality_gap": statistics.median(gaps) if gaps else 0.0,
+            "median_relative_quality_gap_percent": 100.0 * (statistics.median(gaps) if gaps else 0.0),
             "mean_runtime_ratio_to_graph_median": _mean(runtimes),
         }
     return output
