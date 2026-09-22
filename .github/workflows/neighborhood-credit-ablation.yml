@@ -39,6 +39,8 @@ jobs:
           )
           assert payload["surface"] == "atof.strategies.BLOCReloc"
           assert payload["summary"]["comparisons"] == 42
+          assert payload["k"] == 3
+          assert all(row["k_fixed"] == row["k_credit"] == 3 for row in payload["rows"])
           assert len(payload["rows"]) == 42
           PY
       - name: Upload ablation artifact
