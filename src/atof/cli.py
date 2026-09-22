@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 
+import networkx as nx
+
 from . import __version__
 from .ai import build_ai_manifest, build_doctor_report, compact_json, compact_result
 from .portfolio import optimize_portfolio
@@ -14,6 +16,8 @@ from .topology import TopologyProfiler
 
 
 _FORMAT_CHOICES = ("auto", "edgelist", "graphml", "gexf", "gml")
+
+_CLI_ERRORS = (OSError, ValueError, RuntimeError, TypeError, UnicodeError, SyntaxError, nx.NetworkXException)
 
 
 def _emit_error(exc: Exception) -> int:
@@ -175,7 +179,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.output.write_text(encoded + "\n", encoding="utf-8")
                 print(str(args.output))
             return 0
-        except (OSError, ValueError, RuntimeError) as exc:
+        except _CLI_ERRORS as exc:
             return _emit_error(exc)
 
     if args.command == "profile":
