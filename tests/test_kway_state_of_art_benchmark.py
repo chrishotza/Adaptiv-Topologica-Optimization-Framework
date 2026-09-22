@@ -58,6 +58,27 @@ def test_unmatched_graphs_do_not_enter_aggregate() -> None:
     assert _aggregate({"g": summary}, ("a", "b", "c"))["matched_graphs"] == 0
 
 
+def test_duplicate_seed_rows_are_not_matched() -> None:
+    rows = [
+        *[
+            {"strategy": "a", "status": "ok", "seed": seed, "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 2.0}
+            for seed in (42, 101, 42)
+        ],
+        *[
+            {"strategy": "b", "status": "ok", "seed": seed, "edge_cut": 12, "balance_error": 0.0, "runtime_seconds": 1.0}
+            for seed in (42, 101, 2024)
+        ],
+    ]
+    summary = _summarize_graph(
+        rows,
+        ("a", "b"),
+        expected_runs=3,
+        expected_seeds=(42, 101, 2024),
+    )
+    assert summary["matched"] is False
+    assert summary["incomplete_strategies"] == ["a"]
+
+
 def test_incomplete_seed_set_is_not_matched() -> None:
     rows = [
         *[
