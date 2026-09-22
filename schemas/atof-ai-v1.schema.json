@@ -143,11 +143,11 @@
     },
     "output": {
       "type": "object",
-      "required": ["default", "compact", "full"],
+      "required": ["default", "compact", "full", "objective_metric_rule"],
       "properties": {
         "default": {"const": "JSON"},
         "compact": {"type": "string"},
-        "full": {"type": "string"}
+        "full": {"type": "string"},\n        "objective_metric_rule": {"type": "string"}
       },
       "additionalProperties": false
     },

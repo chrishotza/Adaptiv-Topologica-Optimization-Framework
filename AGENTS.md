@@ -69,6 +69,8 @@ Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-l
 - JSON graph input uses `{nodes?: [...], edges: [[u, v], ...]}`.
 - `schemas/`, `atof ai`, and `AGENTS.md` form the machine-facing contract; prefer those over prose examples.
 - Do not infer the optimized scalar objective from `result.edge_cut` alone in Engine mode; inspect `objective.optimization_metric`.
+- Do not pass `--variant` with Portfolio mode; the CLI rejects ignored optimization choices.
+- In Engine results, `result.weighted_cost` is the selected variant's objective value; it is not a cost derived from input edge weights.
 
 ## Claim discipline
 

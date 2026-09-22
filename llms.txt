@@ -55,6 +55,8 @@ JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 - Optional backend failures are explicit.
 - Unsupported directed and multigraph graph models are rejected. Source weight attributes are treated as metadata under the current unweighted graph model.
 - In Engine mode, use `objective.optimization_metric` to distinguish the actual optimization scalar from the reported `result.edge_cut`.
+- Do not pass `--variant` with Portfolio mode; ignored optimization choices are rejected.
+- In Engine results, `result.weighted_cost` is an internal objective value and does not mean input edge weights were used.
 - In Portfolio mode, `result.edge_cut` is the common selection metric.
 
 ## Evidence rule

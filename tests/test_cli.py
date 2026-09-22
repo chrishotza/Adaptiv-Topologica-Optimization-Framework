@@ -124,6 +124,25 @@ def test_cli_optimize_rejects_kway_portfolio(capsys, tmp_path):
     assert payload["error"]["type"] == "ValueError"
 
 
+
+def test_cli_rejects_variant_for_portfolio(capsys, tmp_path):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("0 1\n1 2\n2 3\n", encoding="utf-8")
+
+    code = main([
+        "optimize",
+        str(graph),
+        "--engine",
+        "portfolio",
+        "--variant",
+        "affinity",
+    ])
+    payload = json.loads(capsys.readouterr().out)
+
+    assert code == 2
+    assert payload["schema"] == "atof.error.v1"
+    assert payload["error"]["type"] == "ValueError"
+    assert "applies only to --engine bloc" in payload["error"]["message"]
 def test_cli_optimize_supports_kway_engine(tmp_path, capsys):
     graph = tmp_path / "graph.edgelist"
     graph.write_text(
