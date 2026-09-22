@@ -2,6 +2,12 @@ name: Open-source access benchmark
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "experiments/run_access_benchmark.py"
+      - "experiments/summarize_access_benchmark.py"
+      - "tests/test_access_benchmark.py"
+      - ".github/workflows/open-source-access-benchmark.yml"
   push:
     branches: [main]
     paths:
