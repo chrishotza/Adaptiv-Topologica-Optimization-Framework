@@ -39,6 +39,22 @@ STRATEGIES = (
     "mtkahypar_quality",
 )
 
+LOCAL_STRATEGIES = (
+    "bloc_reloc_baseline",
+    "bloc_reloc_affinity",
+    "bloc_reloc_hybrid_fixed",
+    "bloc_reloc_adaptive",
+)
+
+ISOLATED_STRATEGIES = (
+    "metis",
+    "kahip",
+    "kaminpar_default",
+    "kaminpar_strong",
+    "mtkahypar_default",
+    "mtkahypar_quality",
+)
+
 _KAMINPAR_GRAPH_CACHE: dict[str, object] = {}
 _KAMINPAR_INSTANCE_CACHE: dict[str, object] = {}
 _KAMINPAR_TMPDIR = tempfile.TemporaryDirectory(prefix="atof-kaminpar-kway-")
@@ -401,7 +417,7 @@ def run_kway_state_of_art_benchmark(
             for graph_name, graph in graphs.items():
                 graph_id = f"{corpus}/{graph_name}"
                 for seed in SEEDS:
-                    for strategy in STRATEGIES:
+                    for strategy in LOCAL_STRATEGIES:
                         row = {
                             "k": k,
                             "corpus": corpus,
@@ -413,33 +429,69 @@ def run_kway_state_of_art_benchmark(
                             "strategy": strategy,
                         }
                         if graph.number_of_nodes() < k:
-                            row.update(
-                                {
-                                    "status": "skipped",
-                                    "error": "k exceeds graph node count",
-                                }
-                            )
-                            rows.append(row)
-                            continue
-                        try:
-                            result = _strategy_run(
-                                strategy,
-                                graph,
-                                graph_id=graph_id,
-                                seed=seed,
-                                k=k,
-                            )
-                            row.update(result)
-                            row["status"] = "ok"
-                        except Exception as exc:
-                            row.update(
-                                {
+                            row.update({
+                                "status": "skipped",
+                                "error": "k exceeds graph node count",
+                            })
+                        else:
+                            try:
+                                result = _strategy_run(
+                                    strategy,
+                                    graph,
+                                    graph_id=graph_id,
+                                    seed=seed,
+                                    k=k,
+                                )
+                                row.update(result)
+                                row["status"] = "ok"
+                            except Exception as exc:
+                                row.update({
                                     "status": "error",
                                     "error": f"{type(exc).__name__}: {exc}",
-                                }
-                            )
+                                })
                         rows.append(row)
 
+    for strategy in ISOLATED_STRATEGIES:
+        command = [
+            sys.executable,
+            "-m",
+            "experiments.run_isolated_kway_backend",
+            "--strategy",
+            strategy,
+        ]
+        if cache_dir is not None:
+            command.extend(["--cache-dir", str(cache_dir)])
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            env={**__import__("os").environ, "PYTHONUNBUFFERED": "1"},
+        )
+        if completed.returncode == 0:
+            try:
+                rows.extend(json.loads(completed.stdout))
+                continue
+            except json.JSONDecodeError:
+                error = f"invalid worker JSON for {strategy}"
+        else:
+            error = f"isolated worker exit {completed.returncode}: {completed.stderr[-1000:]}"
+        for k in K_VALUES:
+            for corpus, graphs in corpora.items():
+                for graph_name, graph in graphs.items():
+                    graph_id = f"{corpus}/{graph_name}"
+                    for seed in SEEDS:
+                        rows.append({
+                            "k": k,
+                            "corpus": corpus,
+                            "graph": graph_name,
+                            "graph_id": graph_id,
+                            "nodes": graph.number_of_nodes(),
+                            "edges": graph.number_of_edges(),
+                            "seed": seed,
+                            "strategy": strategy,
+                            "status": "error",
+                            "error": error,
+                        })
     graph_summaries: dict[str, dict] = {}
     for k in K_VALUES:
         grouped: dict[str, list[dict]] = {}
@@ -486,6 +538,7 @@ def run_kway_state_of_art_benchmark(
         "iterations": ITERATIONS,
         "k_values": list(K_VALUES),
         "candidate_strategies": list(STRATEGIES),
+        "isolated_native_strategies": list(ISOLATED_STRATEGIES),
         "corpora": {
             corpus: {
                 "graphs": len(graphs),
