@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+# Benchmark contract tests include native-backend isolation.
 from experiments.run_state_of_art_benchmark import (
     CORE_STRATEGIES,
     _aggregate_graph_summaries,
