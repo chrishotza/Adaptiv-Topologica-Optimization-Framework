@@ -67,6 +67,7 @@ Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-l
 - Full results include provenance suitable for agent-to-agent handoff.
 - Unsupported directed and multigraph product inputs are rejected; source weight attributes are ignored under the current unweighted graph model.
 - JSON graph input uses `{nodes?: [...], edges: [[u, v], ...]}`.
+- Machine-readable partition outputs canonicalize node IDs with `str()`; node IDs that collide after string conversion are rejected.
 - `schemas/`, `atof ai`, and `AGENTS.md` form the machine-facing contract; prefer those over prose examples.
 - Do not infer the optimized scalar objective from `result.edge_cut` alone in Engine mode; inspect `objective.optimization_metric`.
 - Do not pass `--variant` with Portfolio mode; the CLI rejects ignored optimization choices.
