@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from . import __version__
+from .ai import build_ai_manifest, compact_result
 from .product import load_graph, optimize_graph
 from .portfolio import optimize_portfolio
 from .topology import TopologyProfiler
@@ -39,6 +40,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--version", action="store_true")
     subparsers = parser.add_subparsers(dest="command")
 
+    ai_parser = subparsers.add_parser(
+        "ai",
+        help="emit a compact AI/automation contract",
+    )
+    ai_parser.add_argument(
+        "--full",
+        action="store_true",
+        help="emit the expanded AI manifest",
+    )
+
     profile_parser = subparsers.add_parser(
         "profile",
         help="profile a graph",
@@ -48,6 +59,11 @@ def main(argv: list[str] | None = None) -> int:
         "--format",
         choices=("auto", "edgelist", "graphml", "gexf", "gml"),
         default="auto",
+    )
+    profile_parser.add_argument(
+        "--compact",
+        action="store_true",
+        help="emit only the low-token profile summary",
     )
 
     optimize_parser = subparsers.add_parser(
@@ -80,6 +96,11 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         help="optional JSON output path; stdout is used when omitted",
     )
+    optimize_parser.add_argument(
+        "--compact",
+        action="store_true",
+        help="emit only the low-token result summary",
+    )
 
     args = parser.parse_args(argv)
 
@@ -87,8 +108,29 @@ def main(argv: list[str] | None = None) -> int:
         print(__version__)
         return 0
 
+    if args.command == "ai":
+        payload = build_ai_manifest(full=args.full)
+        if args.full:
+            print(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            print(json.dumps(payload, separators=(",", ":"), sort_keys=True))
+        return 0
+
     if args.command == "profile":
-        print(json.dumps(_profile(args.path, args.format), indent=2))
+        payload = _profile(args.path, args.format)
+        if args.compact:
+            payload = {
+                "mode": "profile",
+                "version": payload["version"],
+                "graph": {
+                    "nodes": payload["nodes"],
+                    "edges": payload["edges"],
+                },
+                "recommendation": payload["recommendation"],
+            }
+            print(json.dumps(payload, separators=(",", ":"), sort_keys=True))
+        else:
+            print(json.dumps(payload, indent=2, sort_keys=True))
         return 0
 
     if args.command == "optimize":
@@ -111,7 +153,11 @@ def main(argv: list[str] | None = None) -> int:
         payload = result.to_dict()
         payload["file"] = str(args.path)
         payload["version"] = __version__
-        encoded = json.dumps(payload, indent=2, sort_keys=True)
+        if args.compact:
+            payload = compact_result(payload)
+            encoded = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+        else:
+            encoded = json.dumps(payload, indent=2, sort_keys=True)
         if args.output is None:
             print(encoded)
         else:
