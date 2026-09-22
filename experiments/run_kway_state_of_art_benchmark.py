@@ -60,6 +60,16 @@ _KAMINPAR_INSTANCE_CACHE: dict[str, object] = {}
 _KAMINPAR_TMPDIR = tempfile.TemporaryDirectory(prefix="atof-kaminpar-kway-")
 
 
+def _decode_worker_rows(stdout: str) -> list[dict]:
+    lines = [line.strip() for line in stdout.splitlines() if line.strip()]
+    if not lines:
+        raise ValueError("worker returned no JSON payload")
+    payload = json.loads(lines[-1])
+    if not isinstance(payload, list):
+        raise ValueError("worker JSON payload must be a list")
+    return payload
+
+
 def _package_versions() -> dict[str, str | None]:
     versions: dict[str, str | None] = {}
     for distribution in (
@@ -516,20 +526,9 @@ def run_kway_state_of_art_benchmark(
         )
         if completed.returncode == 0:
             try:
-                payload_lines = [
-                    line.strip()
-                    for line in completed.stdout.splitlines()
-                    if line.strip()
-                ]
-                if not payload_lines:
-                    raise json.JSONDecodeError(
-                        "worker returned no JSON payload",
-                        completed.stdout,
-                        0,
-                    )
-                rows.extend(json.loads(payload_lines[-1]))
+                rows.extend(_decode_worker_rows(completed.stdout))
                 continue
-            except json.JSONDecodeError:
+            except (json.JSONDecodeError, ValueError):
                 error = f"invalid worker JSON for {strategy}"
         else:
             error = f"isolated worker exit {completed.returncode}: {completed.stderr[-1000:]}"
