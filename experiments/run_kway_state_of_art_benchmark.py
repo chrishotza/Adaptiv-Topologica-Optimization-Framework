@@ -526,6 +526,31 @@ def run_kway_state_of_art_benchmark(
                             "status": "error",
                             "error": error,
                         })
+    # Apply the same exact floor/ceil contract to isolated native rows.
+    graph_lookup = {
+        f"{corpus}/{graph_name}": graph
+        for corpus, graphs in corpora.items()
+        for graph_name, graph in graphs.items()
+    }
+    for row in rows:
+        if row.get("status") != "ok":
+            continue
+        graph = graph_lookup.get(row["graph_id"])
+        if graph is None:
+            row["status"] = "error"
+            row["error"] = "unknown graph_id in benchmark row"
+            continue
+        if not _validate_exact_balance_error(
+            graph,
+            int(row["k"]),
+            float(row["balance_error"]),
+        ):
+            row["status"] = "error"
+            row["error"] = (
+                "backend returned a partition outside the exact "
+                "floor/ceil balance contract"
+            )
+
     graph_summaries: dict[str, dict] = {}
     for k in k_values:
         grouped: dict[str, list[dict]] = {}
