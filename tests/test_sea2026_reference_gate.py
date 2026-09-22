@@ -38,6 +38,13 @@ def test_partition_filename_matches_sea_snapshot_convention(tmp_path: Path) -> N
     assert observed.name == "sample.graph.part8.epsilon0.03.seed4.KaHyPar"
 
 
+def test_balance_bound_rejects_empty_block() -> None:
+    graph = nx.path_graph(1000)
+    counts = [16] * 62 + [8, 0]
+    assert sum(counts) == graph.number_of_nodes()
+    assert not balance_bound_ok(graph, counts, 64, 0.03)
+
+
 def test_balance_bound_uses_sea_epsilon() -> None:
     graph = nx.path_graph(10)
     assert balance_bound_ok(graph, [3, 3, 2, 2], 4, 0.03)
