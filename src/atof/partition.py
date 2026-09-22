@@ -65,7 +65,7 @@ def rebalance_kway(
     while True:
         oversized = [block for block, count in enumerate(counts) if count > upper]
         under_capacity = [block for block, count in enumerate(counts) if count < upper]
-        if not oversized and not under_capacity:
+        if not oversized:
             return result
 
         source = min(oversized)
