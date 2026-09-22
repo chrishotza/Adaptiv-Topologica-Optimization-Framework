@@ -89,3 +89,37 @@ def compare_graph(
             "iterations": iterations,
         },
     }
+
+
+def compact_comparison(payload: dict[str, Any]) -> dict[str, Any]:
+    """Reduce a comparison result for low-token agent orchestration."""
+    return {
+        "schema": payload["schema"],
+        "version": payload["version"],
+        "mode": payload["mode"],
+        "graph": payload["graph"],
+        "parameters": payload["parameters"],
+        "comparison": payload["comparison"],
+        "engine": {
+            "schema": payload["engine"]["schema"],
+            "strategy": payload["engine"]["strategy"],
+            "result": payload["engine"]["result"],
+        },
+        "portfolio": {
+            "schema": payload["portfolio"]["schema"],
+            "strategy": payload["portfolio"]["strategy"],
+            "result": payload["portfolio"]["result"],
+            "candidates": [
+                {
+                    "id": candidate["id"],
+                    "available": candidate["available"],
+                    "edge_cut": candidate["edge_cut"],
+                    "balance_error": candidate["balance_error"],
+                    "runtime_seconds": candidate["runtime_seconds"],
+                    "error": candidate["error"],
+                }
+                for candidate in payload["portfolio"]["candidates"]
+            ],
+        },
+        "provenance": payload["provenance"],
+    }
