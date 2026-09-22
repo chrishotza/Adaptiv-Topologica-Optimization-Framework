@@ -15,6 +15,8 @@ from .partition import (
     weighted_cut,
 )
 
+from .refinement import RefinementController
+
 
 @dataclass(frozen=True)
 class PartitionResult:
@@ -25,6 +27,7 @@ class PartitionResult:
     iterations: int
     accepted_moves: int
     rejected_moves: int
+    hybrid_passes: int = 0
     trace: tuple[dict[str, float | int], ...] = field(default_factory=tuple)
 
 
@@ -69,6 +72,8 @@ class BLOCReloc:
         tolerance: float = 0.05,
         hybrid_period: int | None = None,
         hybrid_samples: int = 1000,
+        hybrid_policy: str = "fixed",
+        hybrid_patience: int = 2,
     ) -> PartitionResult:
         if iterations < 1:
             raise ValueError("iterations must be >= 1")
@@ -76,6 +81,15 @@ class BLOCReloc:
             raise ValueError("tolerance must be >= 0")
         if hybrid_samples < 0:
             raise ValueError("hybrid_samples must be >= 0")
+        if hybrid_policy not in {"fixed", "adaptive"}:
+            raise ValueError("hybrid_policy must be 'fixed' or 'adaptive'")
+        if hybrid_patience < 1:
+            raise ValueError("hybrid_patience must be at least 1")
+        controller = RefinementController(
+            policy=hybrid_policy,
+            period=hybrid_period or max(iterations, 1),
+            patience=hybrid_patience,
+        )
 
         partition = initialize_balanced_partition(self.graph, self.k)
         counts = {block: 0 for block in range(self.k)}
@@ -96,6 +110,7 @@ class BLOCReloc:
         del ideal  # The canonical movement rule uses exact floor/ceil sizes.
 
         for iteration in range(iterations):
+            iteration_start = best
             nodes = list(self.graph.nodes())
             self.rng.shuffle(nodes)
             iteration_accepted = 0
@@ -137,12 +152,25 @@ class BLOCReloc:
                     best = current
                     iteration_accepted += 1
 
-            if hybrid_period and (iteration + 1) % hybrid_period == 0:
+            hybrid_triggered = False
+            if hybrid_period and controller.after_local_pass(
+                iteration=iteration,
+                start_cost=iteration_start,
+                end_cost=best,
+                tolerance=tolerance,
+            ):
+                hybrid_triggered = True
+                hybrid_start = best
                 h_accept, h_reject, best = self._two_swap(
                     partition,
                     tolerance=tolerance,
                     samples=hybrid_samples,
                     best=best,
+                )
+                controller.record_hybrid_pass(
+                    iteration=iteration,
+                    start_cost=hybrid_start,
+                    end_cost=best,
                 )
                 iteration_accepted += h_accept
                 iteration_rejected += h_reject
@@ -156,6 +184,7 @@ class BLOCReloc:
                     "edge_cut": edge_cut(self.graph, partition),
                     "accepted": iteration_accepted,
                     "rejected": iteration_rejected,
+                    "hybrid": int(hybrid_triggered),
                 }
             )
 
@@ -167,6 +196,7 @@ class BLOCReloc:
             iterations=iterations,
             accepted_moves=accepted,
             rejected_moves=rejected,
+            hybrid_passes=controller.hybrid_passes,
             trace=tuple(trace),
         )
 
