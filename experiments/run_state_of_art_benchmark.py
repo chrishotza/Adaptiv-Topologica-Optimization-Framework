@@ -124,6 +124,19 @@ def _run_atof(
         "metadata": {
             "hybrid_passes": int(result.hybrid_passes),
             "hybrid_probes": int(result.hybrid_probes),
+            "marginal_events": [
+                {
+                    "iteration": int(event["iteration"]),
+                    "local_gain": float(event["local_gain"]),
+                    "hybrid_gain": float(event["hybrid_gain"]),
+                    "hybrid_work": int(event["hybrid_work"]),
+                    "hybrid_gain_per_work": float(event["hybrid_gain_per_work"]),
+                    "hybrid": int(event["hybrid"]),
+                    "hybrid_probe": int(event["hybrid_probe"]),
+                }
+                for event in result.trace
+                if int(event["hybrid"]) == 1 or int(event["hybrid_probe"]) == 1
+            ],
         },
     }
 
