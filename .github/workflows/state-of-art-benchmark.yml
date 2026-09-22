@@ -48,6 +48,41 @@ jobs:
             --output results/state_of_art/latest.json \
             --cache-dir .cache/snap
 
+      - name: Analyze fresh solver-router transfer
+        run: |
+          python -m experiments.run_solver_router_transfer \
+            --benchmark results/state_of_art/latest.json \
+            --output results/state_of_art/solver_router_transfer.json
+
+      - name: Validate solver-router transfer manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/state_of_art/solver_router_transfer.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["unit_of_analysis"] == "graph"
+          assert payload["matched_graphs"] >= 2
+          assert payload["controls"] == ["majority", "global_mean"]
+          assert set(payload["macro"]) == {
+              "nearest_vs_majority",
+              "nearest_vs_global_mean",
+              "centroid_vs_majority",
+              "centroid_vs_global_mean",
+          }
+          PY
+
+      - name: Upload solver-router transfer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solver-router-transfer
+          path: results/state_of_art/solver_router_transfer.json
+          if-no-files-found: error
+
       - name: Upload benchmark manifest
         uses: actions/upload-artifact@v4
         with:
