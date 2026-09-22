@@ -2,41 +2,6 @@ name: Independent DIMACS transfer
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "src/atof/dimacs.py"
-      - "src/atof/snap.py"
-      - "experiments/run_transfer_block.py"
-      - "experiments/run_independent_dimacs_transfer.py"
-      - "tests/test_dimacs.py"
-      - "tests/test_transfer_blocks.py"
-      - ".github/workflows/independent-dimacs-transfer.yml"
-      - "experiments/run_router_kahip_confirmatory.py"
-      - "experiments/run_router_scaling_ablation.py"
-      - "experiments/run_router_confirmatory.py"
-      - "src/atof/strategies.py"
-      - "src/atof/routing.py"
-      - "src/atof/generalization.py"
-      - "pyproject.toml"
-  push:
-    branches:
-      - "main"
-      - "research/independent-dimacs-transfer"
-    paths:
-      - "src/atof/dimacs.py"
-      - "src/atof/snap.py"
-      - "experiments/run_transfer_block.py"
-      - "experiments/run_independent_dimacs_transfer.py"
-      - "tests/test_dimacs.py"
-      - "tests/test_transfer_blocks.py"
-      - ".github/workflows/independent-dimacs-transfer.yml"
-      - "experiments/run_router_kahip_confirmatory.py"
-      - "experiments/run_router_scaling_ablation.py"
-      - "experiments/run_router_confirmatory.py"
-      - "src/atof/strategies.py"
-      - "src/atof/routing.py"
-      - "src/atof/generalization.py"
-      - "pyproject.toml"
 
 jobs:
   benchmark-blocks:
