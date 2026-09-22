@@ -13,7 +13,7 @@ With `--hybrid-policy adaptive`, ATOF:
 3. counts consecutive low-gain iterations;
 4. calibrates the hybrid neighborhood with the first scheduled full pass;
 5. repeats the full pass while it remains productive;
-6. after an unproductive pass, uses the hybrid period as a minimum cooldown between adaptive probes and resumes full passes only when a probe finds an improving move.
+6. after an unproductive pass, uses the hybrid period as a minimum cooldown between adaptive probes and resumes full passes only when a probe finds an improving move, while a second consecutive failed probe is the evidence threshold for abstaining from the full pass.
 
 The rule is deterministic for a fixed graph, seed, and configuration. It does not require a trained model.
 
