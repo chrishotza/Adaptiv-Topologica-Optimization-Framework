@@ -16,6 +16,8 @@ ITERATIONS = 25
 HYBRID_PERIOD = 5
 HYBRID_SAMPLES = 100
 K = 3
+CREDIT_THRESHOLD = 1.5
+CREDIT_MAX_SKIPS = 1
 
 
 def run_pair(graph, *, seed: int, variant: str) -> dict:
@@ -34,6 +36,8 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
         hybrid_period=HYBRID_PERIOD,
         hybrid_samples=HYBRID_SAMPLES,
         hybrid_policy="credit",
+        hybrid_credit_threshold=CREDIT_THRESHOLD,
+        hybrid_credit_max_skips=CREDIT_MAX_SKIPS,
     )
     credit_runtime = time.perf_counter() - credit_started
 
@@ -107,6 +111,8 @@ def run_benchmark() -> dict:
         "hybrid_period": HYBRID_PERIOD,
         "k": K,
         "hybrid_samples": HYBRID_SAMPLES,
+        "credit_threshold": CREDIT_THRESHOLD,
+        "credit_max_skips": CREDIT_MAX_SKIPS,
         "rows": rows,
         "summary": {
             "comparisons": len(rows),
