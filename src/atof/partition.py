@@ -62,14 +62,30 @@ def rebalance_kway(
     lower = graph.number_of_nodes() // k
     upper = (graph.number_of_nodes() + k - 1) // k
 
+    expected = sorted(exact_balanced_block_weights(graph.number_of_nodes(), k))
+
     while True:
-        oversized = [block for block, count in enumerate(counts) if count > upper]
-        under_capacity = [block for block, count in enumerate(counts) if count < upper]
-        if not oversized:
+        if sorted(counts) == expected:
             return result
 
-        source = min(oversized)
-        targets = tuple(under_capacity)
+        oversized = [block for block, count in enumerate(counts) if count > upper]
+        if oversized:
+            source = min(oversized)
+            targets = tuple(
+                block for block, count in enumerate(counts) if count < upper
+            )
+        else:
+            undersized = [block for block, count in enumerate(counts) if count < lower]
+            if not undersized:
+                raise RuntimeError(
+                    "could not repair partition balance"
+                    f"; n={graph.number_of_nodes()}, k={k}, counts={counts}, "
+                    f"lower={lower}, upper={upper}, membership_len={len(result)}"
+                )
+            source = min(
+                block for block, count in enumerate(counts) if count > lower
+            )
+            targets = tuple(undersized)
         candidates: list[tuple[int, str, int, int]] = []
         for node in nodes:
             i = index[node]
