@@ -39,7 +39,7 @@ The current portfolio contract is k=2, undirected, simple, unweighted graph part
 - `atof.error.v1` describes structured CLI failures.
 - Optional backend failures are reported rather than silently hidden.
 - Full results include provenance suitable for agent-to-agent handoff.
-- Unsupported directed, multigraph, and weighted product inputs are rejected.
+- Unsupported directed and multigraph product inputs are rejected; source weight attributes are ignored under the current unweighted objective.
 
 ## Claim discipline
 
