@@ -70,6 +70,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "limits": [
             "portfolio mode currently supports k=2",
             "current common objective is unweighted edge cut",
+            "weight attributes are accepted as input metadata but ignored by the current unweighted objective",
             "weighted and multiway portfolio optimization are outside the current MVP contract",
         ],
     }
