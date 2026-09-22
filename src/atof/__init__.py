@@ -1,5 +1,7 @@
 """Adaptive Topological Optimization Framework."""
 
+__version__ = "0.6.0"
+
 from .partition import balance_error, edge_cut, initialize_balanced_partition, weighted_cut
 from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfiler, TopologyProfile
@@ -21,7 +23,11 @@ from .generalization import (
     summarize_transfer_folds,
 )
 from .datasets import GraphDataset, standard_reference_corpus
-from .product import OptimizationResult, load_graph, optimize_graph, write_partition
+from .product import OptimizationResult, load_graph, optimize_graph, write_partition, write_partition_mapping
+from .portfolio import PortfolioCandidate, PortfolioOptimizationResult, optimize_portfolio
+from .backends import BackendInfo, inspect_backends
+from .ai import build_ai_manifest, build_doctor_report, compact_result
+from .provenance import graph_fingerprint, package_version, runtime_metadata
 from .statistics import (
     bootstrap_mean_ci,
     graph_metric_means,
@@ -39,11 +45,13 @@ __all__ = [
     "summarize_generalization", "summarize_routing_folds", "summarize_transfer_folds",
     "GraphDataset", "standard_reference_corpus",
     "SnapDataset", "download_snap_dataset", "snap_reference_corpus", "snap_scalability_corpus",
-    "OptimizationResult", "load_graph", "optimize_graph", "write_partition",
+    "OptimizationResult", "load_graph", "optimize_graph", "write_partition", "write_partition_mapping",
+    "PortfolioCandidate", "PortfolioOptimizationResult", "optimize_portfolio",
+    "BackendInfo", "inspect_backends",
+    "build_ai_manifest", "build_doctor_report", "compact_result",
+    "graph_fingerprint", "package_version", "runtime_metadata",
     "bootstrap_mean_ci", "graph_metric_means",
     "paired_graph_differences", "paired_summary",
     "balance_error", "edge_cut", "initialize_balanced_partition",
     "weighted_cut",
 ]
-
-__version__ = "0.6.0"

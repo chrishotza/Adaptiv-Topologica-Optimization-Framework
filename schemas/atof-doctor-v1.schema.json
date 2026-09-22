@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-doctor-v1.schema.json",
+  "title": "ATOF doctor report",
+  "type": "object",
+  "required": ["schema", "name", "version", "runtime", "backends", "input_formats", "portfolio_ready"],
+  "properties": {
+    "schema": {"const": "atof.doctor.v1"},
+    "name": {"const": "atof"},
+    "version": {"type": "string"},
+    "runtime": {"type": "object"},
+    "backends": {"type": "array"},
+    "input_formats": {"type": "array", "items": {"type": "string"}},
+    "portfolio_ready": {"type": "boolean"}
+  }
+}

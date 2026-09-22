@@ -78,9 +78,25 @@ python -m pip install -e ".[dev]"
 pytest
 ~~~
 
+## AI-first entry point
+
+ATOF has a dedicated machine-facing surface for AI agents and automation.
+
+~~~bash
+atof ai
+atof doctor
+atof solve graph.edgelist
+atof profile graph.edgelist --compact
+atof optimize graph.edgelist --engine portfolio --compact
+~~~
+
+Use the commands in this order for the shortest operational path: discover the contract, inspect available engines, solve, then request full evidence only when necessary. Results include machine-readable provenance such as a graph fingerprint and seed.
+
+See AGENTS.md, docs/ai-quickstart.md, and docs/claims.md.
+
 ## Product entry point
 
-The primary usable entry point is the `atof optimize` command. It profiles an edge-list graph, applies the transparent heuristic selector when `--variant auto` is used, runs balanced BLOC-RELOC refinement, and returns a machine-readable partition result. The selector is explicitly a heuristic baseline; the command does not claim global optimality. See `docs/product-quickstart.md`.
+The primary usable entry points are the `atof solve` portfolio shortcut and `atof optimize` for explicit engine and variant control. It profiles an edge-list graph, applies the transparent heuristic selector when `--variant auto` is used, runs balanced BLOC-RELOC refinement, and returns a machine-readable partition result. The selector is explicitly a heuristic baseline; the command does not claim global optimality. See `docs/product-quickstart.md`.
 
 ## Run the canonical benchmark
 
@@ -263,6 +279,24 @@ Historical experiments are therefore labeled as historical rather than silently 
 Routing is evaluated at the graph level so that repeated seeds from one graph do not become artificial independent training examples.
 
 Statistical uncertainty is also evaluated at graph level, preserving the unit on which topology generalization is actually claimed.
+
+## Current MVP evidence
+
+The current clean-environment benchmark uses Zachary's Karate Club graph (34 nodes, 78 edges), k=2, balanced unweighted edge cut.
+
+| Path | Edge cut | Balance error |
+|---|---:|---:|
+| ATOF core | 39 | 0.0 |
+| ATOF portfolio | 10 | 0.0 |
+| NetworkX Kernighan-Lin | 10 | 0.0 |
+| METIS | 10 | 0.0 |
+| KaHIP | 10 | 0.0 |
+
+On this run, the ATOF portfolio selected PyMetis. The result demonstrates the current composition/access value of the portfolio layer on this named benchmark; it is not a universal speed or optimality claim. See `docs/claims.md` and `docs/open-source-access-benchmark.md`.
+
+## Evidence and claims
+
+See docs/claims.md for the evidence boundary of current product claims. The open-source access benchmark is documented in docs/open-source-access-benchmark.md and keeps setup friction separate from algorithmic runtime.
 
 ## Status
 

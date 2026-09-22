@@ -32,6 +32,7 @@ def main() -> int:
             "steady_state_mean_seconds": sum(repeated) / len(repeated),
             "edge_cut": record["first_result"]["edge_cut"],
             "balance_error": record["first_result"]["balance_error"],
+            "selected_backend": record.get("selected_backend"),
             "nodes": record["graph"]["nodes"],
             "edges": record["graph"]["edges"],
         })

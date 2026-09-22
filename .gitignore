@@ -1,12 +1,41 @@
+# Python caches and test artifacts
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.tox/
+.nox/
 .venv/
 .env
+.coverage
+htmlcov/
+
+# Build and packaging artifacts
 dist/
 build/
 *.egg-info/
-.coverage
-htmlcov/
+
+# OS and editor noise
 .DS_Store
-results/generated/
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local temporary files
+.cache/
+tmp/
+temp/
+*.tmp
+*.temp
+*.log
+
+# Generated benchmark/output data
+results/
+benchmark/
+access-artifacts/
+data/synthetic/*.edgelist

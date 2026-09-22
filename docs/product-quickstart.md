@@ -1,6 +1,6 @@
 # Product quickstart
 
-ATOF can be used as a small command-line tool on a whitespace-delimited edge-list graph.
+ATOF is a small command-line and Python interface for graph profiling and two-way partitioning.
 
 ## Install
 
@@ -8,69 +8,92 @@ ATOF can be used as a small command-line tool on a whitespace-delimited edge-lis
 python -m pip install -e .
 ~~~
 
-## Profile a graph
+## AI-first path
+
+~~~bash
+atof ai
+atof doctor
+atof solve graph.edgelist
+~~~
+
+Use this order when an AI agent is driving the tool:
+
+1. discover the machine contract;
+2. inspect the environment and available backends;
+3. solve with the shortest portfolio path.
+
+## Profile
 
 ~~~bash
 atof profile graph.edgelist
+atof profile graph.edgelist --compact
 ~~~
 
-This returns graph size, topology descriptors, and the transparent heuristic regime recommendation as JSON.
+Full profile output includes topology descriptors and a transparent heuristic recommendation. Compact output keeps only graph size, recommendation fields, and graph fingerprint.
 
-## Optimize a graph
+## Optimize with BLOC-RELOC
 
 ~~~bash
-atof optimize graph.edgelist
+atof optimize graph.edgelist --engine bloc
 ~~~
 
-By default this:
+The default BLOC path uses the transparent heuristic selector and returns a machine-readable result with topology, move statistics, parameters, and provenance.
 
-1. profiles the graph;
-2. uses the transparent heuristic selector to choose between the public BLOC-RELOC baseline and affinity variants;
-3. runs a balanced 2-way partition for 25 iterations;
-4. returns the selected strategy, edge cut, balance, move statistics, and the partition mapping.
-
-For reproducible explicit runs:
+## Optimize with the open-source portfolio
 
 ~~~bash
-atof optimize graph.edgelist --k 2 --seed 42 --iterations 25 --variant baseline
+atof solve graph.edgelist
+atof solve graph.edgelist --partition-output partition.csv
+atof optimize graph.edgelist --engine portfolio --compact
+atof optimize graph.edgelist --engine portfolio
 ~~~
 
-Save a machine-readable result:
+Portfolio mode currently supports k=2 and an unweighted edge-cut objective. It evaluates BLOC-RELOC, NetworkX Kernighan-Lin, and optional PyMetis/KaHIP backends when installed. Selection is empirical: lowest observed edge cut, then balance, runtime, and name as tie-breakers.
+
+The same portfolio output can be exported downstream with `--partition-output`; JSON, CSV, and TSV mappings are supported.
+
+Optional backends:
 
 ~~~bash
-atof optimize graph.edgelist --output result.json
+python -m pip install -e ".[metis,kahip]"
 ~~~
 
-## Product contract
+Unavailable optional engines are reported rather than silently hidden.
 
-The `auto` mode is deliberately described as a **heuristic selector**. It is not presented as a universally validated optimizer or as proof that the chosen strategy is globally optimal.
-
-The optimization result is a balanced partition under ATOF's current BLOC-RELOC objective. The JSON result is intended to be easy to consume from another program or pipeline.
-
-Research benchmarks and validation workflows remain separate from this product entry point.
 ## Reuse from Python
 
 ~~~python
 import networkx as nx
-from atof import optimize_graph
+from atof import optimize_graph, optimize_portfolio
 
 graph = nx.path_graph(20)
-result = optimize_graph(graph, k=2, seed=42, iterations=25)
-print(result.partition_result.edge_cut)
-~~~
 
-The reusable API returns both the topology profile and the partition result. Call `result.to_dict(include_partition=False)` when the full node-to-block mapping is not needed.
+bloc = optimize_graph(graph, k=2, seed=42, iterations=25)
+portfolio = optimize_portfolio(graph, k=2, seed=42, iterations=25)
+
+print(bloc.to_dict(include_partition=False))
+print(portfolio.to_dict(include_partition=False))
+~~~
 
 ## Input formats
 
-The product loader supports `edgelist`, `graphml`, `gexf`, and `gml`. With `--format auto`, GraphML/GEXF/GML are detected from the file extension; other files default to edge-list parsing.
+The product loader supports edge-list, GraphML, GEXF, and GML. With format auto, GraphML/GEXF/GML are inferred from the file extension; other files default to edge-list parsing.
 
-## Export the partition
-
-Write the node-to-block mapping for downstream tools:
+## Export the BLOC partition
 
 ~~~bash
-atof optimize graph.edgelist --output result.json --partition-output partition.csv
+atof optimize graph.edgelist --engine bloc --output result.json --partition-output partition.csv
 ~~~
 
-Use `--partition-format json` or `--partition-format tsv` when needed. The exported file contains two fields: `node` and `block`.
+Use --partition-format json or --partition-format tsv when needed. The exported mapping contains node and block fields.
+
+## Contract and claims
+
+ATOF deliberately separates implementation capability from comparative interpretation:
+
+- portfolio is a practical composition layer, not a universal optimum claim;
+- topology regime labels are descriptive heuristics;
+- benchmark claims must name the graph, corpus, objective, and environment;
+- full results preserve enough provenance for reproducible downstream use.
+
+See docs/ai-quickstart.md, docs/open-source-access-benchmark.md, and docs/claims.md.

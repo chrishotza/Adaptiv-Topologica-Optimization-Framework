@@ -42,12 +42,13 @@ Open-source licensing proves the first. The measurements below test the second.
 
 The first comparison surface is intentionally modest:
 
-- ATOF product API / CLI;
+- ATOF BLOC product API / CLI;
+- ATOF portfolio mode over the same open backends;
 - NetworkX Kernighan-Lin as a Python-native baseline;
 - METIS;
 - KaHIP.
 
-The goal is not to declare a winner. It is to make the trade-offs visible.
+The goal is not to declare a winner. It is to make the trade-offs visible. The two ATOF rows are deliberately separated so a reader can distinguish the core product engine from the multi-backend portfolio layer.
 
 For each common graph and k=2 partition:
 

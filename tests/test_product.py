@@ -15,6 +15,8 @@ def test_optimize_graph_returns_balanced_product_result():
     assert payload["result"]["k"] == 2
     assert payload["result"]["balance_error"] == 0.0
     assert len(payload["result"]["partition"]) == 8
+    assert payload["parameters"]["seed"] == 42
+    assert payload["provenance"]["graph_fingerprint"]
 
 
 def test_load_graph_supports_graphml(tmp_path: Path):
@@ -55,3 +57,19 @@ def test_write_partition_exports_csv_json_and_tsv(tmp_path):
 
     tsv_path = write_partition(result, tmp_path / "partition.tsv")
     assert tsv_path.read_text(encoding="utf-8").splitlines()[0] == "node\tblock"
+
+
+def test_write_partition_mapping_supports_generic_portfolio_mapping(tmp_path):
+    from atof.product import write_partition_mapping
+
+    output = write_partition_mapping(
+        {"a": 1, "b": 0},
+        tmp_path / "portfolio.json",
+        format="json",
+    )
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload == [
+        {"node": "b", "block": 0},
+        {"node": "a", "block": 1},
+    ]

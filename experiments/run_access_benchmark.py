@@ -13,7 +13,11 @@ import networkx as nx
 
 
 TOOLS = {
-    "atof": {"packages": ["atof"], "description": "ATOF product API"},
+    "atof": {"packages": ["atof"], "description": "ATOF BLOC product path"},
+    "atof_portfolio": {
+        "packages": ["atof", "pymetis", "kahip"],
+        "description": "ATOF open-source portfolio path",
+    },
     "networkx": {"packages": ["networkx"], "description": "NetworkX Kernighan-Lin"},
     "metis": {"packages": ["networkx", "pymetis"], "description": "PyMetis multilevel bisection"},
     "kahip": {"packages": ["networkx", "kahip"], "description": "KaHIP KaFFPa Strong bisection"},
@@ -37,6 +41,22 @@ def partition_for(tool: str, graph: nx.Graph, seed: int) -> tuple[dict, int]:
             "partition": partition,
             "edge_cut": int(result.partition_result.edge_cut),
             "balance_error": float(result.partition_result.balance_error),
+        }
+        return payload, payload["edge_cut"]
+
+    if tool == "atof_portfolio":
+        from atof import optimize_portfolio
+
+        result = optimize_portfolio(graph, k=2, seed=seed, iterations=25)
+        partition = {
+            str(node): int(block)
+            for node, block in result.selected_partition.items()
+        }
+        payload = {
+            "partition": partition,
+            "edge_cut": int(result.selected_edge_cut),
+            "balance_error": float(result.selected_balance_error),
+            "selected_backend": result.selected_strategy,
         }
         return payload, payload["edge_cut"]
 
@@ -107,6 +127,7 @@ def partition_for(tool: str, graph: nx.Graph, seed: int) -> tuple[dict, int]:
 def package_version(tool: str) -> dict[str, str | None]:
     names = {
         "atof": ["atof"],
+        "atof_portfolio": ["atof", "pymetis", "kahip"],
         "networkx": ["networkx"],
         "metis": ["pymetis", "networkx"],
         "kahip": ["kahip", "networkx"],
@@ -156,6 +177,8 @@ def measure(tool: str) -> dict:
         "repeated_partition_seconds": repeated_partition_seconds,
         "first_result": first_result,
         "repeated_results": repeated_results,
+        "selected_backend": first_result.get("selected_backend"),
+
         "determinism_check": repeated_results[0] == partition_for(tool, graph, seed)[0],
         "setup_seconds": float(os.environ.get("ATOF_SETUP_SECONDS", "nan")),
     }

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-ai-v1.schema.json",
+  "title": "ATOF AI manifest",
+  "type": "object",
+  "required": ["schema", "name", "version", "purpose", "commands", "capabilities", "output", "claim_policy", "limits"],
+  "properties": {
+    "schema": {"const": "atof.ai.v1"},
+    "name": {"const": "atof"},
+    "version": {"type": "string"},
+    "purpose": {"type": "string"},
+    "commands": {
+      "type": "object",
+      "required": ["ai", "doctor", "solve", "profile", "optimize", "version", "short_flags"],
+      "properties": {
+        "ai": {"type": "string"},
+        "doctor": {"type": "string"},
+        "solve": {"type": "string"},
+        "profile": {"type": "string"},
+        "optimize": {"type": "string"},
+        "version": {"type": "string"},
+        "short_flags": {
+          "type": "object",
+          "required": ["compact", "engine", "seed", "iterations", "format", "output", "partition_output", "full"],
+          "properties": {
+            "compact": {"const": "-c"},
+            "engine": {"const": "-e"},
+            "seed": {"const": "-s"},
+            "iterations": {"const": "-i"},
+            "format": {"const": "-f"},
+            "output": {"const": "-o"},
+            "partition_output": {"const": "-p"},
+            "full": {"const": "-F"}
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "capabilities": {"type": "object"},
+    "output": {"type": "object"},
+    "claim_policy": {"type": "object"},
+    "limits": {"type": "array", "items": {"type": "string"}}
+  }
+}
