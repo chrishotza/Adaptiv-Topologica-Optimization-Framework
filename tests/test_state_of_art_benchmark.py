@@ -60,6 +60,25 @@ def test_graph_summary_normalizes_quality_and_runtime() -> None:
     assert summary["strategies"]["b"]["runtime_ratio_to_graph_median"] == pytest.approx(0.5)
 
 
+def test_complete_seed_set_is_marked_matched_for_aggregation() -> None:
+    rows = [
+        *[
+            {"strategy": "a", "status": "ok", "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 2.0}
+            for _ in range(3)
+        ],
+        *[
+            {"strategy": "b", "status": "ok", "edge_cut": 12, "balance_error": 0.0, "runtime_seconds": 1.0}
+            for _ in range(3)
+        ],
+    ]
+    summary = _summarize_graph(rows, ("a", "b"), expected_runs=3)
+    assert summary["matched"] is True
+    assert summary["expected_runs"] == 3
+    aggregate = _aggregate_graph_summaries({"g1": summary}, ("a", "b"))
+    assert aggregate["a"]["graphs_evaluated"] == 1
+    assert aggregate["b"]["graphs_evaluated"] == 1
+
+
 def test_incomplete_seed_set_is_not_matched() -> None:
     rows = [
         *[
