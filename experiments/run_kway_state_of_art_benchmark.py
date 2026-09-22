@@ -170,10 +170,10 @@ def _run_kaminpar(
     started = time.perf_counter()
     loaded = _kaminpar_graph(graph, graph_id)
     kaminpar.reseed(int(seed))
+    max_block_weight = (graph.number_of_nodes() + k - 1) // k
     partition = _kaminpar_instance(context_name).compute_partition(
         loaded,
-        k=k,
-        eps=_kaminpar_eps(graph, k),
+        max_block_weights=[max_block_weight] * k,
     )
     partition_map = {
         node: int(block)
@@ -186,7 +186,7 @@ def _run_kaminpar(
         "metadata": {
             "context": context_name,
             "seed_control": "kaminpar.reseed",
-            "epsilon": _kaminpar_eps(graph, k),
+            "max_block_weight": (graph.number_of_nodes() + k - 1) // k,
             "graph_load_in_timing": False,
             "backend_init_in_timing": False,
         },
