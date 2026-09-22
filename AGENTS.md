@@ -13,6 +13,18 @@ ATOF is an open-source graph optimization interface with a stable machine contra
 7. Preserve `--seed` for reproducible experiments.
 8. Use full JSON when topology, provenance, candidate detail, or partition mapping is required.
 
+## Contract hierarchy
+
+For machine-facing work, use this order:
+
+1. `atof ai` — runtime capability and limit manifest;
+2. `schemas/` — stable machine-readable response contracts;
+3. `AGENTS.md` — operating rules for agents;
+4. product docs — human-readable operational detail;
+5. `research/` and `experiments/` — evidence/history, not product capability guarantees.
+
+Do not infer current capabilities from historical research branches or frozen experiment results.
+
 ## Canonical commands
 
 ```bash
