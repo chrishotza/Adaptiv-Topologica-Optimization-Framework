@@ -32,7 +32,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 "format": "-f",
                 "output": "-o",
                 "partition_output": "-p",
-                "full": "-F"
+                "full": "-F",
             },
         },
         "input": {
@@ -40,13 +40,27 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "default_format": "auto",
             "default_seed": 42,
             "stdin": {"path": "-", "formats": ["edgelist", "json"]},
-            "json": {"nodes": "optional array of node IDs", "edges": "array of 2-item node-ID arrays"},
+            "json": {
+                "nodes": "optional array of node IDs",
+                "edges": "array of 2-item node-ID arrays",
+            },
         },
         "capabilities": {
             "engine": {
                 "k": ">=2",
-                "objective": "minimize unweighted edge cut subject to balanced k-way partition",
-                "backend": "BLOC-RELOC"
+                "objective": (
+                    "reports unweighted edge_cut; baseline minimizes unweighted "
+                    "edge_cut, while affinity minimizes a degree-affinity weighted surrogate"
+                ),
+                "backend": "BLOC-RELOC",
+                "variants": {
+                    "baseline": "direct unweighted edge-cut minimization",
+                    "affinity": (
+                        "degree-affinity weighted surrogate; final edge_cut remains "
+                        "the unweighted reported metric"
+                    ),
+                    "auto": "heuristically selects baseline or affinity",
+                },
             },
             "portfolio": {
                 "k": 2,
@@ -59,8 +73,18 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 ],
                 "selection": "empirical minimum observed edge_cut; ties prefer balance, runtime, name",
             },
-            "exports": ["JSON result", "node-to-block JSON", "node-to-block CSV", "node-to-block TSV"],
-            "provenance": ["graph SHA-256 fingerprint", "seed", "parameters", "backend availability"],
+            "exports": [
+                "JSON result",
+                "node-to-block JSON",
+                "node-to-block CSV",
+                "node-to-block TSV",
+            ],
+            "provenance": [
+                "graph SHA-256 fingerprint",
+                "seed",
+                "parameters",
+                "backend availability",
+            ],
         },
         "output": {
             "default": "JSON",
@@ -77,8 +101,9 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         },
         "limits": [
             "portfolio mode currently supports k=2",
-            "current common objective is unweighted edge cut",
-            "weight attributes are accepted as input metadata but ignored by the current unweighted objective",
+            "current common portfolio objective is unweighted edge cut",
+            "Engine affinity uses a degree-affinity weighted surrogate and reports unweighted edge_cut",
+            "weight attributes are accepted as input metadata but ignored by the current unweighted graph model",
         ],
     }
     return manifest if full else {
