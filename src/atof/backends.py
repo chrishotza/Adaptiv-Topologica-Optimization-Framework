@@ -277,8 +277,13 @@ def _run_native_isolated(
                 f"{strategy} isolated worker exited {completed.returncode}: {detail}"
             )
 
+        lines = [line.strip() for line in completed.stdout.splitlines() if line.strip()]
+        if not lines:
+            raise RuntimeError(
+                f"{strategy} isolated worker returned no JSON payload"
+            )
         try:
-            payload = json.loads(completed.stdout)
+            payload = json.loads(lines[-1])
         except json.JSONDecodeError as exc:
             raise RuntimeError(
                 f"{strategy} isolated worker returned invalid JSON"
