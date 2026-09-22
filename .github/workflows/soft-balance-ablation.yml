@@ -1,0 +1,51 @@
+name: Soft balance ablation
+
+on:
+  pull_request:
+    paths:
+      - "src/atof/soft_balance.py"
+      - "src/atof/strategies.py"
+      - "experiments/generate_suite.py"
+      - "experiments/run_soft_balance_ablation.py"
+      - "tests/test_soft_balance.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ablation:
+    name: Compare strict and soft balance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Run soft balance ablation
+        run: python -m experiments.run_soft_balance_ablation
+      - name: Validate ablation
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/soft-balance-ablation/latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["surface"] == "atof.soft_balance.SoftBalanceReloc"
+          assert payload["k"] == 2
+          assert len(payload["rows"]) == 168
+          assert len(payload["summaries"]) == 4
+          assert all(item["comparisons"] == 42 for item in payload["summaries"])
+          assert all(row["soft_balance_error"] == 0.0 for row in payload["rows"])
+          PY
+      - name: Upload ablation artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: soft-balance-ablation
+          path: results/soft-balance-ablation/latest.json
