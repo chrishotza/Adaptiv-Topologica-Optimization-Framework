@@ -437,12 +437,20 @@ def _aggregate_graph_summaries(
             for data in graph_summaries.values()
             if strategy in data["strategies"]
         ]
+        excess = [
+            data["strategies"][strategy]["edge_cut"]
+            - data["best_edge_cut"]
+            for data in graph_summaries.values()
+            if strategy in data["strategies"] and data.get("best_edge_cut") is not None
+        ]
         summary[strategy] = {
             "graphs_evaluated": len(values),
             "mean_relative_quality_gap": _mean(values),
             "mean_relative_quality_gap_percent": 100.0 * _mean(values),
             "median_relative_quality_gap": statistics.median(values) if values else 0.0,
             "median_relative_quality_gap_percent": 100.0 * (statistics.median(values) if values else 0.0),
+            "mean_excess_edge_cut": _mean(excess),
+            "median_excess_edge_cut": statistics.median(excess) if excess else 0.0,
             "mean_runtime_ratio_to_graph_median": _mean(runtimes),
         }
     return summary
