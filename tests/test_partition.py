@@ -1,6 +1,11 @@
 import networkx as nx
 import pytest
-from atof.partition import balance_error, edge_cut, initialize_balanced_partition
+from atof.partition import (
+    balance_error,
+    edge_cut,
+    exact_balanced_block_weights,
+    initialize_balanced_partition,
+)
 from atof.strategies import BLOCReloc
 
 def test_balanced_initialization():
@@ -57,3 +62,15 @@ def test_bloc_swap_delta_matches_full_objective():
             after = bloc._objective(partition)
             partition[u], partition[v] = bu, bv
             assert abs((after - before) - delta) < 1e-12
+
+
+def test_exact_balanced_block_weights():
+    assert exact_balanced_block_weights(10, 3) == [4, 3, 3]
+    assert exact_balanced_block_weights(21, 4) == [6, 5, 5, 5]
+    assert exact_balanced_block_weights(20, 4) == [5, 5, 5, 5]
+
+
+@pytest.mark.parametrize("n,k", [(0, 1), (2, 3)])
+def test_exact_balanced_block_weights_rejects_invalid_inputs(n, k):
+    with pytest.raises(ValueError):
+        exact_balanced_block_weights(n, k)
