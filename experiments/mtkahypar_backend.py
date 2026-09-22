@@ -101,10 +101,28 @@ def run_mtkahypar(
         partition_map[u] != partition_map[v]
         for u, v in graph.edges()
     )
+    n = graph.number_of_nodes()
+    lower = n // k
+    upper = (n + k - 1) // k
+    counts = [0] * k
+    for block in partition:
+        if block < 0 or block >= k:
+            raise ValueError("Mt-KaHyPar returned an invalid block label")
+        counts[block] += 1
+    if any(count < lower or count > upper for count in counts):
+        raise ValueError(
+            "Mt-KaHyPar returned a partition outside the exact floor/ceil "
+            "balance contract"
+        )
+    target = n / k
+    exact_balance = max(
+        abs(lower - target),
+        abs(upper - target),
+    ) / target
 
     return {
         "edge_cut": int(edge_cut),
-        "balance_error": float(partitioned.imbalance(context)),
+        "balance_error": exact_balance,
         "runtime_seconds": runtime,
         "metadata": {
             "preset": preset,
