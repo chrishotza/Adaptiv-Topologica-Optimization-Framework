@@ -38,6 +38,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "formats": ["edgelist", "graphml", "gexf", "gml"],
             "default_format": "auto",
             "default_seed": 42,
+            "stdin": {"path": "-", "formats": ["edgelist"]},
         },
         "capabilities": {
             "portfolio": {
@@ -80,6 +81,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "version": manifest["version"],
         "purpose": manifest["purpose"],
         "commands": manifest["commands"],
+        "input": manifest["input"],
         "capabilities": manifest["capabilities"],
         "output": manifest["output"],
         "claim_policy": manifest["claim_policy"],

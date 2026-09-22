@@ -1,3 +1,4 @@
+import io
 import json
 
 from atof.cli import main
@@ -18,6 +19,20 @@ def test_cli_profile(tmp_path, capsys):
 def test_cli_version(capsys):
     assert main(["--version"]) == 0
     assert capsys.readouterr().out.strip() == "0.6.0"
+
+
+def test_cli_solve_from_stdin(monkeypatch, capsys):
+    monkeypatch.setattr(
+        "sys.stdin",
+        io.StringIO("0 1\n1 2\n2 3\n3 0\n"),
+    )
+
+    assert main(["solve", "-", "--iterations", "2"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["mode"] == "portfolio"
+    assert payload["graph"] == {"nodes": 4, "edges": 4}
+    assert payload["result"]["k"] == 2
 
 
 def test_cli_solve_emits_compact_portfolio_result(tmp_path, capsys):

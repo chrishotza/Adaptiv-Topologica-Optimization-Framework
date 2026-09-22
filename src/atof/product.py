@@ -3,7 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 import csv
 import json
+from io import StringIO
 from pathlib import Path
+import sys
+
 import networkx as nx
 
 from .provenance import graph_fingerprint
@@ -106,7 +109,17 @@ class OptimizationResult:
 
 
 def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
-    """Load an unweighted graph from a supported file format."""
+    """Load an unweighted graph from a supported file format.
+
+    Use "-" as the path to read an edge-list graph from stdin.
+    """
+    if str(path) == "-":
+        if format not in {"auto", "edgelist"}:
+            raise ValueError("stdin input currently supports edge-list format only")
+        graph = nx.read_edgelist(StringIO(sys.stdin.read()), data=False)
+        _validate_product_graph(graph)
+        return graph
+
     source = Path(path)
     if not source.exists():
         raise FileNotFoundError(source)

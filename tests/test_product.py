@@ -30,6 +30,22 @@ def test_load_graph_supports_graphml(tmp_path: Path):
     assert loaded.number_of_edges() == 4
 
 
+def test_load_graph_from_stdin(monkeypatch):
+    import io
+    import sys
+
+    monkeypatch.setattr(sys, "stdin", io.StringIO("a b\nb c\nc d\n"))
+    loaded = load_graph("-")
+
+    assert loaded.number_of_nodes() == 4
+    assert loaded.number_of_edges() == 3
+
+
+def test_load_graph_rejects_non_edgelist_stdin():
+    with pytest.raises(ValueError, match="edge-list"):
+        load_graph("-", format="graphml")
+
+
 def test_load_graph_rejects_unknown_format(tmp_path: Path):
     path = tmp_path / "graph.data"
     path.write_text("0 1\n", encoding="utf-8")

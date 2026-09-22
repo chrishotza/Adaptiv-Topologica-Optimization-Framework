@@ -27,7 +27,15 @@ atof solve graph.edgelist --partition-output partition.csv
 
 This is the shortest practical path: portfolio optimization, k=2, compact JSON output, default seed 42.
 
-## 4. Inspect a graph
+## 4. Pipe a graph directly
+
+~~~bash
+printf "a b\nb c\nc d\n" | atof solve -
+~~~
+
+Use `-` when the graph is already available to a shell pipeline or AI-controlled process. stdin currently accepts edge-list input; use a file path for GraphML, GEXF, or GML.
+
+## 5. Inspect a graph
 
 ~~~bash
 atof profile graph.edgelist --compact

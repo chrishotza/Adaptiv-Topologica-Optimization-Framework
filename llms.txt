@@ -7,6 +7,7 @@
 - `atof ai` — stable AI capability contract
 - `atof doctor` — runtime and backend inspection
 - `atof solve examples/demo.edgelist` — shortest practical portfolio path
+- `cat graph.edgelist | atof solve -` — solve edge-list data from stdin
 - `atof profile <graph> --compact` — low-token topology summary
 - `atof optimize <graph> --engine portfolio --compact` — explicit portfolio path
 - `AGENTS.md` — agent operating rules
