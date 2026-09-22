@@ -111,6 +111,14 @@ The engine is ATOF's own product path:
 
 The heuristic regime selector is a **descriptive baseline**, not a universal optimizer.
 
+Engine objective semantics are variant-dependent:
+
+- **baseline** directly minimizes unweighted edge cut;
+- **affinity** minimizes a degree-affinity weighted surrogate while reporting unweighted edge cut;
+- **auto** uses the regime selector to choose baseline or affinity.
+
+Machine consumers should use `objective.optimization_metric` to identify the scalar actually optimized; `result.edge_cut` is the common unweighted reported metric.
+
 ### ATOF Portfolio
 
 The portfolio is the composition layer:
@@ -190,15 +198,16 @@ See [docs/claims.md](docs/claims.md) and [docs/open-source-access-benchmark.md](
 | Area | Current contract |
 |---|---|
 | Graph model | undirected, simple |
-| Objective | balanced unweighted edge cut |
+| Portfolio objective | balanced unweighted edge cut |
 | Engine partitioning | `k>=2` |
+| Engine objective | baseline: unweighted edge cut; affinity: degree-affinity weighted surrogate; both report unweighted edge cut |
 | Portfolio partitioning | 2-way (`k=2`) |
 | Input | edge-list, JSON, GraphML, GEXF, GML |
 | Output | JSON + JSON/CSV/TSV partition mapping |
 | Optional engines | METIS / KaHIP |
 | Evidence | reproducible provenance + benchmark-qualified claims |
 
-Weighted optimization remains outside the current product contract. Portfolio mode remains `k=2`; ATOF Engine supports balanced `k>=2` unweighted partitioning.
+The public graph model remains unweighted: source edge `weight` attributes are accepted as metadata but ignored. Portfolio mode remains `k=2`; ATOF Engine supports balanced `k>=2` unweighted partitioning with variant-specific optimization semantics.
 
 ## Repository map
 
