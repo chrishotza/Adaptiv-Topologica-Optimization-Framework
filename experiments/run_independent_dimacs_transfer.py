@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import platform
 import subprocess
@@ -8,18 +9,10 @@ import time
 from collections import Counter
 from pathlib import Path
 
-import networkx as nx
-
-from atof.dimacs import download_dimacs_dataset, dimacs_independent_corpus
-from experiments.run_cross_corpus_transfer import _load_corpora
-from experiments.run_kahip_validation import STRATEGY as KAHIP_STRATEGY
-from experiments.run_metis_validation import STRATEGY as METIS_STRATEGY
 from experiments.run_router_confirmatory import LOCKED_CONFIGS
-from experiments.run_router_kahip_confirmatory import _benchmark_graph_with_kahip
 from experiments.run_router_scaling_ablation import _run_config
 
 
-EXPECTED_STRATEGY_COUNT = 9
 EXPECTED_TOTAL_GRAPHS = 26
 EXPECTED_CORPORA = {
     "development",
@@ -27,6 +20,13 @@ EXPECTED_CORPORA = {
     "snap",
     "snap_scalability",
     "dimacs",
+}
+EXPECTED_COUNTS = {
+    "development": 7,
+    "external": 4,
+    "snap": 6,
+    "snap_scalability": 3,
+    "dimacs": 6,
 }
 
 
@@ -41,74 +41,92 @@ def _commit_sha() -> str | None:
         return None
 
 
-def _load_independent_corpora(*, cache_dir: str | Path | None = None):
-    corpora, provenance = _load_corpora(cache_dir=cache_dir)
-    corpora["dimacs"] = {}
-    provenance["dimacs"] = {}
+def _load_blocks(block_dir: str | Path) -> dict[str, dict]:
+    root = Path(block_dir)
+    files = sorted(root.glob("*.json"))
+    if not files:
+        raise FileNotFoundError(f"no benchmark blocks found in {root}")
 
-    for dataset in dimacs_independent_corpus():
-        graph, metadata = download_dimacs_dataset(
-            dataset,
-            cache_dir=cache_dir,
+    blocks: dict[str, dict] = {}
+    for path in files:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        block = payload["block"]
+        if block in blocks:
+            raise AssertionError(f"duplicate benchmark block: {block}")
+        blocks[block] = payload
+    return blocks
+
+
+def _assemble_records(blocks: dict[str, dict]):
+    records: dict[str, dict[str, dict]] = {}
+    provenance: dict[str, dict[str, dict]] = {}
+
+    signatures = set()
+    for block_name, payload in blocks.items():
+        signature = json.dumps(
+            payload["protocol_signature"],
+            sort_keys=True,
+            separators=(",", ":"),
         )
-        corpora["dimacs"][dataset.name] = graph
-        provenance["dimacs"][dataset.name] = metadata
+        signatures.add(signature)
 
-    return corpora, provenance
+        corpus = payload["corpus"]
+        records.setdefault(corpus, {})
+        provenance.setdefault(corpus, {})
+
+        for graph_name, record in payload["records"].items():
+            if graph_name in records[corpus]:
+                raise AssertionError(
+                    f"duplicate graph record {corpus}/{graph_name}"
+                )
+            records[corpus][graph_name] = record
+            provenance[corpus][graph_name] = payload["provenance"][graph_name]
+
+    if len(signatures) != 1:
+        raise AssertionError("benchmark blocks have incompatible protocol signatures")
+
+    return records, provenance, json.loads(next(iter(signatures)))
 
 
-def run_independent_transfer(
+def aggregate_blocks(
+    block_dir: str | Path,
     output_path: str | Path = (
         "results/generalization/independent_dimacs_transfer.json"
     ),
-    *,
-    k: int = 2,
-    seeds: tuple[int, ...] = (42, 101, 2024),
-    iterations: int = 25,
-    cache_dir: str | Path | None = None,
 ) -> dict:
-    if k != 2:
-        raise ValueError("The independent DIMACS transfer protocol requires k=2.")
-    if not seeds:
-        raise ValueError("seeds must not be empty")
-
     started = time.perf_counter()
-    corpora, provenance = _load_independent_corpora(cache_dir=cache_dir)
+    blocks = _load_blocks(block_dir)
 
-    records = {
-        corpus: {
-            name: _benchmark_graph_with_kahip(
-                graph,
-                corpus=corpus,
-                name=name,
-                seeds=seeds,
-                iterations=iterations,
-            )
-            for name, graph in graphs.items()
-        }
-        for corpus, graphs in corpora.items()
-    }
-
-    first_record = next(
-        record for graphs in records.values() for record in graphs.values()
-    )
-    strategies = set(first_record["strategy_means"])
-    if len(strategies) != EXPECTED_STRATEGY_COUNT:
+    records, provenance, signature = _assemble_records(blocks)
+    if set(records) != EXPECTED_CORPORA:
         raise AssertionError(
-            f"expected 9 strategies, got {len(strategies)}"
+            f"unexpected corpora: {sorted(records)}"
         )
-    if METIS_STRATEGY not in strategies:
-        raise AssertionError("METIS missing from candidate set")
-    if KAHIP_STRATEGY not in strategies:
-        raise AssertionError("KaHIP missing from candidate set")
 
-    total_graphs = sum(len(graphs) for graphs in records.values())
+    observed_counts = {corpus: len(graphs) for corpus, graphs in records.items()}
+    if observed_counts != EXPECTED_COUNTS:
+        raise AssertionError(
+            f"unexpected corpus graph counts: {observed_counts!r}; "
+            f"expected {EXPECTED_COUNTS!r}"
+        )
+
+    total_graphs = sum(observed_counts.values())
     if total_graphs != EXPECTED_TOTAL_GRAPHS:
         raise AssertionError(
             f"expected {EXPECTED_TOTAL_GRAPHS} graphs, got {total_graphs}"
         )
-    if set(records) != EXPECTED_CORPORA:
-        raise AssertionError(f"unexpected corpora: {sorted(records)}")
+
+    strategies = signature["candidate_strategies"]
+    if signature["candidate_strategy_count"] != 9:
+        raise AssertionError(
+            f"expected 9 strategies, got {signature['candidate_strategy_count']}"
+        )
+
+    for record in [
+        record for graphs in records.values() for record in graphs.values()
+    ]:
+        if sorted(record["strategy_means"]) != sorted(strategies):
+            raise AssertionError("inconsistent strategy set across graph blocks")
 
     configs = {
         name: _run_config(records, *config)
@@ -117,43 +135,47 @@ def run_independent_transfer(
 
     oracle_distribution = {
         corpus: dict(
-            Counter(
-                record["oracle_strategy"]
-                for record in graphs.values()
-            )
+            Counter(record["oracle_strategy"] for record in graphs.values())
         )
         for corpus, graphs in records.items()
     }
-
-    independent = records["dimacs"]
     dimacs_oracle = dict(
-        Counter(record["oracle_strategy"] for record in independent.values())
+        Counter(record["oracle_strategy"] for record in records["dimacs"].values())
     )
 
     payload = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "protocol": (
-            "five-corpus leave-one-corpus-out transfer with the prior SNAP scalability fold "
-            "plus a prespecified independent DIMACS clustering testbed"
+            "five-corpus leave-one-corpus-out transfer assembled from reusable "
+            "graph-local benchmark blocks"
         ),
         "unit_of_analysis": "held-out graph",
         "commit_sha": _commit_sha(),
         "python": sys.version,
         "platform": platform.platform(),
-        "networkx": nx.__version__,
-        "k": k,
-        "seeds": list(seeds),
-        "iterations": iterations,
-        "candidate_strategy_count": EXPECTED_STRATEGY_COUNT,
-        "candidate_strategies": sorted(strategies),
+        "total_graphs": total_graphs,
+        "candidate_strategy_count": signature["candidate_strategy_count"],
+        "candidate_strategies": strategies,
+        "k": signature["k"],
+        "seeds": signature["seeds"],
+        "iterations": signature["iterations"],
+        "blocks": {
+            name: {
+                "corpus": block["corpus"],
+                "graphs": block["graph_names"],
+                "graph_count": block["graph_count"],
+                "block_commit_sha": block.get("commit_sha"),
+                "runtime_seconds": block.get("runtime_seconds"),
+            }
+            for name, block in blocks.items()
+        },
         "corpora": {
             corpus: {
                 "graphs": len(graphs),
                 "provenance": provenance[corpus],
             }
-            for corpus, graphs in corpora.items()
+            for corpus, graphs in records.items()
         },
-        "total_graphs": total_graphs,
         "oracle_distribution": oracle_distribution,
         "dimacs_oracle_distribution": dimacs_oracle,
         "locked_configs": {
@@ -166,21 +188,19 @@ def run_independent_transfer(
         },
         "configs": configs,
         "protocol_controls": [
+            "Graph-local partitioning and topology profiling are executed once per benchmark block.",
+            "Downstream router analyses consume frozen block JSON and never recompute graph strategies or topology profiles.",
             "The candidate strategy set remains exactly the nine-strategy METIS+KaHIP-expanded set.",
-            "The three locked routing configurations remain unchanged from the prior confirmatory protocol.",
+            "The three locked routing configurations remain unchanged.",
             "Seeds remain 42, 101, and 2024; k=2; BLOC-RELOC refinement iterations remain 25.",
-            "The DIMACS subset was prespecified by application diversity and availability from the 10th DIMACS clustering testbed; no graph was selected using its ATOF oracle outcome.",
-            "The SNAP scalability corpus remains a distinct fourth fold; the DIMACS corpus is added as a complete fifth fold.",
-            "For each held-out corpus, graph-level oracle labels are learned only from the other four corpora.",
-            "The majority control is recomputed per held-out corpus.",
-            "No feature, scaler, metric, or router hyperparameter is tuned on the independent run.",
-            "This experiment is a validation of transfer and does not modify the public/default router.",
+            "The DIMACS subset is prespecified by application diversity and availability, not by ATOF oracle outcome.",
+            "The SNAP scalability corpus remains a distinct fourth fold and DIMACS is the fifth fold.",
+            "For each held-out corpus, oracle labels and majority controls are learned only from the other four corpora.",
+            "No feature, scaler, metric, or router hyperparameter is tuned during aggregation.",
         ],
-        "hypothesis": (
-            "The strongest 20-graph scalability-fold signal should transfer to "
-            "an independent real-world partitioning corpus when topology "
-            "features identify graphs for which the fixed majority strategy "
-            "is not the lowest-regret choice."
+        "reusability": (
+            "The block JSON files are reusable benchmark state. Future routing, "
+            "statistical, and sensitivity analyses should consume the blocks directly."
         ),
         "runtime_seconds": time.perf_counter() - started,
     }
@@ -191,8 +211,12 @@ def run_independent_transfer(
     return payload
 
 
-if __name__ == "__main__":
-    result = run_independent_transfer()
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--blocks-dir", required=True)
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args()
+    result = aggregate_blocks(args.blocks_dir, args.output)
     print(
         json.dumps(
             {
@@ -202,3 +226,7 @@ if __name__ == "__main__":
             indent=2,
         )
     )
+
+
+if __name__ == "__main__":
+    main()
