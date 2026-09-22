@@ -6,6 +6,7 @@ from pathlib import Path
 
 from . import __version__
 from .product import load_graph, optimize_graph
+from .portfolio import optimize_portfolio
 from .topology import TopologyProfiler
 from .selector import HeuristicRegimeSelector
 
@@ -58,10 +59,16 @@ def main(argv: list[str] | None = None) -> int:
     optimize_parser.add_argument("--seed", type=int, default=42)
     optimize_parser.add_argument("--iterations", type=int, default=25)
     optimize_parser.add_argument(
+        "--engine",
+        choices=("bloc", "portfolio"),
+        default="bloc",
+        help="portfolio compares available open-source backends under one contract",
+    )
+    optimize_parser.add_argument(
         "--variant",
         choices=("auto", "baseline", "affinity"),
         default="auto",
-        help="auto uses the transparent heuristic selector",
+        help="BLOC-RELOC variant when --engine bloc is used",
     )
     optimize_parser.add_argument(
         "--format",
@@ -86,13 +93,22 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "optimize":
         graph = load_graph(args.path, format=args.format)
-        payload = optimize_graph(
-            graph,
-            k=args.k,
-            seed=args.seed,
-            iterations=args.iterations,
-            variant=args.variant,
-        ).to_dict()
+        if args.engine == "portfolio":
+            result = optimize_portfolio(
+                graph,
+                k=args.k,
+                seed=args.seed,
+                iterations=args.iterations,
+            )
+        else:
+            result = optimize_graph(
+                graph,
+                k=args.k,
+                seed=args.seed,
+                iterations=args.iterations,
+                variant=args.variant,
+            )
+        payload = result.to_dict()
         payload["file"] = str(args.path)
         payload["version"] = __version__
         encoded = json.dumps(payload, indent=2, sort_keys=True)
