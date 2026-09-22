@@ -105,6 +105,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "current common portfolio objective is unweighted edge cut",
             "Engine affinity uses a degree-affinity weighted surrogate and reports unweighted edge_cut",
             "weight attributes are accepted as input metadata but ignored by the current unweighted graph model",
+            "Machine-readable partition outputs canonicalize node IDs with str(); node IDs that collide after string conversion are rejected.",
         ],
     }
     return manifest if full else {
