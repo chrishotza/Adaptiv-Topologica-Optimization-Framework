@@ -318,6 +318,22 @@ def _strategy_run(
     raise ValueError(f"unknown strategy: {strategy}")
 
 
+def _expected_balance_error(graph, k: int) -> float:
+    n = graph.number_of_nodes()
+    if n == 0:
+        return 0.0
+    lower = n // k
+    upper = (n + k - 1) // k
+    target = n / k
+    return max(abs(lower - target), abs(upper - target)) / target
+
+
+def _validate_exact_balance_error(graph, k: int, balance_error: float) -> bool:
+    return abs(
+        balance_error - _expected_balance_error(graph, k)
+    ) <= 1e-12
+
+
 def _summarize_graph(
     rows: list[dict],
     strategies: tuple[str, ...],
@@ -448,7 +464,18 @@ def run_kway_state_of_art_benchmark(
                                     k=k,
                                 )
                                 row.update(result)
-                                row["status"] = "ok"
+                                if _validate_exact_balance_error(
+                                    graph,
+                                    k,
+                                    float(result["balance_error"]),
+                                ):
+                                    row["status"] = "ok"
+                                else:
+                                    row["status"] = "error"
+                                    row["error"] = (
+                                        "backend returned a partition outside "
+                                        "the exact floor/ceil balance contract"
+                                    )
                             except Exception as exc:
                                 row.update({
                                     "status": "error",
