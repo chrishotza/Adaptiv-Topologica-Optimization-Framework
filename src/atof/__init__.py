@@ -1,5 +1,7 @@
 """Adaptive Topological Optimization Framework."""
 
+__version__ = "0.6.0"
+
 from .partition import balance_error, edge_cut, initialize_balanced_partition, weighted_cut
 from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfiler, TopologyProfile
@@ -49,5 +51,3 @@ __all__ = [
     "balance_error", "edge_cut", "initialize_balanced_partition",
     "weighted_cut",
 ]
-
-__version__ = "0.6.0"
