@@ -24,6 +24,7 @@ from .generalization import (
 )
 from .datasets import GraphDataset, standard_reference_corpus
 from .product import OptimizationResult, load_graph, optimize_graph, write_partition, write_partition_mapping
+from .comparison import compare_graph, compact_comparison
 from .portfolio import PortfolioCandidate, PortfolioOptimizationResult, optimize_portfolio
 from .backends import BackendInfo, inspect_backends
 from .ai import build_ai_manifest, build_doctor_report, compact_result
@@ -46,6 +47,7 @@ __all__ = [
     "GraphDataset", "standard_reference_corpus",
     "SnapDataset", "download_snap_dataset", "snap_reference_corpus", "snap_scalability_corpus",
     "OptimizationResult", "load_graph", "optimize_graph", "write_partition", "write_partition_mapping",
+    "compare_graph", "compact_comparison",
     "PortfolioCandidate", "PortfolioOptimizationResult", "optimize_portfolio",
     "BackendInfo", "inspect_backends",
     "build_ai_manifest", "build_doctor_report", "compact_result",
