@@ -23,6 +23,11 @@ Research tracks extend this surface toward:
 
 ## Reproducible gates
 
+### Fresh solver-router transfer
+
+The k=2 benchmark now persists graph-level topology metadata so the same fresh 11-strategy artifact can be analyzed without rerunning the solvers. A leave-one-corpus-out router evaluates 1-NN and centroid models using training-only feature scaling, against majority and training-corpus global-mean controls. The analysis also reports graph-normalized runtime ratios and joint quality/runtime dominance. This keeps solver measurement and routing evaluation separate while using the identical frozen benchmark artifact.
+
+
 ### k=2
 
 The locked comparison uses:
