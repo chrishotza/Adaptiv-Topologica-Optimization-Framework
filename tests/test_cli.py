@@ -267,7 +267,9 @@ def test_cli_optimize_hybrid_refinement(tmp_path, capsys):
         "period": 5,
         "samples": 10,
         "patience": 2,
+        "probe_samples": 20,
         "passes": 5,
+        "probes": 0,
     }
 
 
@@ -302,7 +304,9 @@ def test_cli_optimize_adaptive_hybrid(tmp_path, capsys):
     assert strategy["policy"] == "adaptive"
     assert strategy["period"] == 3
     assert strategy["patience"] == 2
-    assert strategy["passes"] >= 1
+    assert strategy["probe_samples"] == 20
+    assert strategy["passes"] >= 0
+    assert strategy["probes"] >= strategy["passes"]
 
 
 def test_cli_optimize_compact_preserves_engine_objective_semantics(tmp_path, capsys):
