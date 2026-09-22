@@ -15,7 +15,7 @@ from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfile, TopologyProfiler
 
 
-_FORMATS = ("auto", "edgelist", "graphml", "gexf", "gml")
+_FORMATS = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
 
 
 def _validate_product_graph(graph: nx.Graph) -> None:
@@ -108,15 +108,47 @@ class OptimizationResult:
         return payload
 
 
+def _load_json_graph_payload(payload: object) -> nx.Graph:
+    """Load ATOF's minimal JSON graph contract from a decoded payload."""
+    if not isinstance(payload, dict):
+        raise ValueError("JSON graph must be an object")
+    edges = payload.get("edges", [])
+    nodes = payload.get("nodes", [])
+    if not isinstance(edges, list) or not isinstance(nodes, list):
+        raise ValueError("JSON graph fields 'nodes' and 'edges' must be arrays")
+    graph = nx.Graph()
+    try:
+        graph.add_nodes_from(nodes)
+    except TypeError as exc:
+        raise ValueError("JSON graph nodes must be hashable") from exc
+    for edge in edges:
+        if not isinstance(edge, (list, tuple)) or len(edge) != 2:
+            raise ValueError("JSON graph edges must be 2-item arrays")
+        try:
+            graph.add_edge(edge[0], edge[1])
+        except TypeError as exc:
+            raise ValueError("JSON graph edge endpoints must be hashable") from exc
+    if not edges and not nodes:
+        raise ValueError("JSON graph must contain at least one node or edge")
+    return graph
+
+
+def _load_json_graph(source: Path) -> nx.Graph:
+    return _load_json_graph_payload(json.loads(source.read_text(encoding="utf-8")))
+
+
 def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
     """Load an unweighted graph from a supported file format.
 
     Use "-" as the path to read an edge-list graph from stdin.
     """
     if str(path) == "-":
-        if format not in {"auto", "edgelist"}:
-            raise ValueError("stdin input currently supports edge-list format only")
-        graph = nx.read_edgelist(StringIO(sys.stdin.read()), data=False)
+        if format not in {"auto", "edgelist", "json"}:
+            raise ValueError("stdin input currently supports edge-list and JSON formats")
+        if format == "json":
+            graph = _load_json_graph_payload(json.loads(sys.stdin.read()))
+        else:
+            graph = nx.read_edgelist(StringIO(sys.stdin.read()), data=False)
         _validate_product_graph(graph)
         return graph
 
@@ -130,6 +162,7 @@ def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
     if selected == "auto":
         suffix = source.suffix.lower()
         selected = {
+            ".json": "json",
             ".graphml": "graphml",
             ".gexf": "gexf",
             ".gml": "gml",
@@ -137,6 +170,8 @@ def load_graph(path: str | Path, format: str = "auto") -> nx.Graph:
 
     if selected == "edgelist":
         graph = nx.read_edgelist(source, data=False)
+    elif selected == "json":
+        graph = _load_json_graph(source)
     elif selected == "graphml":
         graph = nx.read_graphml(source)
     elif selected == "gexf":

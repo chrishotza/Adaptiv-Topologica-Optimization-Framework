@@ -42,6 +42,14 @@
         "formats": {"type": "array", "items": {"type": "string"}},
         "default_format": {"type": "string"},
         "default_seed": {"type": "integer"},
+        "json": {
+          "type": "object",
+          "required": ["edges"],
+          "properties": {
+            "nodes": {"type": "string"},
+            "edges": {"type": "string"}
+          }
+        },
         "stdin": {
           "type": "object",
           "required": ["path", "formats"],

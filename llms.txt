@@ -8,6 +8,7 @@
 - `atof doctor` — runtime and backend inspection
 - `atof solve examples/demo.edgelist` — shortest practical portfolio path
 - `cat graph.edgelist | atof solve -` — solve edge-list data from stdin
+- `cat graph.json | atof solve - --format json` — solve minimal JSON graph data
 - `atof profile <graph> --compact` — low-token topology summary
 - `atof optimize <graph> --engine portfolio --compact` — explicit portfolio path
 - `AGENTS.md` — agent operating rules
@@ -26,6 +27,8 @@ ATOF Engine = native BLOC-RELOC path with topology profiling.
 ATOF Portfolio = empirical composition over the available open backends.
 
 Current portfolio contract = k=2, undirected, simple, unweighted edge cut.
+
+JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 
 ## Machine behavior
 

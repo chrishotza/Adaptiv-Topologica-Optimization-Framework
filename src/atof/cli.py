@@ -15,7 +15,7 @@ from .selector import HeuristicRegimeSelector
 from .topology import TopologyProfiler
 
 
-_FORMAT_CHOICES = ("auto", "edgelist", "graphml", "gexf", "gml")
+_FORMAT_CHOICES = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
 
 _CLI_ERRORS = (OSError, ValueError, RuntimeError, TypeError, UnicodeError, SyntaxError, nx.NetworkXException)
 

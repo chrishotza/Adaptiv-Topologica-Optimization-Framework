@@ -20,6 +20,41 @@ def test_optimize_graph_returns_balanced_product_result():
     assert payload["provenance"]["graph_fingerprint"]
 
 
+def test_load_graph_supports_json(tmp_path: Path):
+    path = tmp_path / "graph.json"
+    path.write_text(
+        '{"nodes": ["a", "b", "isolated"], "edges": [["a", "b"]]}',
+        encoding="utf-8",
+    )
+
+    loaded = load_graph(path)
+    assert loaded.number_of_nodes() == 3
+    assert loaded.number_of_edges() == 1
+
+
+def test_load_graph_from_json_stdin(monkeypatch):
+    import io
+    import sys
+
+    monkeypatch.setattr(
+        sys,
+        "stdin",
+        io.StringIO('{"nodes": ["a", "b"], "edges": [["a", "b"]]}'),
+    )
+    loaded = load_graph("-", format="json")
+
+    assert loaded.number_of_nodes() == 2
+    assert loaded.number_of_edges() == 1
+
+
+def test_load_graph_rejects_invalid_json_graph(tmp_path: Path):
+    path = tmp_path / "bad.json"
+    path.write_text('{"edges": [["a"]]}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="2-item arrays"):
+        load_graph(path)
+
+
 def test_load_graph_supports_graphml(tmp_path: Path):
     graph = nx.path_graph(5)
     path = tmp_path / "graph.graphml"

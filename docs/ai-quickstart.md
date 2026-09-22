@@ -33,9 +33,17 @@ This is the shortest practical path: portfolio optimization, k=2, compact JSON o
 printf "a b\nb c\nc d\n" | atof solve -
 ~~~
 
-Use `-` when the graph is already available to a shell pipeline or AI-controlled process. stdin currently accepts edge-list input; use a file path for GraphML, GEXF, or GML.
+Use `-` when the graph is already available to a shell pipeline or AI-controlled process. stdin accepts edge-list or JSON with `--format json`; use a file path for GraphML, GEXF, or GML.
 
-## 5. Inspect a graph
+## 5. Send JSON directly
+
+~~~bash
+printf '{"nodes":["a","b"],"edges":[["a","b"]]}' | atof solve - --format json
+~~~
+
+The minimal JSON contract is `nodes` (optional for edge-only graphs) plus `edges` (2-item node-ID arrays).
+
+## 6. Inspect a graph
 
 ~~~bash
 atof profile graph.edgelist --compact
@@ -43,7 +51,7 @@ atof profile graph.edgelist --compact
 
 Use this when the agent needs graph size and structural recommendation without the full topology descriptor set.
 
-## 5. Full evidence
+## 7. Full evidence
 
 ~~~bash
 atof optimize graph.edgelist --engine portfolio
