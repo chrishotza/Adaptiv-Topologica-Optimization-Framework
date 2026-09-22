@@ -60,6 +60,15 @@ atof optimize graph.edgelist --engine bloc --k 4 --compact
 
 Use Engine mode when the task needs more than two balanced blocks. Portfolio mode supports `k>=2`. NetworkX Kernighan-Lin is available only for `k=2`; METIS and KaHIP can serve k-way requests when installed.
 
+## 8. Compare native Engine and Portfolio
+
+~~~bash
+atof compare graph.edgelist
+atof compare graph.edgelist --k 4 --compact
+~~~
+
+Use this when an agent needs both ATOF's native Engine and the empirical Portfolio under identical parameters. The response is identified as `atof.compare.v1` and reports observed edge-cut and balance deltas without claiming global optimality.
+
 ## 8. Full evidence
 
 ~~~bash
@@ -95,7 +104,7 @@ objective.optimization_metric (Engine mode)
 provenance.graph_fingerprint
 candidates[] (Portfolio mode)
 
-Portfolio responses identify themselves with `schema: "atof.portfolio.v1"`; Engine responses use `schema: "atof.optimize.v1"`. Full responses may include the selected `result.partition`; compact responses intentionally omit that field.
+Portfolio responses identify themselves with `schema: "atof.portfolio.v1"`; Engine responses use `schema: "atof.optimize.v1"`; comparison responses use `schema: "atof.compare.v1"`. Full responses may include the selected `result.partition`; compact responses intentionally omit that field.
 ~~~
 
 Machine-facing hierarchy: use `atof ai` for current capabilities and limits, `schemas/` for stable response shapes, and `AGENTS.md` for agent operating rules. Research and historical experiment material is evidence, not a capability contract.
