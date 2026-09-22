@@ -109,18 +109,21 @@ def test_portfolio_supports_kway_without_optional_backends():
 
 
 
-def test_kahip_kway_balance_is_measured_across_all_blocks(monkeypatch):
+def test_kahip_kway_uses_zero_epsilon_and_rebalances(monkeypatch):
     graph = nx.cycle_graph(6)
+    observed = {}
 
     class FakeKaHIP:
         @staticmethod
         def kaffpa(*args):
+            observed["epsilon"] = args[5]
             return 0, [0, 0, 0, 0, 1, 1]
 
     monkeypatch.setitem(__import__("sys").modules, "kahip", FakeKaHIP())
 
     partition, _, balance = _run_kahip(graph, seed=42, k=3)
 
+    assert observed["epsilon"] == 0.0
     assert set(partition.values()) == {0, 1, 2}
     counts = [list(partition.values()).count(block) for block in range(3)]
     assert counts == [2, 2, 2]
