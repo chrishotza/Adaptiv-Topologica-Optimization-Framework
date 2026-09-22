@@ -12,7 +12,10 @@ from typing import Any
 
 import networkx as nx
 
-from .partition import balance_error as partition_balance_error
+from .partition import (
+    balance_error as partition_balance_error,
+    exact_balanced_block_weights,
+)
 from .provenance import package_version
 
 
@@ -210,10 +213,10 @@ def _run_mtkahypar_in_process(
         0.0,
         mtkahypar.Objective.CUT,
     )
-    lower = graph.number_of_nodes() // k
-    upper = (graph.number_of_nodes() + k - 1) // k
-    num_upper = graph.number_of_nodes() - (lower * k)
-    target_weights = [upper] * num_upper + [lower] * (k - num_upper)
+    target_weights = exact_balanced_block_weights(
+        graph.number_of_nodes(),
+        k,
+    )
     context.set_individual_target_block_weights(target_weights)
     loaded = initializer.graph_from_file(
         str(path),
