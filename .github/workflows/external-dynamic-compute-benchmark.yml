@@ -86,6 +86,10 @@ jobs:
               assert "edge_cut_vs_fixed" in payload["comparisons"][policy]
               assert "total_work_vs_fixed" in payload["comparisons"][policy]
               assert "dominance_vs_fixed" in payload["comparisons"][policy]
+              assert set(payload["by_corpus"][policy]) == set(payload["corpora"])
+              assert sum(
+                  item["graphs"] for item in payload["by_corpus"][policy].values()
+              ) == 20
           PY
 
       - name: Upload benchmark artifact
