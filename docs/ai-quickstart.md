@@ -95,7 +95,7 @@ objective.optimization_metric (Engine mode)
 provenance.graph_fingerprint
 candidates[] (Portfolio mode)
 
-Portfolio responses identify themselves with `schema: "atof.portfolio.v1"`. Full responses may include the selected `result.partition`; compact responses intentionally omit that field.
+Portfolio responses identify themselves with `schema: "atof.portfolio.v1"`; Engine responses use `schema: "atof.optimize.v1"`. Full responses may include the selected `result.partition`; compact responses intentionally omit that field.
 ~~~
 
 Machine-facing hierarchy: use `atof ai` for current capabilities and limits, `schemas/` for stable response shapes, and `AGENTS.md` for agent operating rules. Research and historical experiment material is evidence, not a capability contract.
