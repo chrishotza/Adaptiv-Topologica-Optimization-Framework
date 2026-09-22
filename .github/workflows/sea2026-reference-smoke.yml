@@ -9,6 +9,9 @@ on:
       - "docs/sea2026-alignment.md"
       - "docs/state-of-art-2026-map.md"
       - ".github/workflows/sea2026-reference-smoke.yml"
+  push:
+    branches:
+      - research/state-of-art-benchmark
 
 permissions:
   contents: read
