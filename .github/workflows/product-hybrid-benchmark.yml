@@ -1,0 +1,59 @@
+name: Product hybrid benchmark
+
+on:
+  pull_request:
+    paths:
+      - "src/atof/product.py"
+      - "src/atof/strategies.py"
+      - "src/atof/selector.py"
+      - "src/atof/topology.py"
+      - "experiments/generate_suite.py"
+      - "experiments/run_product_hybrid_benchmark.py"
+      - "tests/test_product.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Run product hybrid benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run product benchmark
+        run: python -m experiments.run_product_hybrid_benchmark
+
+      - name: Validate benchmark
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/product-hybrid-benchmark/latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["surface"] == "atof.product.optimize_graph"
+          assert payload["summary"]["comparisons"] == 42
+          assert len(payload["rows"]) == 42
+          assert all(
+              row["selected_variant_base"] == row["selected_variant_hybrid"]
+              for row in payload["rows"]
+          )
+          PY
+
+      - name: Upload product benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-hybrid-benchmark
+          path: results/product-hybrid-benchmark/latest.json
