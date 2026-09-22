@@ -22,7 +22,7 @@ The SEA 2026 learned-coarsening method is trained using 20 graphs from Set B1-20
 
 ## Balance and objective semantics
 
-The exact-software gate uses the published epsilon=0.03 contract rather than ATOF's product floor/ceil contract. Product parity and paper-protocol parity remain separate tracks.
+The exact-software gate uses the published epsilon=0.03 contract rather than ATOF's product floor/ceil contract. In addition to the published upper-bound check, the gate requires all k blocks to be nonempty so that a malformed or degenerate partition cannot pass the protocol gate. Product parity and paper-protocol parity remain separate tracks.
 
 ## ATOF gaps against this protocol
 
