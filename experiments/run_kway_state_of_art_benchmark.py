@@ -180,7 +180,7 @@ def _run_kaminpar(
         for node, block in zip(graph.nodes(), partition)
     }
     return {
-        "edge_cut": int(kaminpar.edge_cut(loaded, partition)),
+        "edge_cut": _edge_cut(graph, partition_map),
         "balance_error": _balance_error(graph, partition_map, k),
         "runtime_seconds": time.perf_counter() - started,
         "metadata": {
