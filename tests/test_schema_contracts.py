@@ -56,3 +56,15 @@ def test_engine_full_and_compact_results_match_schema():
 
     _assert_valid(full, "atof-optimize-v1.schema.json")
     _assert_valid(compact, "atof-optimize-v1.schema.json")
+
+
+def test_compare_results_match_schema():
+    import networkx as nx
+
+    from atof.comparison import compare_graph, compact_comparison
+
+    payload = compare_graph(nx.cycle_graph(8), k=2, seed=42, iterations=3)
+    compact = compact_comparison(payload)
+
+    _assert_valid(payload, "atof-compare-v1.schema.json")
+    _assert_valid(compact, "atof-compare-v1.schema.json")
