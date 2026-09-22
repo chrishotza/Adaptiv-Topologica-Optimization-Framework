@@ -53,6 +53,15 @@ def _edge_cut(graph: nx.Graph, partition: dict) -> int:
     return sum(partition[u] != partition[v] for u, v in graph.edges())
 
 
+
+def _balance_error(graph: nx.Graph, partition: dict, k: int) -> float:
+    counts = [0] * k
+    for block in partition.values():
+        counts[int(block)] += 1
+    n = graph.number_of_nodes()
+    ideal = n / k
+    return max(abs(count - ideal) for count in counts) / ideal if ideal else 0.0
+
 def _run_atof(
     graph: nx.Graph,
     *,
