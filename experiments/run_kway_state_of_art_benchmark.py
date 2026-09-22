@@ -16,6 +16,7 @@ import networkx as nx
 from atof.portfolio import _run_kahip, _run_metis
 from atof.strategies import BLOCReloc
 from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
+from experiments.mtkahypar_backend import run_mtkahypar
 
 SEEDS = (42, 101, 2024)
 ITERATIONS = 25
@@ -34,6 +35,8 @@ STRATEGIES = (
     "kahip",
     "kaminpar_default",
     "kaminpar_strong",
+    "mtkahypar_default",
+    "mtkahypar_quality",
 )
 
 _KAMINPAR_GRAPH_CACHE: dict[str, object] = {}
@@ -277,6 +280,24 @@ def _strategy_run(
             seed=seed,
             k=k,
             context_name="strong",
+        )
+    if strategy == "mtkahypar_default":
+        return run_mtkahypar(
+            graph,
+            graph_id=graph_id,
+            seed=seed,
+            k=k,
+            preset="default",
+            epsilon=_kaminpar_eps(graph, k),
+        )
+    if strategy == "mtkahypar_quality":
+        return run_mtkahypar(
+            graph,
+            graph_id=graph_id,
+            seed=seed,
+            k=k,
+            preset="quality",
+            epsilon=_kaminpar_eps(graph, k),
         )
     raise ValueError(f"unknown strategy: {strategy}")
 
