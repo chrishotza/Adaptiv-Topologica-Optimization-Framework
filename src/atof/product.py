@@ -28,8 +28,8 @@ def _validate_product_graph(graph: nx.Graph) -> None:
     if graph.number_of_nodes() < 2:
         raise ValueError("ATOF product mode requires at least 2 nodes")
     # Edge attributes such as "weight" may be present in source graphs.
-    # The current MVP objective is explicitly unweighted, so these attributes are
-    # ignored rather than interpreted as edge costs.
+    # The current MVP graph model is explicitly unweighted, so these attributes
+    # are ignored rather than interpreted as edge costs.
 
 
 @dataclass(frozen=True)
@@ -51,6 +51,13 @@ class OptimizationResult:
     @property
     def selection_mode(self) -> str:
         return "heuristic" if self.requested_variant == "auto" else "explicit"
+
+    @property
+    def optimization_metric(self) -> str:
+        """Name the scalar objective actually used by the selected variant."""
+        if self.selected_variant == "affinity":
+            return "degree_affinity_weighted_cut"
+        return "edge_cut"
 
     def to_dict(self, *, include_partition: bool = True) -> dict:
         result = self.partition_result
@@ -77,9 +84,16 @@ class OptimizationResult:
                 "iterations": result.iterations,
             },
             "objective": {
-                "name": "edge_cut",
+                "reported_metric": "edge_cut",
+                "optimization_metric": self.optimization_metric,
                 "direction": "minimize",
                 "graph_model": "unweighted",
+                "variant_semantics": (
+                    "affinity variant minimizes a degree-affinity weighted surrogate; "
+                    "edge_cut remains the unweighted reported metric"
+                    if self.selected_variant == "affinity"
+                    else "baseline variant directly minimizes unweighted edge cut"
+                ),
             },
             "provenance": {
                 "graph_fingerprint": graph_fingerprint(self.graph),
