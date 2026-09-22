@@ -15,6 +15,7 @@ from .partition import (
     weighted_cut,
 )
 
+from .neighborhood import NeighborhoodCreditController
 from .refinement import RefinementController
 
 
@@ -85,20 +86,25 @@ class BLOCReloc:
             raise ValueError("tolerance must be >= 0")
         if hybrid_samples < 0:
             raise ValueError("hybrid_samples must be >= 0")
-        if hybrid_policy not in {"fixed", "adaptive"}:
-            raise ValueError("hybrid_policy must be 'fixed' or 'adaptive'")
+        if hybrid_policy not in {"fixed", "adaptive", "credit"}:
+            raise ValueError("hybrid_policy must be 'fixed', 'adaptive', or 'credit'")
         if hybrid_patience < 1:
             raise ValueError("hybrid_patience must be at least 1")
         if hybrid_probe_samples < 0:
             raise ValueError("hybrid_probe_samples must be >= 0")
         if hybrid_witness_patience < 1:
             raise ValueError("hybrid_witness_patience must be at least 1")
-        controller = RefinementController(
-            policy=hybrid_policy,
-            period=hybrid_period or max(iterations, 1),
-            patience=hybrid_patience,
-            witness_patience=hybrid_witness_patience,
-        )
+        controller = None
+        credit_controller = None
+        if hybrid_policy != "credit":
+            controller = RefinementController(
+                policy=hybrid_policy,
+                period=hybrid_period or max(iterations, 1),
+                patience=hybrid_patience,
+                witness_patience=hybrid_witness_patience,
+            )
+        else:
+            credit_controller = NeighborhoodCreditController()
 
         partition = initialize_balanced_partition(self.graph, self.k)
         counts = {block: 0 for block in range(self.k)}
@@ -124,6 +130,7 @@ class BLOCReloc:
             self.rng.shuffle(nodes)
             iteration_accepted = 0
             iteration_rejected = 0
+            local_work = 0
 
             for node in nodes:
                 source = partition[node]
@@ -141,6 +148,7 @@ class BLOCReloc:
                     if not (lower_size <= target_after <= upper_size):
                         continue
 
+                    local_work += self.degree[node]
                     candidate = best + self._move_delta(
                         node,
                         source,
@@ -164,7 +172,18 @@ class BLOCReloc:
             hybrid_triggered = False
             hybrid_probe_triggered = False
             should_hybrid = False
-            if hybrid_period and controller.after_local_pass(
+            local_gain = iteration_start - best
+            hybrid_gain = 0.0
+            hybrid_work = 0
+
+            if hybrid_policy == "credit":
+                assert credit_controller is not None
+                credit_controller.observe_local(local_gain, local_work)
+                checkpoint = hybrid_period and (iteration + 1) % hybrid_period == 0
+                if checkpoint:
+                    should_hybrid = credit_controller.should_hybrid()
+                    credit_controller.record_decision(should_hybrid)
+            elif hybrid_period and controller is not None and controller.after_local_pass(
                 iteration=iteration,
                 start_cost=iteration_start,
                 end_cost=best,
@@ -172,10 +191,6 @@ class BLOCReloc:
             ):
                 should_hybrid = True
                 if hybrid_policy == "adaptive":
-                    # Calibrate the expensive neighborhood first. Once a full
-                    # pass has proven useful, repeat it while the search still
-                    # stalls. Only after an unproductive full pass do we spend
-                    # a cheap witness probe before paying again.
                     if controller.last_hybrid_improved is True:
                         should_hybrid = True
                     else:
@@ -185,33 +200,33 @@ class BLOCReloc:
                             samples=hybrid_probe_samples,
                             best=best,
                         )
-                        controller.record_probe(
-                            iteration=iteration,
-                            witness=witness,
-                        )
-                        # One missed witness is treated as insufficient
-                        # evidence to skip an expensive pass. Only repeated
-                        # misses permit the adaptive controller to abstain.
+                        controller.record_probe(iteration=iteration, witness=witness)
                         should_hybrid = witness or (
-                            controller.witness_misses
-                            < controller.witness_patience
+                            controller.witness_misses < controller.witness_patience
                         )
-                if should_hybrid:
-                    hybrid_triggered = True
-                    hybrid_start = best
-                    h_accept, h_reject, best = self._two_swap(
-                        partition,
-                        tolerance=tolerance,
-                        samples=hybrid_samples,
-                        best=best,
-                    )
+
+            if should_hybrid:
+                hybrid_triggered = True
+                hybrid_start = best
+                h_accept, h_reject, best, hybrid_work = self._two_swap(
+                    partition,
+                    tolerance=tolerance,
+                    samples=hybrid_samples,
+                    best=best,
+                )
+                hybrid_gain = hybrid_start - best
+                iteration_accepted += h_accept
+                iteration_rejected += h_reject
+                if controller is not None:
                     controller.record_hybrid_pass(
                         iteration=iteration,
                         start_cost=hybrid_start,
                         end_cost=best,
                     )
-                    iteration_accepted += h_accept
-                    iteration_rejected += h_reject
+                else:
+                    assert credit_controller is not None
+                    credit_controller.observe_hybrid(hybrid_gain, hybrid_work)
+
 
             accepted += iteration_accepted
             rejected += iteration_rejected
@@ -224,6 +239,18 @@ class BLOCReloc:
                     "rejected": iteration_rejected,
                     "hybrid": int(hybrid_triggered),
                     "hybrid_probe": int(hybrid_probe_triggered),
+                    "local_credit": (
+                        credit_controller.local_credit
+                        if credit_controller is not None and credit_controller.local_credit is not None
+                        else 0.0
+                    ),
+                    "hybrid_credit": (
+                        credit_controller.hybrid_credit
+                        if credit_controller is not None and credit_controller.hybrid_credit is not None
+                        else 0.0
+                    ),
+                    "local_work": local_work,
+                    "hybrid_work": hybrid_work,
                 }
             )
 
@@ -235,8 +262,10 @@ class BLOCReloc:
             iterations=iterations,
             accepted_moves=accepted,
             rejected_moves=rejected,
-            hybrid_passes=controller.hybrid_passes,
-            hybrid_probes=controller.probes,
+            hybrid_passes=(
+                controller.hybrid_passes if controller is not None else credit_controller.hybrid_passes
+            ),
+            hybrid_probes=(controller.probes if controller is not None else 0),
             trace=tuple(trace),
         )
 
@@ -336,7 +365,7 @@ class BLOCReloc:
         tolerance: float,
         samples: int,
         best: float,
-    ) -> tuple[int, int, float]:
+    ) -> tuple[int, int, float, int]:
         del tolerance  # A swap preserves every block size exactly.
         nodes = list(self.graph.nodes())
         if len(nodes) < 2:
@@ -344,11 +373,13 @@ class BLOCReloc:
 
         accepted = 0
         rejected = 0
+        work = 0
 
         for _ in range(samples):
             u, v = self.rng.sample(nodes, 2)
             block_u = partition[u]
             block_v = partition[v]
+            work += self.degree[u] + self.degree[v] - (2 if self.graph.has_edge(u, v) else 0)
             if block_u == block_v:
                 continue
 
@@ -361,4 +392,4 @@ class BLOCReloc:
             else:
                 rejected += 1
 
-        return accepted, rejected, best
+        return accepted, rejected, best, work
