@@ -158,3 +158,8 @@ def test_exact_floor_ceil_balance_gate():
     observed = [0, 1, 2, 3, 4, 5, 6, 7, 1, 2, 2, 3, 5, 6, 7]
     repaired_15 = rebalance_kway(graph_15, observed, 8)
     assert sorted(repaired_15.count(block) for block in range(8)) == [1, 2, 2, 2, 2, 2, 2, 2]
+
+    graph_skew = nx.path_graph(33)
+    already_under_upper = [0] + [1] * 5 + [2] * 5 + [3] * 5 + [4] * 5 + [5] * 5 + [6] * 4 + [7] * 4
+    repaired_skew = rebalance_kway(graph_skew, already_under_upper, 8)
+    assert sorted(repaired_skew.count(block) for block in range(8)) == [4, 4, 4, 4, 4, 4, 4, 5]
