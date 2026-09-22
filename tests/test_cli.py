@@ -270,6 +270,7 @@ def test_cli_optimize_hybrid_refinement(tmp_path, capsys):
         "probe_samples": 20,
         "passes": 5,
         "probes": 0,
+        "witness_patience": 2,
     }
 
 
@@ -306,6 +307,7 @@ def test_cli_optimize_adaptive_hybrid(tmp_path, capsys):
     assert strategy["patience"] == 2
     assert strategy["probe_samples"] == 20
     assert strategy["passes"] >= 0
+    assert strategy["witness_patience"] == 2
     assert strategy["probes"] >= strategy["passes"]
 
 
