@@ -40,9 +40,9 @@ These are published results from a different hardware/software stack and are not
 ## ATOF gaps against this protocol
 
 1. Current direct benchmark: 20 graphs, k=2.
-2. Current external solver surface: METIS, KaHIP, KaMinPar, NetworkX KL, BLOC-RELOC variants.
-3. Missing high-quality learned-coarsening baseline: Mt-KaHyPar SEA 2026.
-4. Missing matched k-way evaluation: k=4, 8, 32, 64.
+2. Current external solver surface: METIS, KaHIP, KaMinPar, Mt-KaHyPar, NetworkX KL, BLOC-RELOC variants.
+3. Current Mt-KaHyPar default/quality backend is integrated; the SEA 2026 learned-coarsening model is still missing.
+4. Matched k-way evaluation at k=4, 8, 32, 64 is implemented as a reproducible scaffold but has not yet been executed.
 5. Missing 118-graph Set A reproduction.
 6. Missing large irregular/regular scale tier comparable to Set I and Set R.
 
