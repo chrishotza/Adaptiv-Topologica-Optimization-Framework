@@ -73,3 +73,24 @@ def test_write_partition_mapping_supports_generic_portfolio_mapping(tmp_path):
         {"node": "b", "block": 0},
         {"node": "a", "block": 1},
     ]
+
+def test_optimize_graph_rejects_unsupported_graph_models():
+    import pytest
+
+    directed = nx.DiGraph([(0, 1), (1, 2)])
+    with pytest.raises(ValueError, match="undirected"):
+        optimize_graph(directed)
+
+    multigraph = nx.MultiGraph([(0, 1), (0, 1)])
+    with pytest.raises(ValueError, match="simple graph"):
+        optimize_graph(multigraph)
+
+    weighted = nx.Graph()
+    weighted.add_edge("a", "b", weight=2.0)
+    with pytest.raises(ValueError, match="unweighted"):
+        optimize_graph(weighted)
+
+
+def test_optimize_graph_rejects_invalid_iterations():
+    with pytest.raises(ValueError, match="iterations"):
+        optimize_graph(nx.path_graph(4), iterations=0)
