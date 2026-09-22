@@ -7,6 +7,7 @@ from typing import Any, Callable
 import networkx as nx
 
 from .provenance import graph_fingerprint, package_version
+from .backends import run_kaminpar, run_mtkahypar
 from .partition import balance_error as partition_balance_error
 from .product import validate_product_graph
 from .selector import HeuristicRegimeSelector
@@ -289,6 +290,41 @@ def _run_kahip(
     )
 
 
+
+def _run_kaminpar(
+    graph: nx.Graph,
+    *,
+    seed: int,
+    k: int,
+    context_name: str,
+) -> tuple[dict[Any, int], int, float]:
+    partition, edge_cut, balance, _runtime = run_kaminpar(
+        graph,
+        graph_id=graph_fingerprint(graph),
+        seed=seed,
+        k=k,
+        context_name=context_name,
+    )
+    return partition, edge_cut, balance
+
+
+def _run_mtkahypar(
+    graph: nx.Graph,
+    *,
+    seed: int,
+    k: int,
+    preset: str,
+) -> tuple[dict[Any, int], int, float]:
+    partition, edge_cut, balance, _runtime = run_mtkahypar(
+        graph,
+        graph_id=graph_fingerprint(graph),
+        seed=seed,
+        k=k,
+        preset=preset,
+    )
+    return partition, edge_cut, balance
+
+
 def _validate_candidate_partition(
     graph: nx.Graph,
     k: int,
@@ -485,6 +521,54 @@ def optimize_portfolio(
                     package="kahip",
                     postprocess="balance_repair",
                     runner=lambda: _run_kahip(graph, seed=seed, k=k),
+                ),
+                _candidate(
+                    backend_id="kaminpar-default",
+                    name="KaMinPar(default)",
+                    package="kaminpar",
+                    postprocess="none",
+                    runner=lambda: _run_kaminpar(
+                        graph,
+                        seed=seed,
+                        k=k,
+                        context_name="default",
+                    ),
+                ),
+                _candidate(
+                    backend_id="kaminpar-strong",
+                    name="KaMinPar(strong)",
+                    package="kaminpar",
+                    postprocess="none",
+                    runner=lambda: _run_kaminpar(
+                        graph,
+                        seed=seed,
+                        k=k,
+                        context_name="strong",
+                    ),
+                ),
+                _candidate(
+                    backend_id="mtkahypar-default",
+                    name="Mt-KaHyPar(default)",
+                    package="mtkahypar",
+                    postprocess="none",
+                    runner=lambda: _run_mtkahypar(
+                        graph,
+                        seed=seed,
+                        k=k,
+                        preset="default",
+                    ),
+                ),
+                _candidate(
+                    backend_id="mtkahypar-quality",
+                    name="Mt-KaHyPar(quality)",
+                    package="mtkahypar",
+                    postprocess="none",
+                    runner=lambda: _run_mtkahypar(
+                        graph,
+                        seed=seed,
+                        k=k,
+                        preset="quality",
+                    ),
                 ),
             ]
         )
