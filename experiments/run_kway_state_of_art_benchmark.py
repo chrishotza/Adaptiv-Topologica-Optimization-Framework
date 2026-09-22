@@ -181,10 +181,12 @@ def _run_kaminpar(
     started = time.perf_counter()
     loaded = _kaminpar_graph(graph, graph_id)
     kaminpar.reseed(int(seed))
-    max_block_weight = (graph.number_of_nodes() + k - 1) // k
+    # Use KaMinPar's public k/epsilon interface.  The exact floor/ceil
+    # contract is enforced by the common post-partition validator/repair.
     partition = _kaminpar_instance(context_name).compute_partition(
         loaded,
-        max_block_weights=[max_block_weight] * k,
+        k=k,
+        eps=0.0,
     )
     membership = rebalance_kway(
         graph,
@@ -203,7 +205,7 @@ def _run_kaminpar(
         "metadata": {
             "context": context_name,
             "seed_control": "kaminpar.reseed",
-            "max_block_weight": (graph.number_of_nodes() + k - 1) // k,
+            "imbalance_epsilon": 0.0,
             "graph_load_in_timing": False,
             "backend_init_in_timing": False,
         },
