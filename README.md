@@ -103,10 +103,13 @@ ATOF provides one surface over a small portfolio of open backends and keeps the 
               |                       |
               |             |              |
               |             |              |
-         BLOC-RELOC     NetworkX       native/native-isolated
-                            KL          METIS / KaHIP / KaMinPar
-                                           / Mt-KaHyPar
-                                      (optional backends)
+         BLOC-RELOC     NetworkX       optional external
+                            KL          METIS / KaHIP
+                                        |
+                                        | isolated workers
+                                        v
+                                    KaMinPar /
+                                    Mt-KaHyPar
               |             |              |
               +-------------+--------------+
                             |
