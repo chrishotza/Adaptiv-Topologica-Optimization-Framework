@@ -6,6 +6,8 @@ from pathlib import Path
 
 import networkx as nx
 
+from atof.partition import exact_balanced_block_weights
+
 _GRAPH_CACHE: dict[tuple[str, str], object] = {}
 _INITIALIZER = None
 _TMPDIR = tempfile.TemporaryDirectory(prefix="atof-mtkahypar-")
@@ -83,10 +85,7 @@ def run_mtkahypar(
         float(epsilon),
         mtkahypar.Objective.CUT,
     )
-    lower = graph.number_of_nodes() // k
-    upper = (graph.number_of_nodes() + k - 1) // k
-    num_upper = graph.number_of_nodes() - (lower * k)
-    target_weights = [upper] * num_upper + [lower] * (k - num_upper)
+    target_weights = exact_balanced_block_weights(graph.number_of_nodes(), k)
     context.set_individual_target_block_weights(target_weights)
 
     mtkahypar.set_seed(int(seed))
