@@ -92,6 +92,7 @@ def main(argv: list[str] | None = None) -> int:
         help="short AI-friendly alias for portfolio optimization",
     )
     solve_parser.add_argument("path", type=Path)
+    solve_parser.add_argument("--k", "-k", type=int, default=2)
     solve_parser.add_argument("--seed", "-s", type=int, default=42)
     solve_parser.add_argument("--iterations", "-i", type=int, default=25)
     solve_parser.add_argument("--format", "-f", choices=_FORMAT_CHOICES, default="auto")
@@ -169,7 +170,7 @@ def main(argv: list[str] | None = None) -> int:
             graph = load_graph(args.path, format=args.format)
             result = optimize_portfolio(
                 graph,
-                k=2,
+                k=args.k,
                 seed=args.seed,
                 iterations=args.iterations,
             )

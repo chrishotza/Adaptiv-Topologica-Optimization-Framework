@@ -19,13 +19,14 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "commands": {
             "ai": "atof ai",
             "doctor": "atof doctor",
-            "solve": "atof solve <graph>",
+            "solve": "atof solve <graph> [--k N]",
             "module": "python -m atof",
             "profile": "atof profile <graph>",
             "optimize": "atof optimize <graph> --engine portfolio",
             "version": "atof --version",
             "short_flags": {
                 "compact": "-c",
+                "k": "-k",
                 "engine": "-e",
                 "seed": "-s",
                 "iterations": "-i",

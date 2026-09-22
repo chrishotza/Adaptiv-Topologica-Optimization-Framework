@@ -153,6 +153,7 @@ The machine-facing surface is deliberately small:
 atof ai
 atof doctor
 atof solve graph.edgelist
+atof solve graph.edgelist --k 4
 atof profile graph.edgelist --compact
 atof optimize graph.edgelist --engine portfolio --compact
 atof optimize graph.edgelist --engine portfolio --k 4 --compact

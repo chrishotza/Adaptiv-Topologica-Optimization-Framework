@@ -108,12 +108,13 @@ Run the common backend contract:
 
 ```bash
 atof solve examples/demo.edgelist
+atof solve examples/demo.edgelist --k 4
 atof optimize examples/demo.edgelist --engine portfolio
 atof optimize examples/demo.edgelist --engine portfolio --compact
 atof optimize examples/demo.edgelist --engine portfolio --k 4 --compact
 ```
 
-Portfolio mode supports `k>=2`, undirected simple graphs, and an unweighted edge-cut objective. NetworkX Kernighan-Lin participates for `k=2`; METIS and KaHIP participate in k-way requests when installed, alongside the native BLOC variants.
+The `solve` alias uses Portfolio mode and accepts `--k N` for balanced k-way partitions. Portfolio mode supports `k>=2`, undirected simple graphs, and an unweighted edge-cut objective. NetworkX Kernighan-Lin participates for `k=2`; METIS and KaHIP participate in k-way requests when installed, alongside the native BLOC variants.
 
 The selected result is the minimum observed edge cut under the common contract, with balance and runtime used as tie-breakers.
 
