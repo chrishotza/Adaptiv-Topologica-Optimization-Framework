@@ -67,7 +67,11 @@ Methods that solve a different optimization problem should remain documented as 
 
 ## Quality-vs-compute track
 
-The dynamic controller records gain and structural work for local and hybrid neighborhoods. The current experimental policy:
+The dynamic controller records gain and structural work for local and hybrid neighborhoods. Adaptive witness probes are charged in the same structural work unit as the search they inform.
+
+The external dynamic-compute gate now evaluates fixed, adaptive, marginal, and no-hybrid controls on the locked 20-graph corpus with three seeds. It reports paired graph-level quality and work comparisons; this is the evidence gate for any future quality-vs-compute claim.
+
+The current experimental policy:
 
 - calibrates an expensive neighborhood;
 - compares observed gain per work;
