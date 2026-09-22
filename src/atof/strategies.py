@@ -165,6 +165,7 @@ class BLOCReloc:
             hybrid_triggered = False
             hybrid_probe_triggered = False
             hybrid_gain = 0.0
+            hybrid_work = 0
             should_hybrid = False
             if hybrid_period and controller.after_local_pass(
                 iteration=iteration,
@@ -201,7 +202,7 @@ class BLOCReloc:
                 if should_hybrid:
                     hybrid_triggered = True
                     hybrid_start = best
-                    h_accept, h_reject, best = self._two_swap(
+                    h_accept, h_reject, best, hybrid_work = self._two_swap(
                         partition,
                         tolerance=tolerance,
                         samples=hybrid_samples,
@@ -227,6 +228,10 @@ class BLOCReloc:
                     "rejected": iteration_rejected,
                     "local_gain": local_gain,
                     "hybrid_gain": hybrid_gain,
+                    "hybrid_work": hybrid_work,
+                    "hybrid_gain_per_work": (
+                        hybrid_gain / hybrid_work if hybrid_work else 0.0
+                    ),
                     "total_gain": iteration_start - best,
                     "hybrid": int(hybrid_triggered),
                     "hybrid_probe": int(hybrid_probe_triggered),
@@ -342,14 +347,15 @@ class BLOCReloc:
         tolerance: float,
         samples: int,
         best: float,
-    ) -> tuple[int, int, float]:
+    ) -> tuple[int, int, float, int]:
         del tolerance  # A swap preserves every block size exactly.
         nodes = list(self.graph.nodes())
         if len(nodes) < 2:
-            return 0, 0, best
+            return 0, 0, best, 0
 
         accepted = 0
         rejected = 0
+        work = 0
 
         for _ in range(samples):
             u, v = self.rng.sample(nodes, 2)
@@ -358,6 +364,8 @@ class BLOCReloc:
             if block_u == block_v:
                 continue
 
+            direct_edge = self.graph.has_edge(u, v)
+            work += self.graph.degree(u) + self.graph.degree(v) - (2 if direct_edge else 0)
             candidate = best + self._swap_delta(u, v, partition)
 
             if candidate < best - 1e-12:
@@ -367,4 +375,4 @@ class BLOCReloc:
             else:
                 rejected += 1
 
-        return accepted, rejected, best
+        return accepted, rejected, best, work
