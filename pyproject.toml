@@ -9,7 +9,7 @@ description = "AI-first open-source graph optimization interface with reproducib
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "Chris Hotza", email = "chrishotzaoficial@gmail.com"}]
+authors = [{name = "Chris Hotza"}]
 dependencies = [
   "networkx>=3.0",
   "numpy>=1.24",
