@@ -41,25 +41,34 @@ atof optimize examples/demo.edgelist --engine portfolio --output result.json
 
 **ATOF Engine** is the native product path: topology profiling, heuristic regime description, and BLOC-RELOC refinement.
 
+The Engine has three selection modes:
+
+- **baseline** directly minimizes unweighted edge cut;
+- **affinity** minimizes a degree-affinity weighted surrogate while still reporting unweighted edge cut;
+- **auto** uses the heuristic regime selector to choose baseline or affinity.
+
+Therefore, an Engine result's `result.edge_cut` is always the unweighted reported metric, but `objective.optimization_metric` identifies the scalar objective actually optimized.
+
 **ATOF Portfolio** is the empirical composition layer over the available BLOC, NetworkX, METIS, and KaHIP backends.
 
-The Engine contract is k>=2, undirected, simple, unweighted balanced edge-cut partitioning.
+The Engine contract is k>=2, undirected, simple graphs with balanced node counts; its reported comparison metric is unweighted edge cut.
 
-The Portfolio contract is k=2 under the same graph/objective model.
+The Portfolio contract is k=2 under an explicitly common unweighted edge-cut objective.
 
 Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-list and JSON.
 
 ## Contract
 
 - Default machine output is JSON.
-- `atof.ai.v1` describes capabilities and limits.
+- `atof.ai.v1` describes capabilities, variant semantics, and limits.
 - `atof.doctor.v1` describes backend availability and runtime.
 - `atof.error.v1` describes structured CLI failures.
 - Optional backend failures are reported rather than silently hidden.
 - Full results include provenance suitable for agent-to-agent handoff.
-- Unsupported directed and multigraph product inputs are rejected; source weight attributes are ignored under the current unweighted objective.
+- Unsupported directed and multigraph product inputs are rejected; source weight attributes are ignored under the current unweighted graph model.
 - JSON graph input uses `{nodes?: [...], edges: [[u, v], ...]}`.
 - `schemas/`, `atof ai`, and `AGENTS.md` form the machine-facing contract; prefer those over prose examples.
+- Do not infer the optimized scalar objective from `result.edge_cut` alone in Engine mode; inspect `objective.optimization_metric`.
 
 ## Claim discipline
 
