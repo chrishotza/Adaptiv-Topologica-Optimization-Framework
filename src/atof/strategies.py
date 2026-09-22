@@ -124,6 +124,7 @@ class BLOCReloc:
             self.rng.shuffle(nodes)
             iteration_accepted = 0
             iteration_rejected = 0
+            local_work = 0
 
             for node in nodes:
                 source = partition[node]
@@ -141,6 +142,7 @@ class BLOCReloc:
                     if not (lower_size <= target_after <= upper_size):
                         continue
 
+                    local_work += self.graph.degree(node)
                     candidate = best + self._move_delta(
                         node,
                         source,
@@ -227,6 +229,10 @@ class BLOCReloc:
                     "accepted": iteration_accepted,
                     "rejected": iteration_rejected,
                     "local_gain": local_gain,
+                    "local_work": local_work,
+                    "local_gain_per_work": (
+                        local_gain / local_work if local_work else 0.0
+                    ),
                     "hybrid_gain": hybrid_gain,
                     "hybrid_work": hybrid_work,
                     "hybrid_gain_per_work": (
