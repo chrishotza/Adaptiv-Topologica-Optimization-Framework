@@ -116,6 +116,30 @@ Jet is a GPU-oriented multilevel graph partitioner whose refinement and coarseni
 
 These methods belong to a different hardware regime. ATOF's CPU benchmark must not mix their throughput numbers with CPU wall-clock measurements; the correct comparison is algorithmic quality at matched hardware or a separate hardware-specific track.
 
+## 2026 second-half refresh
+
+The state-of-the-art map was refreshed in September 2026 against the current literature.
+
+### Multi-constraint graph partitioning: multilevel + tabu search
+
+Lu, Chen, Gao, and Hao published a multilevel iterated tabu-search approach for multi-constraint graph partitioning in *Computers & Operations Research* (2026). Their method combines problem-specific multilevel coarsening with feasible/infeasible iterated tabu search and reports new upper bounds on 573 of 665 benchmark instances, matching 83 previous best-known bounds.
+
+https://doi.org/10.1016/j.cor.2026.107389
+
+This is an important algorithmic reference for ATOF's **future multi-constraint track**, but it is not a direct baseline for the current single-constraint, unweighted graph product. The transferable idea is architectural: multilevel reduction plus an adaptive refinement/search process can be more important than any single local move operator.
+
+### Multi-objective hypergraph partitioning: multilevel continuous optimization
+
+Li et al. published a 2026 multi-objective hypergraph partitioning framework combining minimum-spanning-tree structure with proximal-gradient optimization in a multilevel setting.
+
+https://doi.org/10.1007/s11227-026-08738-5
+
+This belongs to ATOF's **hypergraph/multi-objective frontier**, not its current graph edge-cut contract. It reinforces the need to keep objective semantics explicit: quality claims from multi-objective hypergraph methods cannot be compared directly with unweighted graph edge cut.
+
+### Scope boundary for newly surfaced 2026 work
+
+Recent September 2026 graph-partitioning papers also target semi-supervised image segmentation or domain-specific DAG partitioning. These are useful adjacent research signals, but they should not enter the core ATOF state-of-art benchmark unless the objective, graph model, and constraints match the product contract.
+
 ## 11. State-of-the-art coverage model for ATOF
 
 The research program is organized around **coverage**, not a single leaderboard position.
