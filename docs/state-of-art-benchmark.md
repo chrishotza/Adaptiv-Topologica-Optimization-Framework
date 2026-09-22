@@ -49,9 +49,9 @@ The first locked comparison contains:
 
 The hybrid settings are fixed at period 5 and 100 sampled two-swaps. The adaptive controller uses 20 boundary-aware witness samples and a witness patience of 2.
 
-The benchmark records every graph/seed/strategy row, including failures, rather than silently dropping unavailable candidates.
+The benchmark records every graph/seed/strategy row, including failures, rather than silently dropping unavailable candidates. KaMinPar's Python binding mutates the Graph object during compute_partition and restores it afterward, so each worker keeps one strategy isolated from all other native extensions.
 
-For unit-weight graphs, the external multilevel backends are requested with epsilon=0, because their balance contract uses ceil(n/k); the benchmark then recomputes balance from the returned partition under ATOF's floor/ceil contract.
+For unit-weight graphs, Mt-KaHyPar is requested with epsilon=0. KaMinPar is requested with explicit maximum block weights equal to ceil(n/k), which directly enforces the same floor/ceil balance contract. The benchmark then recomputes balance from every returned partition under ATOF's contract.
 
 Mt-KaHyPar is evaluated through its current Python binding with one CPU thread. Graph loading and backend initialization are outside the timed partition call. Native C/C++ backends are also isolated one strategy per worker process so extension runtimes cannot corrupt each other. The default and quality presets are separate candidates; they are current multilevel baselines, not the SEA 2026 learned-coarsening model.
 
