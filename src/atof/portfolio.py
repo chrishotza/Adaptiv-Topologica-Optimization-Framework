@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import time
 from typing import Any, Callable
 
@@ -287,6 +287,60 @@ def _run_kahip(
     )
 
 
+def _validate_candidate_partition(
+    graph: nx.Graph,
+    k: int,
+    candidate: PortfolioCandidate,
+) -> PortfolioCandidate:
+    """Validate and canonicalize one backend result against the product contract."""
+    if not candidate.available or candidate.partition is None:
+        return candidate
+
+    try:
+        graph_nodes = set(graph.nodes())
+        partition_nodes = set(candidate.partition)
+        if partition_nodes != graph_nodes:
+            missing = graph_nodes - partition_nodes
+            extra = partition_nodes - graph_nodes
+            raise ValueError(
+                "partition node coverage mismatch"
+                f"; missing={len(missing)}, extra={len(extra)}"
+            )
+
+        labels = tuple(candidate.partition.values())
+        if any(not isinstance(block, int) or isinstance(block, bool) for block in labels):
+            raise ValueError("partition labels must be integers")
+        if any(block < 0 or block >= k for block in labels):
+            raise ValueError("partition labels must be in [0, k)")
+
+        edge_cut = _edge_cut(graph, candidate.partition)
+        balance = partition_balance_error(graph, candidate.partition, k)
+        postprocess = candidate.postprocess
+        if postprocess == "none":
+            postprocess = "contract_validation"
+        elif "contract_validation" not in postprocess:
+            postprocess = f"{postprocess};contract_validation"
+
+        return replace(
+            candidate,
+            edge_cut=edge_cut,
+            balance_error=balance,
+            postprocess=postprocess,
+            error=None,
+        )
+    except Exception as exc:
+        return replace(
+            candidate,
+            available=False,
+            edge_cut=None,
+            balance_error=None,
+            runtime_seconds=candidate.runtime_seconds,
+            partition=None,
+            postprocess="contract_validation_failed",
+            error=f"{type(exc).__name__}: {exc}",
+        )
+
+
 def _candidate(
     *,
     backend_id: str,
@@ -411,6 +465,11 @@ def optimize_portfolio(
                 error="NetworkX Kernighan-Lin supports only k=2",
             )
         ),
+    ]
+
+    candidates = [
+        _validate_candidate_partition(graph, k, candidate)
+        for candidate in candidates
     ]
 
     if include_optional:
