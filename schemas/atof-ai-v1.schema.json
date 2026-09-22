@@ -52,8 +52,7 @@
             "output",
             "partition_output",
             "full",
-            "k",
-            "result_schema"
+            "k"
           ],
           "properties": {
             "compact": {"const": "-c"},
@@ -134,7 +133,6 @@
           "properties": {
             "k": {"const": ">=2"},
             "result_schema": {"const": "atof.optimize.v1"},
-            "result_schema": {"const": "atof.portfolio.v1"},
             "objective": {"type": "string"},
             "backend": {"const": "BLOC-RELOC"},
             "variants": {
@@ -158,12 +156,14 @@
           "type": "object",
           "required": [
             "k",
+            "result_schema",
             "objective",
             "backends",
             "selection"
           ],
           "properties": {
             "k": {"const": ">=2"},
+            "result_schema": {"const": "atof.portfolio.v1"},
             "objective": {"type": "string"},
             "backends": {
               "type": "array",

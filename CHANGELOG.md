@@ -4,6 +4,8 @@
 
 ### Added
 
+- Runtime JSON Schema validation for AI, Engine, and Portfolio outputs in the development test suite.
+
 - Stable `atof.optimize.v1` result schema and self-identifying Engine responses for AI validation.
 
 - Stable `atof.portfolio.v1` result schema and self-identifying Portfolio responses for AI validation.

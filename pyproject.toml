@@ -52,6 +52,7 @@ kahip = [
 ]
 dev = [
   "pytest>=8.0",
+  "jsonschema>=4.23",
 ]
 
 [tool.setuptools.packages.find]
