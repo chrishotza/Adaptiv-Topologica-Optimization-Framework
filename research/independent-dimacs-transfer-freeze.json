@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "workflow_run_id": 35672597211,
+  "artifact_id": 10672421161,
+  "artifact_name": "atof-independent-dimacs-transfer",
+  "artifact_sha256": "4c5f8221b125c4c40485715d60adfb1220ae6e4b061d793c771e175720d42507",
+  "head_sha": "7de19856c284de937628339c265e5fabb984a045",
+  "protocol": "five-corpus leave-one-corpus-out transfer assembled from reusable graph-local benchmark blocks",
+  "total_graphs": 26,
+  "block_count": 12,
+  "k": 2,
+  "seeds": [42, 101, 2024],
+  "iterations": 25,
+  "candidate_strategies": ["bloc_reloc_affinity", "bloc_reloc_baseline", "kahip_kaffpa_strong_balanced", "kernighan_lin", "metis_multilevel_balanced", "random_balanced", "round_robin", "spectral_bisection", "spectral_modularity_bisection"],
+  "oracle_distribution": {
+    "development": {"kahip_kaffpa_strong_balanced": 7},
+    "dimacs": {"metis_multilevel_balanced": 2, "kahip_kaffpa_strong_balanced": 3, "kernighan_lin": 1},
+    "external": {"kahip_kaffpa_strong_balanced": 3, "bloc_reloc_baseline": 1},
+    "snap": {"kahip_kaffpa_strong_balanced": 3, "kernighan_lin": 3},
+    "snap_scalability": {"metis_multilevel_balanced": 1, "kahip_kaffpa_strong_balanced": 1, "kernighan_lin": 1}
+  },
+  "blocks": {
+    "development": {"corpus": "development", "graphs": ["path", "cycle", "grid", "erdos_renyi", "barabasi_albert", "watts_strogatz", "stochastic_block"], "graph_count": 7, "runtime_seconds": 0.770386635},
+    "external": {"corpus": "external", "graphs": ["karate_club", "davis_southern_women", "florentine_families", "les_miserables"], "graph_count": 4, "runtime_seconds": 0.502893584},
+    "snap": {"corpus": "snap", "graphs": ["c_elegans_frontal", "florida_bay", "s_cerevisiae", "email_eu_core", "college_msg", "reachability"], "graph_count": 6, "runtime_seconds": 74.891357761},
+    "snap_scalability_ca_grqc": {"corpus": "snap_scalability", "graphs": ["ca_grqc"], "graph_count": 1, "runtime_seconds": 45.701865861},
+    "snap_scalability_ca_hepth": {"corpus": "snap_scalability", "graphs": ["ca_hepth"], "graph_count": 1, "runtime_seconds": 197.446977561},
+    "snap_scalability_wiki_vote": {"corpus": "snap_scalability", "graphs": ["wiki_vote"], "graph_count": 1, "runtime_seconds": 326.613084403},
+    "dimacs_jazz": {"corpus": "dimacs", "graphs": ["jazz"], "graph_count": 1, "runtime_seconds": 2.114724223},
+    "dimacs_email_urv": {"corpus": "dimacs", "graphs": ["email_urv"], "graph_count": 1, "runtime_seconds": 8.490300195},
+    "dimacs_pgp_giant": {"corpus": "dimacs", "graphs": ["pgp_giant"], "graph_count": 1, "runtime_seconds": 257.550830092},
+    "dimacs_as_22july06": {"corpus": "dimacs", "graphs": ["as_22july06"], "graph_count": 1, "runtime_seconds": 1339.933085015},
+    "dimacs_power": {"corpus": "dimacs", "graphs": ["power"], "graph_count": 1, "runtime_seconds": 46.041433624},
+    "dimacs_astro_ph": {"corpus": "dimacs", "graphs": ["astro_ph"], "graph_count": 1, "runtime_seconds": 944.649036272}
+  },
+  "macros": {
+    "all_iqr_l2": {"nearest_mean_relative_regret": 0.21200390475479258, "centroid_mean_relative_regret": 0.4557156116107019, "majority_mean_relative_regret": 0.1846606576741488, "heuristic_mean_relative_regret": 9.155035357031114, "nearest_oracle_agreement": 0.6166666666666666, "centroid_oracle_agreement": 0.6357142857142857, "majority_oracle_agreement": 0.6166666666666667},
+    "global_paths_iqr_l2": {"nearest_mean_relative_regret": 0.11902010298026307, "centroid_mean_relative_regret": 0.6119088463204482, "majority_mean_relative_regret": 0.1846606576741488, "heuristic_mean_relative_regret": 9.155035357031114, "nearest_oracle_agreement": 0.6214285714285714, "centroid_oracle_agreement": 0.29523809523809527, "majority_oracle_agreement": 0.6166666666666667},
+    "global_paths_minmax_l2": {"nearest_mean_relative_regret": 0.2496841941811394, "centroid_mean_relative_regret": 0.5666630601248649, "majority_mean_relative_regret": 0.1846606576741488, "heuristic_mean_relative_regret": 9.155035357031114, "nearest_oracle_agreement": 0.5214285714285715, "centroid_oracle_agreement": 0.44523809523809527, "majority_oracle_agreement": 0.6166666666666667}
+  }
+}
