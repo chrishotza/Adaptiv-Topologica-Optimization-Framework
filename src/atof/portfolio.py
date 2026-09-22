@@ -231,7 +231,7 @@ def _run_kahip(
         [1] * len(adjncy),
         adjncy,
         k,
-        0.03,
+        0.0,
         1,
         int(seed),
         2,
