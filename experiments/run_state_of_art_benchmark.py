@@ -375,7 +375,11 @@ def _mean(values: list[float]) -> float:
     return statistics.fmean(values) if values else 0.0
 
 
-def _summarize_graph(rows: list[dict], strategies: tuple[str, ...]) -> dict:
+def _summarize_graph(
+    rows: list[dict],
+    strategies: tuple[str, ...],
+    expected_runs: int | None = None,
+) -> dict:
     available = {
         strategy: [
             row for row in rows
@@ -393,7 +397,25 @@ def _summarize_graph(rows: list[dict], strategies: tuple[str, ...]) -> dict:
         if items
     }
     if not means:
-        return {"strategies": {}, "best_quality": None}
+        return {"strategies": {}, "best_quality": None, "matched": False}
+
+    incomplete_strategies = (
+        [
+            strategy
+            for strategy in strategies
+            if len(available[strategy]) != expected_runs
+        ]
+        if expected_runs is not None
+        else []
+    )
+    if len(means) != len(strategies) or incomplete_strategies:
+        return {
+            "strategies": means,
+            "best_quality": None,
+            "matched": False,
+            "incomplete_strategies": incomplete_strategies,
+            "expected_runs": expected_runs,
+        }
 
     best_quality = min(
         means,
@@ -571,7 +593,11 @@ def run_state_of_art_benchmark(
         graph_rows.setdefault(row["graph_id"], []).append(row)
 
     graph_summaries = {
-        graph_id: _summarize_graph(group, strategies)
+        graph_id: _summarize_graph(
+            group,
+            strategies,
+            expected_runs=len(seeds),
+        )
         for graph_id, group in graph_rows.items()
     }
 
