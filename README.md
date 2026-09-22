@@ -75,7 +75,7 @@ Request the partition mapping:
 atof solve examples/demo.edgelist --partition-output partition.csv
 ```
 
-For the optional METIS and KaHIP backends:
+For the optional external backends:
 
 ```bash
 python -m pip install -e ".[metis,kahip,kaminpar,mtkahypar]"
@@ -101,15 +101,21 @@ ATOF provides one surface over a small portfolio of open backends and keeps the 
         ATOF Engine              ATOF Portfolio
         BLOC-RELOC          empirical backend composition
               |                       |
-              |          +------------+-------------+
-              |          |            |             |
-              |        BLOC       NetworkX       METIS / KaHIP
-              |                       |
-              +-----------+-----------+
-                          |
-                  JSON + provenance
-                          |
-                 partition export
+              |             |              |
+              |             |              |
+         BLOC-RELOC     NetworkX       native/native-isolated
+                            KL          METIS / KaHIP / KaMinPar
+                                           / Mt-KaHyPar
+                                      (optional backends)
+              |             |              |
+              +-------------+--------------+
+                            |
+                   common portfolio contract
+                   balance + unweighted cut
+                            |
+                   JSON + provenance
+                            |
+                    partition export
 ```
 
 ### ATOF Engine
@@ -143,7 +149,7 @@ The portfolio is the composition layer:
 - KaMinPar default/strong, when installed;
 - Mt-KaHyPar default/quality, when installed.
 
-The current portfolio contract uses **k-way balanced partitioning for k>=2** on undirected, simple, unweighted graphs. NetworkX Kernighan-Lin remains a k=2 candidate; METIS, KaHIP, and the native BLOC-RELOC paths can serve k-way requests.
+The current portfolio contract uses **k-way balanced partitioning for k>=2** on undirected, simple, unweighted graphs. Optional native backends (KaMinPar and Mt-KaHyPar) execute through isolated worker processes so a native crash is contained to that candidate. NetworkX Kernighan-Lin remains a k=2 candidate; METIS, KaHIP, and the native BLOC-RELOC paths can serve k-way requests.
 
 Selection is empirical: lowest observed edge cut, then balance, runtime, and backend name as tie-breakers.
 
