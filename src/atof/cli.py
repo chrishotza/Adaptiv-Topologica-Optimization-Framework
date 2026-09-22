@@ -9,13 +9,19 @@ import networkx as nx
 from . import __version__
 from .ai import build_ai_manifest, build_doctor_report, compact_json, compact_result
 from .portfolio import optimize_portfolio
-from .product import load_graph, optimize_graph, write_partition, write_partition_mapping
+from .product import (
+    SUPPORTED_INPUT_FORMATS,
+    load_graph,
+    optimize_graph,
+    write_partition,
+    write_partition_mapping,
+)
 from .provenance import graph_fingerprint
 from .selector import HeuristicRegimeSelector
 from .topology import TopologyProfiler
 
 
-_FORMAT_CHOICES = ("auto", "edgelist", "json", "graphml", "gexf", "gml")
+_FORMAT_CHOICES = SUPPORTED_INPUT_FORMATS
 
 _CLI_ERRORS = (OSError, ValueError, RuntimeError, TypeError, UnicodeError, SyntaxError, nx.NetworkXException)
 
