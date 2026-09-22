@@ -58,6 +58,13 @@ jobs:
           assert payload["policies"] == ["off", "fixed", "adaptive", "marginal"]
           assert sum(item["graph_count"] for item in payload["corpora"].values()) == 20
           assert len(payload["rows"]) == 20 * 3 * 4
+          graph_ids = sorted({row["graph_id"] for row in payload["rows"]})
+          assert len(graph_ids) == 20
+          for graph_id in graph_ids:
+              graph_rows = [row for row in payload["rows"] if row["graph_id"] == graph_id]
+              assert len(graph_rows) == 3 * 4
+              assert sorted({row["seed"] for row in graph_rows}) == [42, 101, 2024]
+              assert {row["strategy"] for row in graph_rows} == {"off", "fixed", "adaptive", "marginal"}
           for row in payload["rows"]:
               assert row["total_work"] > 0
               assert row["probe_work"] >= 0
