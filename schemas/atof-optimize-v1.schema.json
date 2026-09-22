@@ -56,7 +56,9 @@
             "period",
             "samples",
             "patience",
-            "passes"
+            "probe_samples",
+            "passes",
+            "probes"
           ],
           "properties": {
             "enabled": {
@@ -86,6 +88,14 @@
               "minimum": 1
             },
             "passes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "probe_samples": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "probes": {
               "type": "integer",
               "minimum": 0
             }
