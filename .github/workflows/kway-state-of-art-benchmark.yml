@@ -1,0 +1,45 @@
+name: K-way state-of-art benchmark
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,kaminpar,dev]"
+
+      - name: Run matched k-way benchmark
+        run: |
+          python -m experiments.run_kway_state_of_art_benchmark \
+            --output results/state_of_art/kway_latest.json \
+            --cache-dir .cache/snap
+
+      - name: Upload k-way manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-of-art-kway-benchmark
+          path: results/state_of_art/kway_latest.json
+          if-no-files-found: error
+
+      - name: Upload SNAP cache
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-of-art-kway-snap-cache
+          path: .cache/snap
+          if-no-files-found: ignore
