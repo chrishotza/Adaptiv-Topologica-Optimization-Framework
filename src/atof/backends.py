@@ -15,6 +15,8 @@ import networkx as nx
 from .partition import (
     balance_error as partition_balance_error,
     exact_balanced_block_weights,
+    exact_partition_balance_error,
+    rebalance_kway,
 )
 from .provenance import package_version
 
@@ -160,10 +162,12 @@ def _run_kaminpar_in_process(
         max_block_weights=[max_block_weight] * k,
     )
     runtime = time.perf_counter() - started
+    membership = rebalance_kway(graph, [int(block) for block in membership], k)
     partition = {
         node: int(block)
         for node, block in zip(graph.nodes(), membership)
     }
+    exact_partition_balance_error(graph, partition, k)
     edge_cut, balance = _partition_metrics(graph, partition, k)
     return partition, edge_cut, balance, runtime
 
@@ -232,6 +236,7 @@ def _run_mtkahypar_in_process(
         node: block
         for node, block in zip(graph.nodes(), membership)
     }
+    exact_partition_balance_error(graph, partition, k)
     edge_cut, balance = _partition_metrics(graph, partition, k)
     return partition, edge_cut, balance, runtime
 
