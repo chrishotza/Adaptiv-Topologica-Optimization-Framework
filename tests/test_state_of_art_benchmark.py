@@ -50,6 +50,22 @@ def test_graph_summary_normalizes_quality_and_runtime() -> None:
     assert summary["strategies"]["b"]["runtime_ratio_to_graph_median"] == pytest.approx(0.5)
 
 
+def test_incomplete_seed_set_is_not_matched() -> None:
+    rows = [
+        *[
+            {"strategy": "a", "status": "ok", "edge_cut": 10, "balance_error": 0.0, "runtime_seconds": 2.0}
+            for _ in range(3)
+        ],
+        *[
+            {"strategy": "b", "status": "ok", "edge_cut": 12, "balance_error": 0.0, "runtime_seconds": 1.0}
+            for _ in range(2)
+        ],
+    ]
+    summary = _summarize_graph(rows, ("a", "b"), expected_runs=3)
+    assert summary["matched"] is False
+    assert summary["incomplete_strategies"] == ["b"]
+
+
 def test_aggregate_uses_graphs_as_the_unit_of_analysis() -> None:
     graph_summaries = {
         "g1": {"strategies": {"a": {"relative_quality_gap": 0.0, "runtime_ratio_to_graph_median": 1.0}}},
