@@ -68,6 +68,8 @@ jobs:
           assert payload["unit_of_analysis"] == "graph"
           assert payload["matched_graphs"] >= 2
           assert payload["controls"] == ["majority", "global_mean"]
+          assert payload["oracle_unique_strategy_count"] >= 1
+          assert set(payload["oracle_distribution"]) == set(payload["corpora"])
           assert set(payload["macro"]) == {
               "nearest_vs_majority",
               "nearest_vs_global_mean",
