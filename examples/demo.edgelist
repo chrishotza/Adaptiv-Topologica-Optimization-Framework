@@ -1,0 +1,10 @@
+# Tiny deterministic demo graph
+a b
+a c
+b c
+b d
+c d
+c e
+d e
+d f
+e f
