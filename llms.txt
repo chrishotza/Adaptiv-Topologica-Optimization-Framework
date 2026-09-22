@@ -2,6 +2,14 @@
 
 > Open-source graph optimization interface designed for humans and AI agents.
 
+## Contract priority
+
+1. `atof ai` — current capabilities and limits
+2. `schemas/` — stable JSON contracts
+3. `AGENTS.md` — operating rules
+4. `docs/` — explanatory usage
+5. `research/` and `experiments/` — evidence/history only
+
 ## Start here
 
 - `atof ai` — stable AI capability contract
