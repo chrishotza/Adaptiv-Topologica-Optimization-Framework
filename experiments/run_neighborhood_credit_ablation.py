@@ -15,6 +15,7 @@ VARIANTS = ("baseline", "affinity")
 ITERATIONS = 25
 HYBRID_PERIOD = 5
 HYBRID_SAMPLES = 100
+K = 4
 
 
 def run_pair(graph, *, seed: int, variant: str) -> dict:
@@ -48,6 +49,7 @@ def run_pair(graph, *, seed: int, variant: str) -> dict:
         "variant": variant,
         "iterations": ITERATIONS,
         "hybrid_period": HYBRID_PERIOD,
+        "k": K,
         "hybrid_samples": HYBRID_SAMPLES,
         "fixed_edge_cut": fixed.edge_cut,
         "credit_edge_cut": credit.edge_cut,
@@ -101,6 +103,7 @@ def run_benchmark() -> dict:
         "variants": list(VARIANTS),
         "iterations": ITERATIONS,
         "hybrid_period": HYBRID_PERIOD,
+        "k": K,
         "hybrid_samples": HYBRID_SAMPLES,
         "rows": rows,
         "summary": {
