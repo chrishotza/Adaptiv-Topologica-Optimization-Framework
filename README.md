@@ -8,6 +8,18 @@
 
 **ATOF** gives humans and AI agents one machine-readable path to profile a graph, inspect available optimization engines, run a reproducible balanced partition, and export the result.
 
+## What ATOF is for
+
+ATOF is a Python graph-partitioning and graph-optimization tool for problems that need balanced blocks, reproducible runs, and one interface across multiple partitioning backends. Typical use cases include:
+
+- **balanced graph partitioning in Python** and NetworkX workflows;
+- **k-way graph partitioning** with the native ATOF Engine;
+- comparing **BLOC-RELOC, Kernighan-Lin, METIS, and KaHIP** under a common contract;
+- giving an **AI agent or automation pipeline** a machine-readable graph optimizer;
+- exporting a reproducible node-to-block mapping for downstream systems.
+
+ATOF is a partitioning tool, not a generic community-detection package: its current product contract is explicit about balance, edge-cut objectives, supported graph models, and available backends.
+
 Maintained by **Chris Hotza — Investigador Independiente**.
 
 ## Start in 30 seconds
