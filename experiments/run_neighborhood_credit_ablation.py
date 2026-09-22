@@ -20,7 +20,7 @@ K = 3
 
 def run_pair(graph, *, seed: int, variant: str) -> dict:
     fixed_started = time.perf_counter()
-    fixed = BLOCReloc(graph, k=2, seed=seed, variant=variant).refine(
+    fixed = BLOCReloc(graph, k=K, seed=seed, variant=variant).refine(
         iterations=ITERATIONS,
         hybrid_period=HYBRID_PERIOD,
         hybrid_samples=HYBRID_SAMPLES,
