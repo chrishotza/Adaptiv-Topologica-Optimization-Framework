@@ -43,7 +43,7 @@ This is a provenance claim, not a scientific performance claim.
 
 ### Downstream interoperability
 
-The BLOC product path and the portfolio/solve path export node-to-block mappings as JSON, CSV, or TSV through the same mapping writer.
+The BLOC product path and the Portfolio/solve path export node-to-block mappings as JSON, CSV, or TSV through the same mapping writer.
 
 ## Benchmark-qualified claims
 
@@ -51,26 +51,28 @@ The BLOC product path and the portfolio/solve path export node-to-block mappings
 
 In the clean GitHub Actions benchmark run on 2026-09-22, using Zachary's Karate Club graph (34 nodes, 78 edges), k=2 and an unweighted balanced edge-cut objective:
 
-- ATOF core produced edge cut 39.
-- ATOF portfolio produced edge cut 10 and selected PyMetis.
+- ATOF Engine produced edge cut 39.
+- ATOF Portfolio produced edge cut 10 and selected PyMetis.
 - NetworkX Kernighan-Lin produced edge cut 10.
 - METIS via PyMetis produced edge cut 10.
 - KaHIP produced edge cut 10.
 - All five methods reported balance error 0.
 
-This supports a narrow claim: the current ATOF portfolio can expose multiple open backends through one interface and, on this benchmark configuration, reach the same measured edge cut as the direct backends.
+This supports a narrow claim: the current ATOF Portfolio can expose multiple open backends through one interface and, on this benchmark configuration, reach the same measured edge cut as the direct backends.
 
-It does **not** support a speed claim. In the same run, direct NetworkX/METIS/KaHIP execution was substantially faster on this small graph, and ATOF portfolio setup included the combined package surface.
+It does **not** support a speed claim. In the same run, direct NetworkX/METIS/KaHIP execution was substantially faster on this small graph, and ATOF Portfolio setup included the combined package surface.
 
 This is evidence for one named graph, one protocol, one environment, and one objective—not a universal performance result.
 
-The clean-environment access benchmark measures setup, import, first-run time, repeat-run time, edge cut, balance, versions, and determinism separately for ATOF core, ATOF portfolio, NetworkX, METIS, and KaHIP.
+The clean-environment access benchmark measures setup, import, first-run time, repeat-run time, edge cut, balance, versions, and determinism separately for ATOF Engine, ATOF Portfolio, NetworkX, METIS, and KaHIP.
 
 Do not summarize those measurements as a universal winner without a defined corpus and protocol. The Karate Club result above is the current concrete benchmark example.
 
 ## Open-source claim
 
 The repository is MIT licensed. That supports the claim of zero software license cost for the code.
+
+The product terminology is intentionally split: **ATOF Engine** means the native BLOC-RELOC product path; **ATOF Portfolio** means the composition layer over multiple available backends.
 
 It does not imply:
 
