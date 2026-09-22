@@ -23,6 +23,8 @@ def _profile(path: Path, format: str = "auto") -> dict:
     return {
         "file": str(path),
         "version": __version__,
+        "nodes": graph.number_of_nodes(),
+        "edges": graph.number_of_edges(),
         "graph": {
             "nodes": graph.number_of_nodes(),
             "edges": graph.number_of_edges(),
