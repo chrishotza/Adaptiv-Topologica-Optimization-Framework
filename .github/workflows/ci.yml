@@ -27,6 +27,19 @@ jobs:
       - name: Unit tests
         run: pytest
 
+      - name: Product CLI smoke tests
+        run: |
+          python -m atof ai >/tmp/atof-ai.json
+          python -m atof doctor >/tmp/atof-doctor.json
+          python -m atof solve examples/demo.edgelist >/tmp/atof-solve.json
+          python - <<'PY'
+          import json
+          for name in ("atof-ai.json", "atof-doctor.json", "atof-solve.json"):
+              with open(f"/tmp/{name}", encoding="utf-8") as handle:
+                  payload = json.load(handle)
+              assert isinstance(payload, dict), name
+          PY
+
       - name: Canonical benchmark smoke test
         run: |
           python -m experiments.run_canonical
