@@ -56,12 +56,12 @@ jobs:
             --manifest-only
 
       - name: Run controlled Set A gate
-        if: \${{ github.event.inputs.manifest_only != 'true' }}
+        if: ${{ github.event.inputs.manifest_only != 'true' }}
         run: |
           python -m experiments.run_sea_set_a_gate \
             --set-a-dir data/set_a \
             --set-a-zip set_a.zip \
-            --limit \${{ inputs.limit }} \
+            --limit ${{ inputs.limit }} \
             --output results/state_of_art/set_a_gate.json
 
       - name: Upload gate artifacts
