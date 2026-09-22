@@ -1,12 +1,12 @@
-# Preliminary state-of-art benchmark results — 2026-09-22
+# State-of-art benchmark — first complete 11-candidate result
 
 ## Scope
 
-This report summarizes workflow run `State-of-art benchmark #32` on commit `f97ea9c90a5b0e76e7ea2a9586a57f944a5618d2`.
+This report summarizes workflow run `State-of-art benchmark #40` on commit `340295b321dcbd42ad1126202afb8e35f71697eb`.
 
-The run contains 660 rows: 20 graphs × 3 seeds × 11 candidate strategies.
+The run contains 660 valid rows: 20 graphs × 3 seeds × 11 candidate strategies.
 
-Package versions recorded by the manifest:
+Recorded environment:
 
 - ATOF 0.6.0
 - NetworkX 3.7
@@ -15,63 +15,76 @@ Package versions recorded by the manifest:
 - KaMinPar 3.7.3
 - Mt-KaHyPar 1.6.2
 
-## Important limitation
+## Validity
 
-KaMinPar default and strong both exited with code `-11` in their isolated worker, across all 60 rows per strategy. Therefore KaMinPar is excluded from all quality aggregates below.
+All 660 rows completed successfully. KaMinPar default and strong are now included after moving to the explicit `max_block_weights=[ceil(n/k)] * k` API, matching ATOF's floor/ceil balance contract.
 
-This is an integration failure, not a result about KaMinPar's partitioning quality. The benchmark treats those rows as unavailable rather than silently replacing them.
+The benchmark isolates every native backend in its own worker process. Graph loading/backend initialization are excluded from solver timing for KaMinPar and Mt-KaHyPar. The objective is recomputed consistently in Python.
 
-The adapter has since been changed to use KaMinPar's explicit `max_block_weights=[ceil(n/k)] * k` overload, matching ATOF's floor/ceil balance contract. A fresh execution is required before KaMinPar can enter the scientific comparison.
+## Aggregate quality and runtime
 
-## Aggregate quality / runtime
-
-Relative quality gap is the graph-level mean of `(strategy_mean_edge_cut - graph_best_edge_cut) / graph_best_edge_cut`. Runtime is normalized to each graph's median candidate runtime.
+`relative_quality_gap` in the machine manifest is a fraction. The table below reports the same metric as a percentage.
 
 | Strategy | Graphs | Mean relative quality gap | Median relative quality gap | Mean runtime / graph median |
 |---|---:|---:|---:|---:|
-| Mt-KaHyPar default | 20 | 0.1079% | 0.0000% | 0.734x |
-| Mt-KaHyPar quality | 20 | 0.1151% | 0.0000% | 0.749x |
-| KaHIP | 20 | 0.1798% | 0.0000% | 10.243x |
-| METIS | 20 | 0.1916% | 0.0539% | 0.154x |
-| NetworkX Kernighan-Lin | 20 | 0.5426% | 0.1088% | 0.691x |
-| BLOC-RELOC hybrid fixed | 20 | 2.8224% | 0.8445% | 1.343x |
-| BLOC-RELOC adaptive | 20 | 2.8237% | 0.8394% | 1.365x |
-| BLOC-RELOC baseline | 20 | 7.7680% | 2.0677% | 0.874x |
-| BLOC-RELOC affinity | 20 | 7.8349% | 2.2019% | 0.980x |
+| Mt-KaHyPar default | 20 | 10.79% | 0.00% | 0.896x |
+| Mt-KaHyPar quality | 20 | 11.51% | 0.00% | 0.924x |
+| KaMinPar default | 20 | 16.45% | 0.40% | 0.467x |
+| KaMinPar strong | 20 | 16.45% | 0.40% | 0.506x |
+| KaHIP | 20 | 17.98% | 0.00% | 11.979x |
+| METIS | 20 | 19.16% | 5.39% | 0.168x |
+| NetworkX Kernighan-Lin | 20 | 54.26% | 10.88% | 0.764x |
+| BLOC-RELOC hybrid fixed | 20 | 282.24% | 84.45% | 1.615x |
+| BLOC-RELOC adaptive | 20 | 282.37% | 83.94% | 1.624x |
+| BLOC-RELOC baseline | 20 | 776.80% | 206.77% | 1.029x |
+| BLOC-RELOC affinity | 20 | 783.49% | 220.19% | 1.154x |
 
-These numbers are from one matched 20-graph, three-seed, 25-iteration CPU run. They are not a claim of universal superiority or state-of-the-art status.
+These figures are graph-level averages over three seeds. They do not represent a universal ranking; they describe this locked 20-graph CPU experiment.
 
-## ATOF refinement signal
+## Which methods reach the graph best
 
-Compared with the plain BLOC-RELOC baseline, fixed hybrid refinement improved graph-level mean edge cut on 19 of 20 graphs and worsened none in this corpus, at a mean runtime ratio of about 1.64x relative to baseline. This confirms that the expensive local-search component materially closes part of the quality gap.
+When ties are counted, the number of graphs on which each method attains the minimum mean edge cut is:
 
-The safe adaptive controller was very close to the fixed hybrid endpoint on this corpus: relative to fixed hybrid, it was better on 2 graphs, tied on 15, and worse on 3, with mean edge-cut delta +6.68 raw cut units and a mean runtime ratio of about 1.013x. This reinforces the current decision not to promote a more aggressive dynamic policy without stronger evidence.
+- Mt-KaHyPar default: 14/20
+- Mt-KaHyPar quality: 12/20
+- KaHIP: 11/20
+- KaMinPar default: 10/20
+- KaMinPar strong: 10/20
+- METIS: 8/20
+- NetworkX Kernighan-Lin: 6/20
+- BLOC-RELOC baseline: 1/20
+- BLOC-RELOC hybrid fixed: 1/20
+- BLOC-RELOC adaptive: 1/20
 
-## External solver structure
+These counts overlap because 13 of the 20 graphs contain ties among multiple candidates.
 
-Mt-KaHyPar default had the smallest mean relative quality gap among the available candidates. It achieved the best or tied-best mean edge cut on 14 of 20 graphs; Mt-KaHyPar quality did so on 12, KaHIP on 11, and METIS on 8 when ties are counted. These tie counts overlap because several graphs have identical best cuts across multiple solvers.
+## The main ATOF finding
 
-The distribution is heterogeneous. On several synthetic/reference graphs, multiple multilevel solvers tie at the same cut. On routine SNAP graphs, the relative ordering changes substantially across instances. On the three scalability graphs, Mt-KaHyPar default had the best mean cut on ca-GrQc and ca-HepTh, while Wiki-Vote was a difficult case for several methods under the current protocol.
+Fixed hybrid refinement is a real improvement over plain BLOC-RELOC on this corpus, but it is still far from the strongest multilevel baselines under the same objective.
 
-## Research interpretation
+Relative to Mt-KaHyPar default, the hybrid fixed strategy has a mean graph-level cut gap of about 265.82% and a median gap of about 59.94%; it is not better than Mt-KaHyPar on 19 of 20 graphs and ties it on one.
 
-The first external comparison changes the research question in a useful way.
+The safe adaptive controller is almost identical to fixed hybrid on this corpus: compared with fixed hybrid it is better on 2 graphs, tied on 15, and worse on 3, with mean runtime ratio about 1.013x. It therefore does not yet establish a dynamic-allocation advantage.
 
-1. BLOC-RELOC plus hybrid refinement is a meaningful quality improvement over plain BLOC-RELOC.
-2. The current ATOF refinement family is still materially behind mature multilevel solvers on this 20-graph corpus.
-3. The strongest immediate research target is therefore not another small BLOC parameter tweak.
-4. The differentiating question remains whether ATOF can allocate compute dynamically and recover a better quality-vs-compute frontier than fixed refinement and mature multilevel baselines.
+## KaMinPar result
 
-## Next validation
+KaMinPar default and strong both produced valid results on all 20 graphs. They were within 5.60% mean relative cut of Mt-KaHyPar default when compared graph-by-graph, tied with Mt-KaHyPar on many instances, and better on 3 of 20 graphs under this specific seed/corpus protocol. Their runtime ratios to graph median were substantially lower than Mt-KaHyPar in this single-threaded Python environment.
 
-- rerun the corrected KaMinPar adapter using explicit max block weights;
-- execute the k=4/8/32/64 benchmark with the same native-process isolation;
-- reproduce the SEA 2026 learned-coarsening baseline from the archived Mt-KaHyPar 1.5.3 snapshot;
-- expand from 20 graphs to the public SEA Set A while preserving graph-level holdouts;
-- only then test dynamic compute allocation against the strongest external and learned baselines.
+This is not a statement about the broader performance of the KaMinPar project: its production configurations and published scalability results are designed for parallel execution, and hardware/thread counts matter.
 
-## Provenance
+## Research conclusion at this stage
 
-SEA 2026 reference: https://doi.org/10.4230/LIPIcs.SEA.2026.25
-KaMinPar 3.7.3: https://github.com/KaHIP/KaMinPar/releases/tag/v3.7.3
-Mt-KaHyPar: https://github.com/kahypar/mt-kahypar
+The benchmark has now established a strong external baseline boundary.
+
+1. The multilevel family remains substantially ahead of the current ATOF BLOC-RELOC refinement family on this corpus.
+2. The current hybrid refinement is valuable, but it is not yet competitive with mature multilevel methods in final cut quality.
+3. Parameter tuning alone is unlikely to close the observed gap efficiently.
+4. The next legitimate novelty target is therefore the quality-versus-compute frontier: whether an adaptive controller can choose when and where to spend additional search budget so that it approaches the quality of strong multilevel solvers at materially lower incremental compute.
+5. That experiment must include the learned-coarsening SEA 2026 baseline, not only classical solvers.
+
+## Next gates
+
+- Execute the k=4/8/32/64 benchmark over the same 20 graphs.
+- Reproduce the SEA 2026 learned-coarsening implementation from its archived Mt-KaHyPar 1.5.3 snapshot.
+- Materialize a reproducible subset of the 118-graph SEA Set A and preserve graph-level train/test separation.
+- Build the dynamic compute-allocation frontier experiment against the fixed external baselines.
