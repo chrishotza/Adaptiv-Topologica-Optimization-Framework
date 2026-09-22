@@ -32,6 +32,7 @@ jobs:
           python -m atof ai >/tmp/atof-ai.json
           python -m atof doctor >/tmp/atof-doctor.json
           python -m atof solve examples/demo.edgelist >/tmp/atof-solve.json
+          printf 'a b\nb c\nc d\n' | python -m atof solve - >/tmp/atof-stdin.json
           python - <<'PY'
           import json
           for name in ("atof-ai.json", "atof-doctor.json", "atof-solve.json"):
