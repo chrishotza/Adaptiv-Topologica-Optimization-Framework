@@ -56,6 +56,8 @@ class OptimizationResult:
     seed: int
     hybrid_period: int | None = None
     hybrid_samples: int = 100
+    hybrid_policy: str = "fixed"
+    hybrid_patience: int = 2
 
     @property
     def selection_mode(self) -> str:
@@ -86,8 +88,11 @@ class OptimizationResult:
                 "regime": self.regime,
                 "hybrid_refinement": {
                     "enabled": self.hybrid_period is not None,
+                    "policy": self.hybrid_policy if self.hybrid_period is not None else "off",
                     "period": self.hybrid_period,
                     "samples": self.hybrid_samples,
+                    "patience": self.hybrid_patience,
+                    "passes": result.hybrid_passes,
                 },
             },
             "graph": {
@@ -228,6 +233,8 @@ def optimize_graph(
     hybrid: bool = False,
     hybrid_period: int = 5,
     hybrid_samples: int = 100,
+    hybrid_policy: str = "fixed",
+    hybrid_patience: int = 2,
 ) -> OptimizationResult:
     """Profile and partition a graph with the product selection policy."""
     if variant not in ("auto", "baseline", "affinity"):
@@ -240,6 +247,10 @@ def optimize_graph(
         raise ValueError("hybrid_period must be at least 1")
     if hybrid_samples < 0:
         raise ValueError("hybrid_samples must be >= 0")
+    if hybrid_policy not in ("fixed", "adaptive"):
+        raise ValueError("hybrid_policy must be one of: fixed, adaptive")
+    if hybrid_patience < 1:
+        raise ValueError("hybrid_patience must be at least 1")
 
     validate_product_graph(graph)
     profiler = TopologyProfiler()
@@ -256,6 +267,8 @@ def optimize_graph(
         iterations=iterations,
         hybrid_period=hybrid_period if hybrid else None,
         hybrid_samples=hybrid_samples,
+        hybrid_policy=hybrid_policy,
+        hybrid_patience=hybrid_patience,
     )
 
     return OptimizationResult(
@@ -272,6 +285,8 @@ def optimize_graph(
         seed=seed,
         hybrid_period=hybrid_period if hybrid else None,
         hybrid_samples=hybrid_samples,
+        hybrid_policy=hybrid_policy,
+        hybrid_patience=hybrid_patience,
     )
 
 
