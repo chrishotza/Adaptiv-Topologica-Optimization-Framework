@@ -51,6 +51,14 @@ atof profile graph.edgelist --compact
 
 Use this when the agent needs graph size and structural recommendation without the full topology descriptor set.
 
+## 7. k-way Engine mode
+
+~~~bash
+atof optimize graph.edgelist --engine bloc --k 4 --compact
+~~~
+
+Use Engine mode when the task needs more than two balanced blocks. Portfolio mode remains `k=2`.
+
 ## 8. Full evidence
 
 ~~~bash
