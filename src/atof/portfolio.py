@@ -7,6 +7,7 @@ from typing import Any, Callable
 import networkx as nx
 
 from .provenance import graph_fingerprint, package_version
+from .partition import balance_error as partition_balance_error
 from .product import validate_product_graph
 from .selector import HeuristicRegimeSelector
 from .strategies import BLOCReloc, PartitionResult
@@ -247,7 +248,7 @@ def _run_metis(
     return (
         partition,
         _edge_cut(graph, partition),
-        abs(membership.count(0) - membership.count(1)) / len(nodes),
+        partition_balance_error(graph, partition, k),
     )
 
 
