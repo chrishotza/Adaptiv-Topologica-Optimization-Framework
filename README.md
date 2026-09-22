@@ -1,325 +1,250 @@
-# Adaptive Topological Optimization Framework (ATOF)
+# ATOF — Adaptive Topological Optimization Framework
 
-ATOF is a research framework for topology-aware graph optimization, regime detection, adaptive strategy selection, and reproducible benchmarking.
+> **AI-first, open-source graph optimization with a common interface, reproducible provenance, and optional backend composition.**
 
-The central idea is practical:
+[![CI](https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/actions/workflows/ci.yml/badge.svg)](https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-%3E%3D3.10-blue.svg)](pyproject.toml)
 
-> **Graph structure should inform which optimization strategy is applied.**
+**ATOF** gives humans and AI agents one machine-readable path to profile a graph, inspect available optimization engines, run a reproducible two-way partition, and export the result.
 
-Rather than assuming one partitioning method is uniformly effective, ATOF profiles a graph, characterizes its structural regime, evaluates candidate strategies, and preserves the evidence needed to compare them.
+Maintained by **Chris Hotza — Investigador Independiente**.
 
-## What you can do with ATOF
+## Start in 30 seconds
 
-- Profile graphs with interpretable structural descriptors.
-- Run BLOC-RELOC as a balanced local partition-refinement strategy.
-- Compare baseline and degree-affinity objectives explicitly.
-- Route strategies by topology with a transparent heuristic or graph-level learned baseline.
-- Inspect optimization dynamics from accepted/rejected move traces.
-- Run reproducible multi-seed experiments, held-out routing evaluations, graph-aware uncertainty analysis, external reference-corpus validation, and cross-corpus routing summaries.
+Install the core:
 
-## Architecture
-
-~~~text
-Graph
-  |
-  v
-Topology Profiler
-  |
-  v
-Structural Representation
-  |
-  +--> Regime Detection
-  |
-  +--> Strategy Routing
-  |      +--> Heuristic selector
-  |      +--> Learned topology router
-  |
-  +--> BLOC-RELOC
-  +--> Other benchmark strategies
-  |
-  v
-Validation
-  |
-  +--> Canonical benchmark
-  +--> Dynamics observatory
-  +--> Graph-level holdout
-  +--> Graph-level uncertainty
-  +--> External reference corpora
-  +--> Cross-corpus generalization summary
-  |
-  v
-Results + Metadata
-~~~
-
-## Public core
-
-The public repository is a curated consolidation of the shared graph-optimization research line.
-
-The topology profiling layer comes from the former adaptive-topological-optimization repository.
-
-The BLOC-RELOC refinement engine and dynamics-analysis lessons come from bloc-reloc-v2.
-
-Reproducibility and provenance rules were extracted from the broader research archive.
-
-COV-IA remains a separate prototype. Its adaptive-control ideas are documented as a boundary case rather than mixed into the graph-optimization core.
-
-## Quick start
-
-~~~bash
+```bash
 python -m pip install -e .
-atof profile graph.edgelist
-atof optimize graph.edgelist --output result.json
-~~~
+```
 
-For development and the full test suite:
+Ask ATOF what it can do:
 
-~~~bash
-python -m pip install -e ".[dev]"
-pytest
-~~~
+```bash
+atof ai
+```
 
-## AI-first entry point
+Inspect the environment:
 
-ATOF has a dedicated machine-facing surface for AI agents and automation.
+```bash
+atof doctor
+```
 
-~~~bash
+Run the shortest practical AI path:
+
+```bash
+atof solve examples/demo.edgelist
+```
+
+Request the partition mapping:
+
+```bash
+atof solve examples/demo.edgelist --partition-output partition.csv
+```
+
+For the optional METIS and KaHIP backends:
+
+```bash
+python -m pip install -e ".[metis,kahip]"
+```
+
+## Why ATOF
+
+ATOF is built around a simple interface problem:
+
+- graph optimizers often expose different APIs, inputs, outputs, and dependency requirements;
+- AI agents need small, explicit, machine-readable contracts;
+- benchmark claims need provenance instead of hand-written summaries.
+
+ATOF provides one surface over a small portfolio of open backends and keeps the evidence boundary explicit.
+
+## Product architecture
+
+```text
+                         ATOF
+                          |
+              +-----------+-----------+
+              |                       |
+        ATOF Engine              ATOF Portfolio
+        BLOC-RELOC          empirical backend composition
+              |                       |
+              |          +------------+-------------+
+              |          |            |             |
+              |        BLOC       NetworkX       METIS / KaHIP
+              |                       |
+              +-----------+-----------+
+                          |
+                  JSON + provenance
+                          |
+                 partition export
+```
+
+### ATOF Engine
+
+The engine is ATOF's own product path:
+
+- topology profiling;
+- transparent regime recommendation;
+- BLOC-RELOC balanced local refinement;
+- deterministic seeds and machine-readable results.
+
+The heuristic regime selector is a **descriptive baseline**, not a universal optimizer.
+
+### ATOF Portfolio
+
+The portfolio is the composition layer:
+
+- BLOC-RELOC baseline;
+- BLOC-RELOC affinity;
+- NetworkX Kernighan-Lin;
+- METIS via PyMetis, when installed;
+- KaHIP via KaFFPa-Strong, when installed.
+
+The current portfolio contract is intentionally narrow: **k=2, undirected, simple, unweighted graphs, minimizing balanced edge cut**.
+
+Selection is empirical: lowest observed edge cut, then balance, runtime, and backend name as tie-breakers.
+
+## AI-first interface
+
+The machine-facing surface is deliberately small:
+
+```bash
 atof ai
 atof doctor
 atof solve graph.edgelist
 atof profile graph.edgelist --compact
 atof optimize graph.edgelist --engine portfolio --compact
-~~~
+```
 
-Use the commands in this order for the shortest operational path: discover the contract, inspect available engines, solve, then request full evidence only when necessary. Results include machine-readable provenance such as a graph fingerprint and seed.
+The stable contracts are:
 
-See AGENTS.md, docs/ai-quickstart.md, and docs/claims.md.
+- `atof.ai.v1` — capabilities and limits;
+- `atof.doctor.v1` — environment and backend availability;
+- `schemas/` — machine-readable contract definitions.
 
-## Product entry point
+Use `--compact` for low-token orchestration. Use full JSON when topology, provenance, candidate details, or the node-to-block mapping is needed.
 
-The primary usable entry points are the `atof solve` portfolio shortcut and `atof optimize` for explicit engine and variant control. It profiles an edge-list graph, applies the transparent heuristic selector when `--variant auto` is used, runs balanced BLOC-RELOC refinement, and returns a machine-readable partition result. The selector is explicitly a heuristic baseline; the command does not claim global optimality. See `docs/product-quickstart.md`.
+## Reproducibility
 
-## Run the canonical benchmark
+Product results carry machine-readable provenance including:
 
-~~~bash
+- graph SHA-256 fingerprint;
+- seed and iteration parameters;
+- selected backend;
+- backend availability and versions;
+- portfolio selection policy;
+- post-processing information where applicable.
+
+This makes the output suitable for downstream automation and agent-to-agent handoff.
+
+## Partition export
+
+The same node-to-block mapping can be written as JSON, CSV, or TSV:
+
+```bash
+atof solve graph.edgelist --partition-output partition.csv
+atof optimize graph.edgelist --engine portfolio --partition-output partition.json
+```
+
+## Current evidence
+
+The current clean-environment access benchmark used Zachary's Karate Club graph (34 nodes, 78 edges), k=2, balanced unweighted edge cut:
+
+| Path | Edge cut | Balance error | First partition |
+|---|---:|---:|---:|
+| ATOF Engine | 39 | 0.0 | 0.0751 s |
+| ATOF Portfolio | 10 | 0.0 | 0.0771 s |
+| NetworkX Kernighan-Lin | 10 | 0.0 | 0.000895 s |
+| METIS | 10 | 0.0 | 0.000396 s |
+| KaHIP | 10 | 0.0 | 0.01249 s |
+
+On that run, ATOF Portfolio selected PyMetis.
+
+This is a **benchmark-qualified composition/access result**, not a universal optimality or speed claim. Direct backends were faster on this small graph.
+
+See [docs/claims.md](docs/claims.md) and [docs/open-source-access-benchmark.md](docs/open-source-access-benchmark.md).
+
+## Current MVP contract
+
+| Area | Current contract |
+|---|---|
+| Graph model | undirected, simple |
+| Objective | balanced unweighted edge cut |
+| Partitioning | 2-way (`k=2`) |
+| Input | edge-list, GraphML, GEXF, GML |
+| Output | JSON + JSON/CSV/TSV partition mapping |
+| Optional engines | METIS / KaHIP |
+| Evidence | reproducible provenance + benchmark-qualified claims |
+
+Weighted and multiway portfolio optimization are intentionally outside the current MVP contract.
+
+## Repository map
+
+```text
+src/atof/       Product and research implementation
+tests/          Automated regression and contract tests
+docs/           Product, protocol, architecture, and evidence docs
+examples/       Tiny runnable examples
+experiments/    Reproducible benchmark runners
+research/       Frozen findings and historical evidence
+schemas/        AI-facing JSON schemas
+.github/        CI and benchmark workflows
+```
+
+Research material is preserved, but the **product surface is intentionally separate from the research archive**.
+
+## Development
+
+```bash
+python -m pip install -e ".[dev]"
+pytest
+```
+
+Run the product path locally:
+
+```bash
+atof ai
+atof doctor
+atof solve examples/demo.edgelist
+```
+
+Run the research suite separately when needed:
+
+```bash
 python -m experiments.run_canonical
-python -m experiments.summarize_results
-~~~
-
-This generates raw benchmark records, environment metadata, benchmark commit provenance when available, and a grouped edge-cut summary under results/canonical/.
-
-The initial development suite contains seven deterministic synthetic topology families.
-
-The benchmark compares balanced baselines, BLOC-RELOC variants, a deterministic spectral bisection reference, and NetworkX Kernighan-Lin for two-way partitions.
-
-See docs/benchmark-protocol.md for the exact protocol.
-
-## Run the dynamics observatory
-
-~~~bash
 python -m experiments.run_observatory
-~~~
-
-The observatory preserves topology, regime, strategy, seed, final metrics, and trace-derived activity statistics under results/observatory/.
-
-See docs/dynamics.md and docs/statistical-analysis.md.
-
-## Run graph-level routing evaluation
-
-~~~bash
 python -m experiments.run_routing_evaluation
-~~~
+```
 
-The routing evaluation uses **leave-one-graph-out** validation. The held-out graph's seeds are not used to train the topology router.
+Research commands write generated outputs to ignored runtime directories.
 
-It compares:
+## Evidence discipline
 
-- a fixed global-strategy baseline;
-- the transparent heuristic selector;
-- the learned topology router;
-- the post-hoc graph-level oracle.
-
-Primary routing metrics are oracle agreement and graph-level regret.
-
-See docs/routing-evaluation.md.
-
-## Run graph-aware statistical analysis
-
-~~~bash
-python -m experiments.run_statistical_analysis
-~~~
-
-The statistical layer aggregates repeated seeds within each graph and then bootstraps the graph-level paired differences. It reports mean differences, 95% percentile bootstrap intervals, graph-level wins/losses/ties, and a standardized paired effect.
-
-This is uncertainty quantification for the current synthetic development suite, not evidence of universal generalization.
-
-See docs/statistical-analysis.md.
-
-## Run external reference validation
-
-~~~bash
-python -m experiments.run_external_validation
-~~~
-
-This runs the same two-way benchmark protocol over four standard reference graphs exposed by NetworkX: Zachary's Karate Club, Davis Southern Women, Florentine Families, and Les Misérables.
-
-The experiment records dataset provenance, topology, benchmark rows, graph-level paired bootstrap comparisons, and leave-one-graph-out routing regret under results/external/.
-
-This corpus is an **external reference validation layer**, not a representative sample of all graph populations. The graphs are small and heterogeneous, and the unweighted edge-cut metric is used consistently for cross-strategy comparison.
-
-See docs/external-validation.md.
-
-## Run SNAP empirical validation
-
-~~~bash
-python -m experiments.run_snap_validation
-~~~
-
-ATOF 0.5.0 adds a live-data validation layer for six empirical SNAP graphs: C. elegans frontal, Florida Bay, S. cerevisiae transcriptional regulation, email-Eu-core, CollegeMsg, and reachability.
-
-The runner downloads the public gzip edge lists only when needed, caches them locally, records SHA-256 provenance, normalizes the source graph to the undirected connectivity used by the current partition objective, and writes results to results/snap/.
-
-A separate registry exposes larger graphs for scalability studies: ca-GrQc, ca-HepTh, and Wiki-Vote. These are intentionally excluded from the routine corpus because they are materially larger and should be treated as a distinct scalability/generalization tier.
-
-The live SNAP workflow is manually triggerable from GitHub Actions.
-
-See docs/snap-corpus.md.
-
-## Cross-corpus generalization
-
-The `atof.generalization` layer provides graph-level routing summaries across independent corpora.
-
-### Run the aligned study
-
-~~~bash
-python -m experiments.run_generalization_study
-~~~
-
-This evaluates the common k=2 candidate set across development, external, and routine SNAP corpora.
-
-### Run true corpus transfer
-
-~~~bash
-python -m experiments.run_cross_corpus_transfer
-~~~
-
-This excludes the complete test corpus from router training.
-
-The transfer study compares:
-
-- nearest-centroid topology router;
-- 1-nearest-neighbor topology router;
-- majority-oracle control;
-- transparent heuristic selector.
-
-The common seven-strategy candidate set is:
-
-- round-robin balanced;
-- random balanced;
-- BLOC-RELOC baseline;
-- BLOC-RELOC affinity;
-- spectral bisection;
-- balanced spectral-modularity bisection;
-- NetworkX Kernighan-Lin.
-
-The latest expanded 17-graph leave-one-corpus-out transfer (workflow `35574236663`) gives macro mean relative regret of **2.6916** for centroid, **0.7744** for 1-NN, **0.3242** for majority, and **6.2147** for the heuristic. Macro oracle agreement is **0.4444**, **0.4603**, **0.7381**, and **0.0833**, respectively.
-
-These are descriptive results on the current corpus, not a universal routing claim.
-
-See `docs/generalization-study.md` and `research/generalization-findings-2026-09-21.md`.
-
-## Topology feature ablation
-
-ATOF includes a reproducible leave-one-corpus-out feature ablation:
-
-~~~bash
-python -m experiments.run_feature_ablation
-~~~
-
-The current 17-graph scaling ablation shows that topology representation and distance scaling materially change transfer performance. The best observed centroid configuration was **global-path features + IQR scaling + L2 distance (0.4893 mean relative regret)**. The best observed 1-NN configurations were global-path + min-max/std + L2 (**0.5757**). The majority control remained at **0.3242**, so these are locked confirmatory candidates rather than a new default router.
-
-See `docs/generalization-study.md` and `research/generalization-findings-2026-09-21.md`.
-
-## Example
-
-~~~python
-import networkx as nx
-
-from atof.routing import LearnedTopologyRouter
-from atof.topology import TopologyProfiler
-from atof.selector import HeuristicRegimeSelector
-from atof.strategies import BLOCReloc
-
-graph = nx.barabasi_albert_graph(100, 3, seed=42)
-
-profile = TopologyProfiler().profile(graph)
-recommendation = HeuristicRegimeSelector().recommend(profile)
-
-result = BLOCReloc(
-    graph,
-    k=4,
-    seed=42,
-    variant="affinity",
-).refine(iterations=10)
-
-print(recommendation.regime)
-print(result.edge_cut)
-~~~
-
-## Research discipline
-
-ATOF deliberately separates:
+ATOF separates:
 
 1. **method** — what the implementation does;
-2. **measurement** — how performance is evaluated;
-3. **evidence** — which experiment generated a result;
-4. **interpretation** — what the result may mean.
+2. **measurement** — how it is benchmarked;
+3. **evidence** — which run produced a result;
+4. **interpretation** — what can responsibly be claimed.
 
-Historical experiments are therefore labeled as historical rather than silently presented as validation of the cleaned public implementation.
+Comparative statements should name the graph or corpus, objective, protocol, environment, and measured result.
 
-Routing is evaluated at the graph level so that repeated seeds from one graph do not become artificial independent training examples.
+## Learn more
 
-Statistical uncertainty is also evaluated at graph level, preserving the unit on which topology generalization is actually claimed.
-
-## Current MVP evidence
-
-The current clean-environment benchmark uses Zachary's Karate Club graph (34 nodes, 78 edges), k=2, balanced unweighted edge cut.
-
-| Path | Edge cut | Balance error |
-|---|---:|---:|
-| ATOF core | 39 | 0.0 |
-| ATOF portfolio | 10 | 0.0 |
-| NetworkX Kernighan-Lin | 10 | 0.0 |
-| METIS | 10 | 0.0 |
-| KaHIP | 10 | 0.0 |
-
-On this run, the ATOF portfolio selected PyMetis. The result demonstrates the current composition/access value of the portfolio layer on this named benchmark; it is not a universal speed or optimality claim. See `docs/claims.md` and `docs/open-source-access-benchmark.md`.
-
-## Evidence and claims
-
-See docs/claims.md for the evidence boundary of current product claims. The open-source access benchmark is documented in docs/open-source-access-benchmark.md and keeps setup friction separate from algorithmic runtime.
-
-## Status
-
-Version 0.6.0 is the current public product baseline. The CLI now provides a direct profile-and-optimize workflow while the benchmark/research layer remains reproducible and separately documented.
-
-The repository now contains a canonical benchmark, trace dynamics, a descriptive observatory, graph-level held-out routing, graph-aware statistical uncertainty, NetworkX reference validation, a reproducible SNAP empirical corpus, and cross-corpus routing aggregation infrastructure.
-
-The current research phase is focused on oracle-label stability and locked confirmation of the pre-specified routing candidates. The next decision should depend on those results rather than additional post-hoc feature tuning. Larger SNAP scalability studies and stronger canonical baselines remain separate future evidence tiers.
-
-## Limitations
-
-The learned router is a transparent nearest-centroid baseline, not a final meta-learning architecture.
-
-The synthetic benchmark suite is a development and regression suite, not evidence of universal superiority over graph-partitioning literature.
-
-The bootstrap intervals on the synthetic suite and the external reference corpus are conditional on those small corpora and should not be interpreted as population-level confidence for arbitrary graphs.
-
-Historical benchmark numbers are not automatically equivalent to results from the cleaned public implementation.
+- [AI-first guide](docs/ai-quickstart.md)
+- [Product quickstart](docs/product-quickstart.md)
+- [Architecture](docs/architecture.md)
+- [Claims and evidence](docs/claims.md)
+- [Open-source access benchmark](docs/open-source-access-benchmark.md)
+- [Benchmark protocol](docs/benchmark-protocol.md)
+- [Research findings](research/generalization-findings-2026-09-21.md)
+- [AI agent rules](AGENTS.md)
+- [llms.txt](llms.txt)
 
 ## Citation
 
-See CITATION.cff.
+See [CITATION.cff](CITATION.cff).
 
 ## License
 
-MIT. See LICENSE.
+MIT — see [LICENSE](LICENSE).
