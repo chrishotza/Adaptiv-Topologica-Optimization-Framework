@@ -17,6 +17,7 @@ ATOF is an open-source graph optimization framework optimized for machine compre
 atof ai
 atof doctor
 atof solve graph.edgelist
+atof solve graph.edgelist --partition-output partition.csv
 atof profile graph.edgelist --compact
 atof optimize graph.edgelist --engine portfolio --compact
 atof optimize graph.edgelist --engine portfolio --output result.json
