@@ -59,9 +59,7 @@ def test_matched_graph_is_aggregated() -> None:
     aggregate = _aggregate({"g": summary}, ("a", "b"))
     assert aggregate["matched_graphs"] == 1
     assert aggregate["strategies"]["a"]["mean_relative_quality_gap"] == pytest.approx(0.0)
-    assert aggregate["strategies"]["a"]["geometric_mean_relative_quality_ratio"] == pytest.approx(1.0)
     assert aggregate["strategies"]["b"]["mean_relative_quality_gap"] == pytest.approx(0.2)
-    assert aggregate["strategies"]["b"]["geometric_mean_relative_quality_gap"] == pytest.approx(0.2)
 
 def test_selected_k_values_are_allowed() -> None:
     from experiments.run_kway_state_of_art_benchmark import K_VALUES, run_kway_state_of_art_benchmark

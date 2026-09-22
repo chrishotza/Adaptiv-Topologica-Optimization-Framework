@@ -443,21 +443,9 @@ def _aggregate_graph_summaries(
             for data in graph_summaries.values()
             if strategy in data["strategies"] and data.get("best_edge_cut") is not None
         ]
-        quality_ratios = [1.0 + value for value in values]
-        geometric_quality_ratio = (
-            statistics.geometric_mean(quality_ratios)
-            if quality_ratios
-            else 0.0
-        )
-        geometric_quality_gap = (
-            geometric_quality_ratio - 1.0 if quality_ratios else 0.0
-        )
         summary[strategy] = {
             "graphs_evaluated": len(values),
             "mean_relative_quality_gap": _mean(values),
-            "geometric_mean_relative_quality_ratio": geometric_quality_ratio,
-            "geometric_mean_relative_quality_gap": geometric_quality_gap,
-            "geometric_mean_relative_quality_gap_percent": 100.0 * geometric_quality_gap,
             "mean_relative_quality_gap_percent": 100.0 * _mean(values),
             "median_relative_quality_gap": statistics.median(values) if values else 0.0,
             "median_relative_quality_gap_percent": 100.0 * (statistics.median(values) if values else 0.0),

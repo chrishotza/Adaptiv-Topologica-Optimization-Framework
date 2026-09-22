@@ -53,7 +53,7 @@ jobs:
       - name: Build Mt-KaHyPar
         run: cmake --build sea-mtkahypar/build --target MtKaHyPar --parallel 2
 
-      - name: Generate Karate graph in METIS format
+      - name: Download SEA Set A\n        run: |\n          curl --fail --location --retry 5 \\\n            "https://zenodo.org/records/19387774/files/set_a.zip?download=1" \\\n            --output set_a.zip\n          echo "94606409c10bced915890cf6e6fda213  set_a.zip" | md5sum -c -\n          mkdir -p data/set_a\n          unzip -q set_a.zip -d data/set_a\n\n      - name: Run exact-software learned-vs-baseline gate\n        run: |\n          python -m experiments.run_sea2026_reference_gate \\\n            --binary sea-mtkahypar/build/mt-kahypar/application/MtKaHyPar \\\n            --set-a-dir data/set_a \\\n            --limit 4 \\\n            --threads 4 \\\n            --output results/state_of_art/sea2026_reference_gate.json\n\n      - name: Upload exact reference artifacts\n        uses: actions/upload-artifact@v4\n        with:\n          name: sea2026-reference-gate\n          path: |\n            results/state_of_art/sea2026_reference_gate.json\n            results/state_of_art/sea_reference_runs\n          if-no-files-found: error\n\n      - name: Generate Karate graph in METIS format
         run: |
           python - <<'PY'
           import networkx as nx

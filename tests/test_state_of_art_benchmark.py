@@ -58,8 +58,6 @@ def test_aggregate_uses_graphs_as_the_unit_of_analysis() -> None:
     aggregate = _aggregate_graph_summaries(graph_summaries, ("a",))
     assert aggregate["a"]["graphs_evaluated"] == 2
     assert aggregate["a"]["mean_relative_quality_gap"] == pytest.approx(0.1)
-    assert aggregate["a"]["geometric_mean_relative_quality_ratio"] == pytest.approx(1.2 ** 0.5)
-    assert aggregate["a"]["geometric_mean_relative_quality_gap"] == pytest.approx(1.2 ** 0.5 - 1.0)
     assert aggregate["a"]["mean_runtime_ratio_to_graph_median"] == pytest.approx(1.5)
 
 

@@ -65,12 +65,6 @@ When a new partitioning method appears:
 
 Methods that solve a different optimization problem should remain documented as adjacent frontiers rather than being forced into a misleading leaderboard.
 
-## Benchmark aggregation
-
-The state-of-art benchmark now reports both arithmetic and geometric quality summaries at the graph level. The arithmetic mean preserves the existing ATOF diagnostic; the geometric mean is also emitted as a ratio over one-plus-gap so that the research surface can mirror the kind of instance-level aggregation used by SEA 2026 without rewriting the benchmark's primary metric.
-
-These summaries remain corpus-specific and do not make ATOF numerically comparable to a different hardware or balance protocol unless the rest of the protocol is matched.
-
 ## Quality-vs-compute track
 
 The dynamic controller records gain and structural work for local and hybrid neighborhoods. The current experimental policy:

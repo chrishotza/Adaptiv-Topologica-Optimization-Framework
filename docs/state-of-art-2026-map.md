@@ -44,8 +44,6 @@ The paper's training protocol uses repeated high-quality partitioning runs over 
 
 Research implication for ATOF: a high-level external router is not the only current ML direction. Stronger state-of-art work learns inside coarsening/refinement decisions while preserving the multilevel solver. Any ATOF novelty claim must be distinguished from this class of methods.
 
-Benchmarking implication: ATOF now emits both arithmetic and geometric graph-level quality summaries. The geometric summary is computed from the per-graph quality ratio (1 + relative gap), which keeps the metric well-defined at zero gap and provides a bridge to published geometric-mean reporting without pretending that the underlying hardware, balance, or time-limit protocol is identical.
-
 ## 6. GPU multilevel partitioning
 
 Jet is a GPU-oriented multilevel graph partitioning line reported in the SIAM Journal on Scientific Computing in 2024. It extends the modern multilevel design to accelerator-oriented execution.
