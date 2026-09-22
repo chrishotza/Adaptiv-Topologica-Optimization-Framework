@@ -79,6 +79,8 @@ class BLOCReloc:
         hybrid_patience: int = 2,
         hybrid_probe_samples: int = 20,
         hybrid_witness_patience: int = 2,
+        hybrid_credit_threshold: float = 1.5,
+        hybrid_credit_max_skips: int = 1,
     ) -> PartitionResult:
         if iterations < 1:
             raise ValueError("iterations must be >= 1")
@@ -94,6 +96,10 @@ class BLOCReloc:
             raise ValueError("hybrid_probe_samples must be >= 0")
         if hybrid_witness_patience < 1:
             raise ValueError("hybrid_witness_patience must be at least 1")
+        if hybrid_credit_threshold <= 0:
+            raise ValueError("hybrid_credit_threshold must be > 0")
+        if hybrid_credit_max_skips < 0:
+            raise ValueError("hybrid_credit_max_skips must be >= 0")
         controller = None
         credit_controller = None
         if hybrid_policy != "credit":
@@ -104,7 +110,10 @@ class BLOCReloc:
                 witness_patience=hybrid_witness_patience,
             )
         else:
-            credit_controller = NeighborhoodCreditController()
+            credit_controller = NeighborhoodCreditController(
+                threshold=hybrid_credit_threshold,
+                max_skips=hybrid_credit_max_skips,
+            )
 
         partition = initialize_balanced_partition(self.graph, self.k)
         counts = {block: 0 for block in range(self.k)}
