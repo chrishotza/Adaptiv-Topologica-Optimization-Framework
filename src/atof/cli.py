@@ -201,7 +201,7 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 print(json.dumps(payload, indent=2, sort_keys=True))
             return 0
-        except (OSError, ValueError, RuntimeError) as exc:
+        except _CLI_ERRORS as exc:
             return _emit_error(exc)
 
     if args.command == "optimize":
@@ -245,7 +245,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.output.write_text(encoded + "\n", encoding="utf-8")
                 print(str(args.output))
             return 0
-        except (OSError, ValueError, RuntimeError) as exc:
+        except _CLI_ERRORS as exc:
             return _emit_error(exc)
 
     parser.print_help()
