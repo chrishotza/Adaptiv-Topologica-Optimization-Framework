@@ -84,6 +84,7 @@ ATOF is designed to be easy for AI agents to understand and operate with minimal
 
 ~~~bash
 atof ai
+atof solve graph.edgelist
 atof profile graph.edgelist --compact
 atof optimize graph.edgelist --engine portfolio --compact
 ~~~
