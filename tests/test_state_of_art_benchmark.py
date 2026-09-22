@@ -20,6 +20,8 @@ def test_core_strategy_surface_is_locked() -> None:
         "kahip",
         "kaminpar_default",
         "kaminpar_strong",
+        "mtkahypar_default",
+        "mtkahypar_quality",
     )
 
 
