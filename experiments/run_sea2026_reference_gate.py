@@ -83,7 +83,11 @@ def partition_file_for(
     )
 
 
-def parse_partition(path: Path, node_count: int) -> list[int]:
+def parse_partition(
+    path: Path,
+    node_count: int,
+    k: int | None = None,
+) -> list[int]:
     values = [
         int(token)
         for token in path.read_text(encoding="utf-8").split()
@@ -94,6 +98,10 @@ def parse_partition(path: Path, node_count: int) -> list[int]:
         )
     if any(block < 0 for block in values):
         raise ValueError("partition contains negative block id")
+    if k is not None and any(block >= k for block in values):
+        raise ValueError(
+            f"partition contains block id outside [0, {k})"
+        )
     return values
 
 
@@ -192,7 +200,7 @@ def run_configuration(
             )
         partition_path = candidates[0]
 
-    partition = parse_partition(partition_path, graph.number_of_nodes())
+    partition = parse_partition(partition_path, graph.number_of_nodes(), k)
     counts = block_counts(partition, k)
     balance_ok = balance_bound_ok(graph, counts, k, epsilon)
     if not balance_ok:
@@ -225,6 +233,10 @@ def run_reference_gate(
     epsilon: float,
 ) -> dict:
     graph_files = discover_graph_files(set_a_dir)
+    if limit < 0 and len(graph_files) != 118:
+        raise ValueError(
+            f"expected 118 Set A graph files, discovered {len(graph_files)}"
+        )
     selected = graph_files if limit < 0 else graph_files[:limit]
     rows: list[dict] = []
     started = time.perf_counter()
@@ -311,7 +323,7 @@ def run_reference_gate(
                             )
                             / baseline["edge_cut"]
                             if baseline["edge_cut"]
-                            else 0.0
+                            else None
                         ),
                         "learned_runtime_seconds": (
                             learned["runtime_seconds"]
@@ -321,7 +333,11 @@ def run_reference_gate(
                         ),
                     })
 
-    deltas = [row["relative_cut_delta"] for row in paired]
+    deltas = [
+        row["relative_cut_delta"]
+        for row in paired
+        if row["relative_cut_delta"] is not None
+    ]
     learned_runtime = [
         row["learned_runtime_seconds"] for row in paired
     ]
@@ -350,23 +366,40 @@ def run_reference_gate(
         }
 
     protocol_pairs: list[dict] = []
+    protocol_incomplete_instances: list[dict] = []
     for (graph_id, k), configurations in sorted(instance_summaries.items()):
         learned_instance = configurations.get("learned")
         baseline_instance = configurations.get("baseline")
         if learned_instance is None or baseline_instance is None:
             continue
+
+        seed_count_learned = learned_instance["seed_count"]
+        seed_count_baseline = baseline_instance["seed_count"]
+        if (
+            seed_count_learned != len(seeds)
+            or seed_count_baseline != len(seeds)
+        ):
+            protocol_incomplete_instances.append({
+                "graph_id": graph_id,
+                "k": k,
+                "seed_count_learned": seed_count_learned,
+                "seed_count_baseline": seed_count_baseline,
+                "required_seed_count": len(seeds),
+            })
+            continue
+
         baseline_cut = baseline_instance["edge_cut_mean"]
         protocol_pairs.append({
             "graph_id": graph_id,
             "k": k,
-            "seed_count_learned": learned_instance["seed_count"],
-            "seed_count_baseline": baseline_instance["seed_count"],
+            "seed_count_learned": seed_count_learned,
+            "seed_count_baseline": seed_count_baseline,
             "learned_edge_cut_mean": learned_instance["edge_cut_mean"],
             "baseline_edge_cut_mean": baseline_cut,
             "relative_cut_delta": (
                 (learned_instance["edge_cut_mean"] - baseline_cut) / baseline_cut
                 if baseline_cut
-                else 0.0
+                else None
             ),
             "learned_runtime_mean_seconds": learned_instance[
                 "runtime_mean_seconds"
@@ -377,7 +410,9 @@ def run_reference_gate(
         })
 
     protocol_deltas = [
-        row["relative_cut_delta"] for row in protocol_pairs
+        row["relative_cut_delta"]
+        for row in protocol_pairs
+        if row["relative_cut_delta"] is not None
     ]
     protocol_cut_ratios = [1.0 + delta for delta in protocol_deltas]
     protocol_learned_runtime = [
@@ -418,6 +453,7 @@ def run_reference_gate(
             "platform": platform.platform(),
             "binary": str(binary),
         },
+        "discovered_graphs": len(graph_files),
         "selected_graphs": len(selected),
         "rows": rows,
         "paired_rows": paired,
@@ -431,6 +467,7 @@ def run_reference_gate(
             in sorted(instance_summaries.items())
         ],
         "protocol_pairs": protocol_pairs,
+        "protocol_incomplete_instances": protocol_incomplete_instances,
         "summary": {
             "total_rows": len(rows),
             "ok_rows": sum(row.get("status") == "ok" for row in rows),
@@ -455,6 +492,7 @@ def run_reference_gate(
                 if baseline_runtime else None
             ),
             "protocol_instances": len(protocol_pairs),
+            "protocol_incomplete_instances": len(protocol_incomplete_instances),
             "protocol_mean_relative_cut_delta": (
                 statistics.fmean(protocol_deltas)
                 if protocol_deltas else None
