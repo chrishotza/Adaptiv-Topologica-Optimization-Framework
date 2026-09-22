@@ -15,7 +15,7 @@ VARIANTS = ("baseline", "affinity")
 ITERATIONS = 25
 HYBRID_PERIOD = 5
 HYBRID_SAMPLES = 100
-K = 4
+K = 3
 
 
 def run_pair(graph, *, seed: int, variant: str) -> dict:
