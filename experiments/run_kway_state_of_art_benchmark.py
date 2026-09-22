@@ -337,6 +337,7 @@ def _validate_exact_balance_error(graph, k: int, balance_error: float) -> bool:
 def _summarize_graph(
     rows: list[dict],
     strategies: tuple[str, ...],
+    expected_runs: int | None = None,
 ) -> dict:
     available = {
         strategy: [
@@ -357,11 +358,23 @@ def _summarize_graph(
     if not means:
         return {"strategies": {}, "best_quality": None, "matched": False}
 
-    if len(means) != len(strategies):
+    incomplete_strategies = (
+        [
+            strategy
+            for strategy in strategies
+            if len(available[strategy]) != expected_runs
+        ]
+        if expected_runs is not None
+        else []
+    )
+
+    if len(means) != len(strategies) or incomplete_strategies:
         return {
             "strategies": means,
             "best_quality": None,
             "matched": False,
+            "incomplete_strategies": incomplete_strategies,
+            "expected_runs": expected_runs,
         }
 
     best_quality = min(
@@ -560,7 +573,11 @@ def run_kway_state_of_art_benchmark(
             grouped.setdefault(row["graph_id"], []).append(row)
         graph_summaries.update(
             {
-                f"k={k}:{graph_id}": _summarize_graph(values, STRATEGIES)
+                f"k={k}:{graph_id}": _summarize_graph(
+                    values,
+                    STRATEGIES,
+                    expected_runs=len(SEEDS),
+                )
                 for graph_id, values in grouped.items()
             }
         )
