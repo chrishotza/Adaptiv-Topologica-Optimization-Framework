@@ -3,7 +3,7 @@
   "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-ai-v1.schema.json",
   "title": "ATOF AI manifest",
   "type": "object",
-  "required": ["schema", "name", "version", "purpose", "commands", "capabilities", "output", "claim_policy", "limits"],
+  "required": ["schema", "name", "version", "purpose", "commands", "input", "capabilities", "output", "claim_policy", "limits"],
   "properties": {
     "schema": {"const": "atof.ai.v1"},
     "name": {"const": "atof"},
@@ -33,6 +33,22 @@
             "full": {"const": "-F"}
           },
           "additionalProperties": false
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "properties": {
+        "formats": {"type": "array", "items": {"type": "string"}},
+        "default_format": {"type": "string"},
+        "default_seed": {"type": "integer"},
+        "stdin": {
+          "type": "object",
+          "required": ["path", "formats"],
+          "properties": {
+            "path": {"const": "-"},
+            "formats": {"type": "array", "items": {"type": "string"}}
+          }
         }
       }
     },
