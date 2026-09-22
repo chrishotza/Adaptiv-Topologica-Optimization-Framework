@@ -56,3 +56,31 @@ def test_bloc_reloco_marginal_policy_records_budget_trace():
     assert all(int(event["hybrid_samples"]) > 0 for event in hybrid_events)
     assert all("local_gain_per_work" in event for event in result.trace)
     assert all("hybrid_gain_per_work" in event for event in result.trace)
+
+
+def test_adaptive_trace_accounts_for_probe_work() -> None:
+    import networkx as nx
+
+    from atof.strategies import BLOCReloc
+
+    graph = nx.path_graph(30)
+    result = BLOCReloc(
+        graph,
+        k=2,
+        seed=42,
+        variant="baseline",
+    ).refine(
+        iterations=10,
+        hybrid_period=1,
+        hybrid_policy="adaptive",
+        hybrid_patience=1,
+        hybrid_probe_samples=5,
+    )
+
+    assert all("probe_work" in event for event in result.trace)
+    assert all("total_work" in event for event in result.trace)
+    assert all(
+        event["total_work"]
+        == event["local_work"] + event["hybrid_work"] + event["probe_work"]
+        for event in result.trace
+    )
