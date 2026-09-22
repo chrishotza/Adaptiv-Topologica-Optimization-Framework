@@ -11,8 +11,14 @@ permissions:
 
 jobs:
   benchmark:
+    name: k-way benchmark (k=${{ matrix.k }})
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        k: [4, 8, 32, 64]
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,19 +36,20 @@ jobs:
       - name: Run matched k-way benchmark
         run: |
           python -m experiments.run_kway_state_of_art_benchmark \
-            --output results/state_of_art/kway_latest.json \
+            --k ${{ matrix.k }} \
+            --output results/state_of_art/k${{ matrix.k }}.json \
             --cache-dir .cache/snap
 
       - name: Upload k-way manifest
         uses: actions/upload-artifact@v4
         with:
-          name: state-of-art-kway-benchmark
-          path: results/state_of_art/kway_latest.json
+          name: state-of-art-kway-k${{ matrix.k }}
+          path: results/state_of_art/k${{ matrix.k }}.json
           if-no-files-found: error
 
       - name: Upload SNAP cache
         uses: actions/upload-artifact@v4
         with:
-          name: state-of-art-kway-snap-cache
+          name: state-of-art-kway-snap-cache-k${{ matrix.k }}
           path: .cache/snap
           if-no-files-found: ignore
