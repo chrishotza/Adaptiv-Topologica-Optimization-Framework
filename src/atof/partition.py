@@ -64,12 +64,12 @@ def rebalance_kway(
 
     while True:
         oversized = [block for block, count in enumerate(counts) if count > upper]
-        undersized = [block for block, count in enumerate(counts) if count < lower]
-        if not oversized and not undersized:
+        under_capacity = [block for block, count in enumerate(counts) if count < upper]
+        if not oversized and not under_capacity:
             return result
 
         source = min(oversized)
-        targets = tuple(undersized)
+        targets = tuple(under_capacity)
         candidates: list[tuple[int, str, int, int]] = []
         for node in nodes:
             i = index[node]
