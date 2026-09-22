@@ -26,7 +26,9 @@ ATOF Engine = native BLOC-RELOC path with topology profiling.
 
 ATOF Portfolio = empirical composition over the available open backends.
 
-Current portfolio contract = k=2, undirected, simple, unweighted edge cut.
+Engine contract = k>=2, undirected, simple, unweighted balanced edge cut.
+
+Portfolio contract = k=2, undirected, simple, unweighted balanced edge cut.
 
 JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 
