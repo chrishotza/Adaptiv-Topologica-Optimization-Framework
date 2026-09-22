@@ -46,7 +46,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 "nodes": "optional array of node IDs",
                 "edges": "array of 2-item node-ID arrays",
             },
-            "node_id_serialization": "partition outputs stringify node IDs; string collisions are rejected",
+            "node_id_serialization": "partition outputs use str() for node IDs; collisions are rejected",
         },
         "capabilities": {
             "engine": {
