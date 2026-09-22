@@ -37,6 +37,14 @@ def test_portfolio_reports_optional_backends_when_unavailable():
     assert "KaHIP(KaFFPa-Strong)" in names
 
 
+
+def test_portfolio_rejects_node_ids_that_collide_after_serialization():
+    graph = nx.Graph()
+    graph.add_nodes_from([1, "1"])
+
+    with pytest.raises(ValueError, match="unique after string serialization"):
+        optimize_portfolio(graph, include_optional=False)
+
 def test_portfolio_rejects_unsupported_graph_models():
     directed = nx.DiGraph([(0, 1), (1, 2)])
     with pytest.raises(ValueError, match="undirected"):
