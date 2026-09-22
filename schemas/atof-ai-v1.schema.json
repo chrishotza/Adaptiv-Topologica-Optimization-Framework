@@ -60,7 +60,15 @@
         }
       }
     },
-    "capabilities": {"type": "object"},
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "engine": {"type": "object"},
+        "portfolio": {"type": "object"},
+        "exports": {"type": "array"},
+        "provenance": {"type": "array"}
+      }
+    },
     "output": {"type": "object"},
     "claim_policy": {"type": "object"},
     "limits": {"type": "array", "items": {"type": "string"}}

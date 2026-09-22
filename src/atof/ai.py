@@ -42,6 +42,11 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "json": {"nodes": "optional array of node IDs", "edges": "array of 2-item node-ID arrays"},
         },
         "capabilities": {
+            "engine": {
+                "k": ">=2",
+                "objective": "minimize unweighted edge cut subject to balanced k-way partition",
+                "backend": "BLOC-RELOC"
+            },
             "portfolio": {
                 "k": 2,
                 "objective": "minimize unweighted edge cut subject to balanced two-way partition",
@@ -73,7 +78,6 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "portfolio mode currently supports k=2",
             "current common objective is unweighted edge cut",
             "weight attributes are accepted as input metadata but ignored by the current unweighted objective",
-            "weighted and multiway portfolio optimization are outside the current MVP contract",
         ],
     }
     return manifest if full else {
@@ -99,7 +103,7 @@ def build_doctor_report(*, full: bool = False) -> dict:
         "version": __version__,
         "runtime": runtime_metadata(),
         "backends": backends,
-        "input_formats": ["edgelist", "graphml", "gexf", "gml"],
+        "input_formats": ["edgelist", "json", "graphml", "gexf", "gml"],
         "portfolio_ready": any(
             item["available"] and item["id"] == "networkx-kl"
             for item in backends

@@ -1,6 +1,6 @@
 # Product quickstart
 
-ATOF is an AI-first command-line and Python interface for reproducible graph profiling and two-way partitioning.
+ATOF is an AI-first command-line and Python interface for reproducible graph profiling and balanced graph partitioning.
 
 ## Install
 
@@ -84,6 +84,16 @@ atof optimize examples/demo.edgelist --engine bloc --variant baseline
 atof optimize examples/demo.edgelist --engine bloc --variant affinity
 ```
 
+## ATOF Engine with k-way partitioning
+
+The native Engine supports `k>=2`:
+
+```bash
+atof optimize examples/demo.edgelist --engine bloc --k 4
+```
+
+The Engine keeps the same unweighted edge-cut objective and balances nodes across the requested blocks.
+
 ## ATOF Portfolio
 
 Run the common backend contract:
@@ -94,7 +104,7 @@ atof optimize examples/demo.edgelist --engine portfolio
 atof optimize examples/demo.edgelist --engine portfolio --compact
 ```
 
-Portfolio mode currently supports `k=2`, undirected simple graphs, and an unweighted edge-cut objective. It evaluates the available BLOC, NetworkX Kernighan-Lin, and optional METIS/KaHIP engines.
+Portfolio mode currently supports `k=2`, undirected simple graphs, and an unweighted edge-cut objective. For `k>2`, use the native Engine. It evaluates the available BLOC, NetworkX Kernighan-Lin, and optional METIS/KaHIP engines.
 
 The selected result is the minimum observed edge cut under the common contract, with balance and runtime used as tie-breakers.
 
