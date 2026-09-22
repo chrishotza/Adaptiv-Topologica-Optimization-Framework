@@ -2,6 +2,18 @@
 
 ATOF can be used as a small command-line tool on a whitespace-delimited edge-list graph.
 
+## AI-first usage
+
+For an AI agent, start with the smallest stable contract:
+
+~~~bash
+atof ai
+atof profile graph.edgelist --compact
+atof optimize graph.edgelist --engine portfolio --compact
+~~~
+
+Use atof ai --full only when the agent needs the complete capability manifest. Compact results omit topology detail and node-to-block mappings to reduce context size. See AGENTS.md and docs/ai-quickstart.md.
+
 ## Install
 
 ~~~bash
