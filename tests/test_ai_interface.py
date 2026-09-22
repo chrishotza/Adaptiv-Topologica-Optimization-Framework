@@ -104,3 +104,21 @@ def test_doctor_report_is_machine_readable():
     assert {item["id"] for item in report["backends"]} >= {
         "bloc", "networkx-kl", "metis", "kahip"
     }
+
+
+def test_solve_shortcut_exports_partition(tmp_path, capsys):
+    source = tmp_path / "graph.edgelist"
+    source.write_text("a b\nb c\nc d\n", encoding="utf-8")
+    output = tmp_path / "partition.json"
+
+    assert main([
+        "solve",
+        str(source),
+        "--partition-output",
+        str(output),
+    ]) == 0
+
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert len(payload) == 4
+    assert set(payload[0]) == {"node", "block"}
