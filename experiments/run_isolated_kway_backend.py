@@ -13,12 +13,16 @@ from experiments.run_kway_state_of_art_benchmark import (
 )
 
 
-def run(strategy: str, cache_dir: str | None = None) -> list[dict]:
+def run(
+    strategy: str,
+    cache_dir: str | None = None,
+    k_values: tuple[int, ...] = K_VALUES,
+) -> list[dict]:
     corpora, _ = _load_expanded_corpora(
         cache_dir=Path(cache_dir) if cache_dir else None
     )
     rows: list[dict] = []
-    for k in K_VALUES:
+    for k in k_values:
         for corpus, graphs in corpora.items():
             for graph_name, graph in graphs.items():
                 graph_id = f"{corpus}/{graph_name}"
@@ -62,9 +66,15 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--strategy", required=True)
     parser.add_argument("--cache-dir", type=Path, default=None)
+    parser.add_argument("--k", type=int, choices=K_VALUES, action="append", default=None)
     args = parser.parse_args()
+    selected_k_values = tuple(args.k) if args.k else K_VALUES
     sys.stdout.write(json.dumps(
-        run(args.strategy, str(args.cache_dir) if args.cache_dir else None)
+        run(
+            args.strategy,
+            str(args.cache_dir) if args.cache_dir else None,
+            selected_k_values,
+        )
     ))
     sys.stdout.flush()
     return 0
