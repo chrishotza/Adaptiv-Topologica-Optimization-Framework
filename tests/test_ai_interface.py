@@ -69,3 +69,12 @@ def test_compact_portfolio_cli(capsys):
     payload = compact_result({**result.to_dict(), "version": "0.6.0"})
     assert payload["result"]["k"] == 2
     assert payload["result"]["edge_cut"] == 10
+
+
+def test_solve_shortcut_cli(tmp_path, capsys):
+    source = tmp_path / "graph.edgelist"
+    source.write_text("a b\nb c\nc d\n", encoding="utf-8")
+    assert main(["solve", str(source)]) == 0
+    parsed = json.loads(capsys.readouterr().out)
+    assert parsed["mode"] == "portfolio"
+    assert parsed["result"]["k"] == 2
