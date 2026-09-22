@@ -167,6 +167,45 @@ def test_cli_optimize_supports_kway_engine(tmp_path, capsys):
     assert set(payload["result"]["partition"].values()) == {0, 1, 2, 3}
 
 
+
+def test_cli_optimize_compact_preserves_engine_objective_semantics(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("0 1\n1 2\n2 3\n3 4\n4 5\n5 0\n", encoding="utf-8")
+
+    assert main([
+        "optimize",
+        str(graph),
+        "--engine",
+        "bloc",
+        "--variant",
+        "affinity",
+        "--compact",
+    ]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["objective"]["reported_metric"] == "edge_cut"
+    assert payload["objective"]["optimization_metric"] == "degree_affinity_weighted_cut"
+
+
+def test_cli_optimize_supports_partition_output_short_flag(tmp_path, capsys):
+    graph = tmp_path / "graph.edgelist"
+    graph.write_text("a b\nb c\nc d\n", encoding="utf-8")
+    output = tmp_path / "partition.csv"
+
+    assert main([
+        "optimize",
+        str(graph),
+        "--engine",
+        "bloc",
+        "--variant",
+        "baseline",
+        "-p",
+        str(output),
+    ]) == 0
+
+    json.loads(capsys.readouterr().out)
+    assert output.read_text(encoding="utf-8").splitlines()[0] == "node,block"
+
 def test_cli_optimize(tmp_path, capsys):
     graph = tmp_path / "graph.edgelist"
     graph.write_text("0 1\n1 2\n2 3\n3 4\n4 5\n", encoding="utf-8")
