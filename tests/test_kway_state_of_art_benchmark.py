@@ -140,7 +140,7 @@ def test_exact_floor_ceil_balance_gate():
             sum(5 if i < 1 else 4 for i in range(block + 1)),
         )
     }
-    assert _exact_partition_balance_error(graph_33, valid, 8) == pytest.approx(7 / 132)
+    assert _exact_partition_balance_error(graph_33, valid, 8) == pytest.approx(7 / 33)
     invalid = dict(valid)
     invalid[32] = 0
     with pytest.raises(ValueError, match="floor/ceil"):
