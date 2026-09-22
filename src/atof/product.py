@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import csv
+import json
 from pathlib import Path
 from typing import Mapping
 
@@ -145,3 +147,42 @@ def optimize_graph(
         rationale=recommendation.rationale,
         partition_result=result,
     )
+
+
+def write_partition(
+    result: OptimizationResult,
+    path: str | Path,
+    *,
+    format: str = "auto",
+) -> Path:
+    """Write a node-to-block partition in a simple interoperable format."""
+    target = Path(path)
+    selected = format
+    if selected == "auto":
+        selected = {"json": "json", ".json": "json", ".csv": "csv", ".tsv": "tsv"}.get(
+            target.suffix.lower(),
+            "csv",
+        )
+    if selected not in {"json", "csv", "tsv"}:
+        raise ValueError("format must be one of: auto, json, csv, tsv")
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    rows = [
+        {"node": str(node), "block": block}
+        for node, block in result.partition_result.partition.items()
+    ]
+    rows.sort(key=lambda row: (row["block"], row["node"]))
+
+    if selected == "json":
+        target.write_text(
+            json.dumps(rows, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        return target
+
+    delimiter = "\t" if selected == "tsv" else ","
+    with target.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=("node", "block"), delimiter=delimiter)
+        writer.writeheader()
+        writer.writerows(rows)
+    return target
