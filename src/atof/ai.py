@@ -38,7 +38,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "formats": ["edgelist", "json", "graphml", "gexf", "gml"],
             "default_format": "auto",
             "default_seed": 42,
-            "stdin": {"path": "-", "formats": ["edgelist"]},
+            "stdin": {"path": "-", "formats": ["edgelist", "json"]},
         },
         "capabilities": {
             "portfolio": {
