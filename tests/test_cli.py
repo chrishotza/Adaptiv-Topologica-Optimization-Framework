@@ -16,6 +16,19 @@ def test_cli_profile(tmp_path, capsys):
     assert "recommendation" in payload
 
 
+def test_ai_and_doctor_expose_same_input_contract(capsys):
+    assert main(["ai"]) == 0
+    manifest = json.loads(capsys.readouterr().out)
+
+    assert main(["doctor"]) == 0
+    doctor = json.loads(capsys.readouterr().out)
+
+    assert manifest["input"]["formats"] == doctor["input_formats"]
+    assert "json" in manifest["input"]["formats"]
+    assert manifest["capabilities"]["engine"]["k"] == ">=2"
+    assert manifest["capabilities"]["portfolio"]["k"] == 2
+
+
 def test_cli_version(capsys):
     assert main(["--version"]) == 0
     assert capsys.readouterr().out.strip() == "0.6.0"
