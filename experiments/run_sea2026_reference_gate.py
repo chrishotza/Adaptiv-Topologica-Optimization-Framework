@@ -194,10 +194,16 @@ def run_configuration(
 
     partition = parse_partition(partition_path, graph.number_of_nodes())
     counts = block_counts(partition, k)
+    balance_ok = balance_bound_ok(graph, counts, k, epsilon)
+    if not balance_ok:
+        raise ValueError(
+            "partition violates SEA epsilon balance bound"
+            f"; counts={counts}; k={k}; epsilon={epsilon}"
+        )
     return {
         "status": "ok",
         "edge_cut": edge_cut(graph, partition),
-        "balance_ok": balance_bound_ok(graph, counts, k, epsilon),
+        "balance_ok": True,
         "block_counts": counts,
         "runtime_seconds": runtime,
         "command": command,

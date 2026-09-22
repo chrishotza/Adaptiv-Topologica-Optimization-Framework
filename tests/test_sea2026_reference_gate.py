@@ -35,3 +35,7 @@ def test_balance_bound_uses_sea_epsilon() -> None:
     graph = nx.path_graph(10)
     assert balance_bound_ok(graph, [3, 3, 2, 2], 4, 0.03)
     assert not balance_bound_ok(graph, [4, 3, 2, 1], 4, 0.03)
+
+def test_balance_bound_rejects_oversized_block() -> None:
+    graph = nx.path_graph(10)
+    assert not balance_bound_ok(graph, [4, 3, 2, 1], 4, 0.03)
