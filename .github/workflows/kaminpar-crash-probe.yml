@@ -1,0 +1,31 @@
+name: KaMinPar crash probe
+
+on:
+  push:
+    branches:
+      - research/diagnose-kaminpar-sigsegv
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install KaMinPar
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "kaminpar>=3.7.3,<4"
+
+      - name: Probe contexts
+        run: |
+          python experiments/probe_kaminpar_sigsegv.py
