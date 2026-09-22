@@ -12,9 +12,9 @@ Source: https://zenodo.org/records/19387774
 
 SEA evaluates k in {4, 8, 32, 64}, epsilon=0.03, five randomized runs per graph/k combination, and a one-hour time limit. Aggregate quality and runtime are arithmetic means over seeds and geometric means across instances.
 
-ATOF now has a direct exact-software reference gate for the SEA 2026 Mt-KaHyPar artifact. It builds archived revision 6d12d9cf210390624f3757e9b5399469d2d2ae68 (software version 1.5.3), downloads the public Set A corpus with its published MD5, and executes the learned configuration against a controlled baseline configuration on a selectable subset of Set A.
+ATOF now has a direct exact-software reference gate for the SEA 2026 Mt-KaHyPar artifact. It builds archived revision 6d12d9cf210390624f3757e9b5399469d2d2ae68 (software version 1.5.3), downloads the public Set A corpus with its published MD5, and executes the learned configuration against a controlled baseline configuration on a selectable subset of Set A. The baseline disables only the integrated model (`--c-guiding-by-integrated-model=false`) and leaves the remaining default-preset options unchanged; this matches options exposed by the archived 1.5.3 command-line parser.
 
-The gate records the exact command, graph/seed/k identity, partition block counts, edge cut, runtime, and executable output tails. It preserves seed-level paired results and additionally aggregates each graph×k instance by arithmetic mean across seeds, then aggregates those instances by geometric mean. This mirrors the published aggregation hierarchy while keeping the raw runs auditable.
+The gate records the exact command, graph/seed/k identity, partition block counts, edge cut, runtime, and executable output tails. It preserves seed-level paired results and additionally aggregates each complete graph×k instance by arithmetic mean across all required seeds, then aggregates those complete instances by geometric mean. Incomplete seed sets are retained for audit but excluded from protocol-level aggregates. This mirrors the published aggregation hierarchy while keeping the raw runs auditable.
 
 ## Important training/test boundary
 
