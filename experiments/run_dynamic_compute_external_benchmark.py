@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 
-from atof.statistics import paired_summary
+from atof.statistics import bootstrap_mean_ci, paired_summary
 from atof.strategies import BLOCReloc
 from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
 
