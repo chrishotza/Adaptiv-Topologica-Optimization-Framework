@@ -126,6 +126,7 @@
           "type": "object",
           "required": [
             "k",
+            "result_schema",
             "objective",
             "backend",
             "variants"
