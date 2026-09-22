@@ -17,14 +17,12 @@ HYBRID_PERIOD = 5
 HYBRID_SAMPLES = 100
 K = 3
 CREDIT_CONFIGS = (
-    {"threshold": 0.75, "max_skips": 1},
-    {"threshold": 1.00, "max_skips": 1},
-    {"threshold": 1.25, "max_skips": 1},
-    {"threshold": 1.50, "max_skips": 1},
+    {"threshold": 0.75, "max_skips": 1, "probe_samples": 20},
+    {"threshold": 1.00, "max_skips": 1, "probe_samples": 20},
 )
 
 
-def run_pair(graph, *, seed: int, variant: str, threshold: float, max_skips: int, fixed) -> dict:
+def run_pair(graph, *, seed: int, variant: str, threshold: float, max_skips: int, probe_samples: int, fixed) -> dict:
     credit_started = time.perf_counter()
     credit = BLOCReloc(graph, k=K, seed=seed, variant=variant).refine(
         iterations=ITERATIONS,
@@ -33,6 +31,7 @@ def run_pair(graph, *, seed: int, variant: str, threshold: float, max_skips: int
         hybrid_policy="credit",
         hybrid_credit_threshold=threshold,
         hybrid_credit_max_skips=max_skips,
+        hybrid_credit_probe_samples=probe_samples,
     )
     credit_runtime = time.perf_counter() - credit_started
 
@@ -46,6 +45,7 @@ def run_pair(graph, *, seed: int, variant: str, threshold: float, max_skips: int
     return {
         "threshold": threshold,
         "max_skips": max_skips,
+        "probe_samples": probe_samples,
         "seed": seed,
         "variant": variant,
         "iterations": ITERATIONS,
@@ -94,6 +94,7 @@ def run_benchmark() -> dict:
                         variant=variant,
                         threshold=config["threshold"],
                         max_skips=config["max_skips"],
+                        probe_samples=config["probe_samples"],
                         fixed=fixed,
                     )
                     row["fixed_runtime_seconds"] = fixed_runtime
@@ -111,6 +112,7 @@ def run_benchmark() -> dict:
             for row in rows
             if row["threshold"] == config["threshold"]
             and row["max_skips"] == config["max_skips"]
+            and row["probe_samples"] == config["probe_samples"]
         ]
         deltas = [row["edge_cut_delta"] for row in subset]
         ratios = [row["runtime_ratio"] for row in subset if row["runtime_ratio"] is not None]
@@ -118,6 +120,7 @@ def run_benchmark() -> dict:
             {
                 "threshold": config["threshold"],
                 "max_skips": config["max_skips"],
+                "probe_samples": config["probe_samples"],
                 "comparisons": len(subset),
                 "better_edge_cut": sum(delta < 0 for delta in deltas),
                 "tied_edge_cut": sum(delta == 0 for delta in deltas),
