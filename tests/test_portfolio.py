@@ -45,7 +45,7 @@ def test_portfolio_supports_kway_without_optional_backends():
     assert payload["result"]["k"] == 3
     assert payload["result"]["balance_error"] == 0.0
     assert len(payload["result"]["partition"]) == 12
-    assert set(payload["result"]["partition"].values()) == {"0", "1", "2"}
+    assert set(payload["result"]["partition"].values()) == {0, 1, 2}
     networkx_candidate = next(
         item for item in payload["candidates"] if item["id"] == "networkx-kl"
     )
