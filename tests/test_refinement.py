@@ -16,6 +16,8 @@ def test_adaptive_controller_waits_for_stagnation_and_cooldown():
         iteration=2, start_cost=9.0, end_cost=9.0, tolerance=0.05
     )
 
+    controller.record_probe(iteration=2)
+    assert controller.probes == 1
     controller.record_hybrid_pass(
         iteration=2, start_cost=9.0, end_cost=8.0
     )
