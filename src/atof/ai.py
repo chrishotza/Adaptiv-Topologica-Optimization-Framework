@@ -15,7 +15,9 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "profile": "atof profile <graph>",
             "optimize": "atof optimize <graph> --engine portfolio",
             "ai": "atof ai",
+            "solve": "atof solve <graph>",
             "version": "atof --version",
+            "short_flags": "-c compact, -e engine, -s seed, -i iterations, -f format, -o output",
         },
         "input": {
             "formats": ["edgelist", "graphml", "gexf", "gml"],
