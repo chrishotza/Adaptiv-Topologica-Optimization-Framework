@@ -13,6 +13,7 @@ from importlib import metadata as importlib_metadata
 
 import networkx as nx
 
+from atof.partition import exact_partition_balance_error
 from atof.portfolio import _run_kahip, _run_metis
 from atof.strategies import BLOCReloc
 from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
@@ -351,25 +352,8 @@ def _exact_partition_balance_error(
     partition: dict,
     k: int,
 ) -> float:
-    n = graph.number_of_nodes()
-    if n == 0:
-        return 0.0
-    if len(partition) != n or set(partition) != set(graph.nodes()):
-        raise ValueError("partition does not cover the graph exactly")
-    counts = [0] * k
-    for node, block in partition.items():
-        block = int(block)
-        if block < 0 or block >= k:
-            raise ValueError("partition block labels must be in [0, k)")
-        counts[block] += 1
+    return exact_partition_balance_error(graph, partition, k)
 
-    lower = n // k
-    upper = (n + k - 1) // k
-    if any(count < lower or count > upper for count in counts):
-        raise ValueError("partition is outside the exact floor/ceil balance contract")
-
-    target = n / k
-    return max(abs(lower - target), abs(upper - target)) / target
 
 
 def _validate_exact_balance_error(graph, k: int, balance_error: float) -> bool:
