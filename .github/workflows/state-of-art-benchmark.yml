@@ -2,9 +2,16 @@ name: State-of-art benchmark
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
-      - research/state-of-art-benchmark
+      - main
+    paths:
+      - "experiments/run_state_of_art_benchmark.py"
+      - "docs/state-of-art-benchmark.md"
+      - "docs/state-of-art-2026-map.md"
+      - ".github/workflows/state-of-art-benchmark.yml"
+      - "src/atof/**"
+      - "src/atof/*"
 
 permissions:
   contents: read
