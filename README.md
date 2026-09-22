@@ -78,6 +78,18 @@ python -m pip install -e ".[dev]"
 pytest
 ~~~
 
+## AI-first entry point
+
+ATOF is designed to be easy for AI agents to understand and operate with minimal context.
+
+~~~bash
+atof ai
+atof profile graph.edgelist --compact
+atof optimize graph.edgelist --engine portfolio --compact
+~~~
+
+The AI manifest uses the stable schema atof.ai.v1. Compact outputs intentionally omit verbose topology and partition mappings; full JSON remains available when evidence or node assignments are required. See AGENTS.md, docs/ai-quickstart.md, and llms.txt.
+
 ## Product entry point
 
 The primary usable entry point is the `atof optimize` command. It profiles an edge-list graph, applies the transparent heuristic selector when `--variant auto` is used, runs balanced BLOC-RELOC refinement, and returns a machine-readable partition result. The selector is explicitly a heuristic baseline; the command does not claim global optimality. See `docs/product-quickstart.md`.
