@@ -127,7 +127,7 @@ def balance_bound_ok(
     return max(counts, default=0) <= bound + 1e-12
 
 
-def run_configuration(
+def build_command(
     binary: Path,
     graph_file: Path,
     output_dir: Path,
@@ -137,22 +137,14 @@ def run_configuration(
     threads: int,
     epsilon: float,
     learned: bool,
-) -> dict:
-    graph = read_metis_graph(graph_file)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    partition_path = partition_file_for(
-        output_dir, graph_file, k, epsilon, seed
-    )
-    if partition_path.exists():
-        partition_path.unlink()
-
+) -> list[str]:
     command = [
         str(binary),
         "-h",
         str(graph_file),
         "--instance-type=graph",
         "--input-file-format=metis",
-        "--preset=default",
+        "--preset-type=default",
         "-o",
         "cut",
         "-k",
@@ -172,6 +164,38 @@ def run_configuration(
                 "--c-guiding-by-integrated-model=false",
             ]
         )
+    return command
+
+
+def run_configuration(
+    binary: Path,
+    graph_file: Path,
+    output_dir: Path,
+    *,
+    k: int,
+    seed: int,
+    threads: int,
+    epsilon: float,
+    learned: bool,
+) -> dict:
+    graph = read_metis_graph(graph_file)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    partition_path = partition_file_for(
+        output_dir, graph_file, k, epsilon, seed
+    )
+    if partition_path.exists():
+        partition_path.unlink()
+
+    command = build_command(
+        binary,
+        graph_file,
+        output_dir,
+        k=k,
+        seed=seed,
+        threads=threads,
+        epsilon=epsilon,
+        learned=learned,
+    )
 
     started = time.perf_counter()
     completed = subprocess.run(
@@ -571,6 +595,13 @@ def main() -> int:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     print(json.dumps(payload["summary"], indent=2))
+
+    error_rows = int(payload["summary"]["error_rows"])
+    if error_rows:
+        raise SystemExit(
+            f"SEA reference gate failed: {error_rows} execution rows returned errors"
+        )
+
     return 0
 
 
