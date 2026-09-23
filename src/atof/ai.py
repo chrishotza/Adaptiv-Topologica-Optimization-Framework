@@ -127,7 +127,6 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "name": manifest["name"],
         "primary_flow": manifest["primary_flow"],
         "version": manifest["version"],
-        "purpose": manifest["purpose"],
         "commands": {key: value for key, value in manifest["commands"].items() if key != "module"},
         "input": manifest["input"],
         "capabilities": manifest["capabilities"],
