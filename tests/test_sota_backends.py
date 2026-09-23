@@ -14,28 +14,32 @@ def _assert_contract(result, graph, k):
 
 
 def test_kaminpar_default_real_binding():
-    import kaminpar  # noqa: F401
+    import pytest
+    pytest.importorskip("kaminpar")
 
     graph = nx.karate_club_graph()
     _assert_contract(run_kaminpar(graph, seed=42, k=2), graph, 2)
 
 
 def test_kaminpar_strong_real_binding():
-    import kaminpar  # noqa: F401
+    import pytest
+    pytest.importorskip("kaminpar")
 
     graph = nx.karate_club_graph()
     _assert_contract(run_kaminpar(graph, seed=42, k=2, quality=True), graph, 2)
 
 
 def test_mtkahypar_default_real_binding():
-    import mtkahypar  # noqa: F401
+    import pytest
+    pytest.importorskip("mtkahypar")
 
     graph = nx.karate_club_graph()
     _assert_contract(run_mtkahypar(graph, seed=42, k=2), graph, 2)
 
 
 def test_mtkahypar_quality_real_binding():
-    import mtkahypar  # noqa: F401
+    import pytest
+    pytest.importorskip("mtkahypar")
 
     graph = nx.karate_club_graph()
     _assert_contract(run_mtkahypar(graph, seed=42, k=2, quality=True), graph, 2)
