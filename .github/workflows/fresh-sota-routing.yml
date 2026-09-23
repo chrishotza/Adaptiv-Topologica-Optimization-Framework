@@ -1,0 +1,136 @@
+name: Fresh SOTA routing benchmark
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "experiments/fresh_sota_protocol.py"
+      - "experiments/fresh_sota_router_transfer.py"
+      - "tests/test_fresh_sota_protocol.py"
+      - "tests/test_fresh_sota_router_transfer.py"
+      - ".github/workflows/fresh-sota-routing.yml"
+      - "src/atof/adaptive.py"
+      - "src/atof/native_backends.py"
+      - "src/atof/routing.py"
+      - "src/atof/backends.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # Full 20-graph x 11-strategy gate; native backends run in isolated workers.
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+
+      - name: Run unit tests for fresh benchmark layer
+        run: |
+          pytest -q             tests/test_fresh_sota_protocol.py             tests/test_fresh_sota_router_transfer.py
+
+      - name: Run fresh 20-graph SOTA benchmark
+        run: |
+          python -m experiments.fresh_sota_protocol             --output results/state_of_art/fresh_sota_latest.json             --cache-dir .cache/snap
+
+      - name: Validate complete benchmark manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/state_of_art/fresh_sota_latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          expected_strategies = set(payload["candidate_strategies"])
+          expected_seeds = {42, 101, 2024}
+          expected_graphs = sum(
+              item["graph_count"] for item in payload["corpora"].values()
+          )
+
+          assert expected_graphs == 20
+          assert payload["k"] == 2
+          assert len(expected_strategies) == 11
+          assert payload["seeds"] == [42, 101, 2024]
+          assert len(payload["rows"]) == 20 * 3 * 11
+          assert payload["matched_graphs"] == 20
+
+          for graph_id, summary in payload["graph_summaries"].items():
+              assert summary["matched"] is True, graph_id
+              assert set(summary["strategies"]) == expected_strategies
+              for strategy in expected_strategies:
+                  assert len([
+                      row for row in payload["rows"]
+                      if row["graph_id"] == graph_id
+                      and row["strategy"] == strategy
+                      and row["status"] == "ok"
+                  ]) == 3
+
+          bad = [
+              {
+                  "graph_id": row["graph_id"],
+                  "strategy": row["strategy"],
+                  "seed": row["seed"],
+                  "status": row["status"],
+                  "error": row.get("error"),
+              }
+              for row in payload["rows"]
+              if row["status"] != "ok"
+          ]
+          assert not bad, json.dumps(bad[:20], indent=2)
+          PY
+
+      - name: Run leave-one-corpus-out router transfer
+        run: |
+          python -m experiments.fresh_sota_router_transfer             --benchmark results/state_of_art/fresh_sota_latest.json             --output results/state_of_art/fresh_sota_router_transfer.json
+
+      - name: Validate router transfer manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/state_of_art/fresh_sota_router_transfer.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["matched_graphs"] == 20
+          assert payload["controls"] == ["majority", "global_mean"]
+          assert set(payload["pooled"]) == {
+              "nearest_vs_majority",
+              "nearest_vs_global_mean",
+              "centroid_vs_majority",
+              "centroid_vs_global_mean",
+          }
+          assert len(payload["corpora"]) >= 2
+          PY
+
+      - name: Upload fresh SOTA artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fresh-sota-routing-benchmark
+          path: |
+            results/state_of_art/fresh_sota_latest.json
+            results/state_of_art/fresh_sota_router_transfer.json
+          if-no-files-found: error
