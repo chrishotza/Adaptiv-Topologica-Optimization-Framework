@@ -1,0 +1,734 @@
+from __future__ import annotations
+
+import argparse
+import json
+import platform
+import statistics
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+from importlib import metadata as importlib_metadata
+from typing import Callable
+
+import networkx as nx
+
+from atof.strategies import BLOCReloc
+from atof.topology import TopologyProfiler
+from experiments.run_expanded_20graph_kahip_transfer import _load_expanded_corpora
+from experiments.run_kahip_validation import kahip_balanced_partition
+from experiments.run_metis_validation import metis_balanced_partition
+from experiments.mtkahypar_backend import run_mtkahypar
+
+SEEDS = (42, 101, 2024)
+ITERATIONS = 25
+HYBRID_PERIOD = 5
+HYBRID_SAMPLES = 100
+HYBRID_PROBE_SAMPLES = 20
+HYBRID_WITNESS_PATIENCE = 2
+
+# Locked candidate surface for the reproducible k=2 state-of-art comparison.
+CORE_STRATEGIES = (
+    "bloc_reloc_baseline",
+    "bloc_reloc_affinity",
+    "bloc_reloc_hybrid_fixed",
+    "bloc_reloc_adaptive",
+    "kernighan_lin",
+    "metis",
+    "kahip",
+    "kaminpar_default",
+    "kaminpar_strong",
+    "mtkahypar_default",
+    "mtkahypar_quality",
+)
+
+LOCAL_STRATEGIES = (
+    "bloc_reloc_baseline",
+    "bloc_reloc_affinity",
+    "bloc_reloc_hybrid_fixed",
+    "bloc_reloc_adaptive",
+    "kernighan_lin",
+)
+
+ISOLATED_STRATEGIES = (
+    "metis",
+    "kahip",
+    "kaminpar_default",
+    "kaminpar_strong",
+    "mtkahypar_default",
+    "mtkahypar_quality",
+)
+
+
+def _decode_worker_rows(stdout: str) -> list[dict]:
+    lines = [line.strip() for line in stdout.splitlines() if line.strip()]
+    if not lines:
+        raise ValueError("worker returned no JSON payload")
+    payload = json.loads(lines[-1])
+    if not isinstance(payload, list):
+        raise ValueError("worker JSON payload must be a list")
+    return payload
+
+
+def _package_versions() -> dict[str, str | None]:
+    versions: dict[str, str | None] = {}
+    for distribution in ("atof", "networkx", "pymetis", "kahip", "kaminpar", "mtkahypar"):
+        try:
+            versions[distribution] = importlib_metadata.version(distribution)
+        except importlib_metadata.PackageNotFoundError:
+            versions[distribution] = None
+    return versions
+
+def _commit_sha() -> str | None:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def _edge_cut(graph: nx.Graph, partition: dict) -> int:
+    return sum(partition[u] != partition[v] for u, v in graph.edges())
+
+
+
+def _balance_error(graph: nx.Graph, partition: dict, k: int) -> float:
+    counts = [0] * k
+    for block in partition.values():
+        counts[int(block)] += 1
+    n = graph.number_of_nodes()
+    ideal = n / k
+    return max(abs(count - ideal) for count in counts) / ideal if ideal else 0.0
+
+def _run_atof(
+    graph: nx.Graph,
+    *,
+    seed: int,
+    k: int,
+    variant: str,
+    hybrid_policy: str | None = None,
+) -> dict:
+    started = time.perf_counter()
+    kwargs = {}
+    if hybrid_policy is not None:
+        kwargs = {
+            "hybrid_period": HYBRID_PERIOD,
+            "hybrid_samples": HYBRID_SAMPLES,
+            "hybrid_policy": hybrid_policy,
+            "hybrid_probe_samples": HYBRID_PROBE_SAMPLES,
+            "hybrid_witness_patience": HYBRID_WITNESS_PATIENCE,
+        }
+    result = BLOCReloc(
+        graph,
+        k=k,
+        seed=seed,
+        variant=variant,
+    ).refine(iterations=ITERATIONS, **kwargs)
+    return {
+        "edge_cut": int(result.edge_cut),
+        "balance_error": float(result.balance_error),
+        "runtime_seconds": time.perf_counter() - started,
+        "metadata": {
+            "hybrid_passes": int(result.hybrid_passes),
+            "hybrid_probes": int(result.hybrid_probes),
+            "marginal_events": [
+                {
+                    "iteration": int(event["iteration"]),
+                    "local_gain": float(event["local_gain"]),
+                    "local_work": int(event["local_work"]),
+                    "local_gain_per_work": float(event["local_gain_per_work"]),
+                    "hybrid_gain": float(event["hybrid_gain"]),
+                    "hybrid_work": int(event["hybrid_work"]),
+                    "probe_work": int(event["probe_work"]),
+                    "total_work": int(event["total_work"]),
+                    "hybrid_gain_per_work": float(event["hybrid_gain_per_work"]),
+                    "hybrid": int(event["hybrid"]),
+                    "hybrid_probe": int(event["hybrid_probe"]),
+                }
+                for event in result.trace
+                if int(event["hybrid"]) == 1 or int(event["hybrid_probe"]) == 1
+            ],
+        },
+    }
+
+
+def _run_kernighan_lin(graph: nx.Graph, *, seed: int, k: int) -> dict:
+    if k != 2:
+        raise ValueError("NetworkX Kernighan-Lin is only defined here for k=2")
+    from networkx.algorithms.community import kernighan_lin_bisection
+
+    started = time.perf_counter()
+    left, right = kernighan_lin_bisection(
+        graph,
+        partition=None,
+        max_iter=ITERATIONS,
+        weight=None,
+        seed=seed,
+    )
+    left = set(left)
+    partition = {node: (0 if node in left else 1) for node in graph}
+    return {
+        "edge_cut": _edge_cut(graph, partition),
+        "balance_error": abs(len(left) - len(right)) / graph.number_of_nodes(),
+        "runtime_seconds": time.perf_counter() - started,
+        "metadata": {},
+    }
+
+
+def _run_external(
+    runner: Callable[[nx.Graph, int], dict],
+    graph: nx.Graph,
+    *,
+    seed: int,
+    k: int,
+) -> dict:
+    del k
+    started = time.perf_counter()
+    payload = runner(graph, seed=seed)
+    return {
+        "edge_cut": int(payload["edge_cut"]),
+        "balance_error": float(payload["balance_error"]),
+        "runtime_seconds": time.perf_counter() - started,
+        "metadata": {},
+    }
+
+
+def _strategy_run(
+    strategy: str,
+    graph: nx.Graph,
+    *,
+    seed: int,
+    k: int,
+    graph_id: str,
+) -> dict:
+    if strategy == "bloc_reloc_baseline":
+        return _run_atof(graph, seed=seed, k=k, variant="baseline")
+    if strategy == "bloc_reloc_affinity":
+        return _run_atof(graph, seed=seed, k=k, variant="affinity")
+    if strategy == "bloc_reloc_hybrid_fixed":
+        return _run_atof(
+            graph,
+            seed=seed,
+            k=k,
+            variant="baseline",
+            hybrid_policy="fixed",
+        )
+    if strategy == "bloc_reloc_adaptive":
+        return _run_atof(
+            graph,
+            seed=seed,
+            k=k,
+            variant="baseline",
+            hybrid_policy="adaptive",
+        )
+    if strategy == "kernighan_lin":
+        return _run_kernighan_lin(graph, seed=seed, k=k)
+    if strategy == "metis":
+        return _run_external(metis_balanced_partition, graph, seed=seed, k=k)
+    if strategy == "kahip":
+        return _run_external(kahip_balanced_partition, graph, seed=seed, k=k)
+    if strategy == "kaminpar_default":
+        return _run_kaminpar(
+            graph, graph_id=graph_id, seed=seed, k=k, context_name="default"
+        )
+    if strategy == "kaminpar_strong":
+        return _run_kaminpar(
+            graph, graph_id=graph_id, seed=seed, k=k, context_name="strong"
+        )
+    if strategy == "mtkahypar_default":
+        return run_mtkahypar(
+            graph,
+            graph_id=graph_id,
+            seed=seed,
+            k=k,
+            preset="default",
+            epsilon=_kaminpar_eps(graph, k),
+        )
+    if strategy == "mtkahypar_quality":
+        return run_mtkahypar(
+            graph,
+            graph_id=graph_id,
+            seed=seed,
+            k=k,
+            preset="quality",
+            epsilon=_kaminpar_eps(graph, k),
+        )
+    raise ValueError(f"unknown strategy: {strategy}")
+
+
+
+_KAMINPAR_GRAPH_CACHE: dict[str, object] = {}
+_KAMINPAR_TMPDIR = tempfile.TemporaryDirectory(prefix="atof-kaminpar-")
+_KAMINPAR_INSTANCE_CACHE: dict[str, object] = {}
+
+
+def _write_metis_graph(graph: nx.Graph, path: Path) -> None:
+    """Write the repository's unweighted undirected graph as METIS format."""
+    nodes = list(graph.nodes())
+    index = {node: i + 1 for i, node in enumerate(nodes)}
+    lines = [f"{len(nodes)} {graph.number_of_edges()}"]
+    for node in nodes:
+        neighbors = sorted(
+            (index[neighbor] for neighbor in graph.neighbors(node))
+        )
+        lines.append(" ".join(str(value) for value in neighbors))
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _kaminpar_graph(graph: nx.Graph, graph_id: str):
+    import kaminpar
+
+    cached = _KAMINPAR_GRAPH_CACHE.get(graph_id)
+    if cached is not None:
+        return cached
+
+    path = Path(_KAMINPAR_TMPDIR.name) / (
+        graph_id.replace("/", "__").replace(" ", "_") + ".metis"
+    )
+    _write_metis_graph(graph, path)
+    loaded = kaminpar.load_graph(
+        str(path),
+        kaminpar.GraphFileFormat.METIS,
+        compress=False,
+    )
+    _KAMINPAR_GRAPH_CACHE[graph_id] = loaded
+    return loaded
+
+
+def _kaminpar_eps(graph: nx.Graph, k: int) -> float:
+    del graph, k
+    # KaMinPar's bound is (1 + eps) * ceil(total_weight / k).
+    # eps=0 therefore permits exactly floor/ceil block sizes for unit weights.
+    return 0.0
+
+def _kaminpar_instance(context_name: str):
+    import kaminpar
+
+    context_factory = {
+        "default": kaminpar.default_context,
+        "strong": kaminpar.strong_context,
+    }[context_name]
+    instance = _KAMINPAR_INSTANCE_CACHE.get(context_name)
+    if instance is None:
+        instance = kaminpar.KaMinPar(1, context_factory())
+        _KAMINPAR_INSTANCE_CACHE[context_name] = instance
+    return instance
+
+def _kaminpar_partition(
+    graph: nx.Graph,
+    *,
+    graph_id: str,
+    seed: int,
+    k: int,
+    context_name: str,
+) -> dict:
+    import kaminpar
+
+    loaded = _kaminpar_graph(graph, graph_id)
+    instance = _kaminpar_instance(context_name)
+
+    # KaMinPar exposes a process-level RNG seed; set it immediately before
+    # each timed partition call so the seed is explicit and reproducible.
+    kaminpar.reseed(int(seed))
+    max_block_weight = (graph.number_of_nodes() + k - 1) // k
+    partition = instance.compute_partition(
+        loaded,
+        max_block_weights=[max_block_weight] * k,
+    )
+    return {
+        "partition": [int(block) for block in partition],
+    }
+
+
+def _run_kaminpar(
+    graph: nx.Graph,
+    *,
+    graph_id: str,
+    seed: int,
+    k: int,
+    context_name: str,
+) -> dict:
+    # Prepare file-backed graph and backend instance outside the timed solver call.
+    _kaminpar_graph(graph, graph_id)
+    _kaminpar_instance(context_name)
+    started = time.perf_counter()
+    payload = _kaminpar_partition(
+        graph,
+        graph_id=graph_id,
+        seed=seed,
+        k=k,
+        context_name=context_name,
+    )
+    partition = payload["partition"]
+    balance = _balance_error(
+        graph,
+        {node: block for node, block in zip(graph.nodes(), partition)},
+        k,
+    )
+    partition = payload["partition"]
+    partition_map = {
+        node: block for node, block in zip(graph.nodes(), partition)
+    }
+    return {
+        "edge_cut": _edge_cut(graph, partition_map),
+        "balance_error": float(balance),
+        "runtime_seconds": time.perf_counter() - started,
+        "metadata": {
+            "context": context_name,
+            "seed_control": "kaminpar.reseed",
+            "graph_load_in_timing": False,
+            "max_block_weight": (graph.number_of_nodes() + k - 1) // k,
+        },
+    }
+
+
+def _mean(values: list[float]) -> float:
+    return statistics.fmean(values) if values else 0.0
+
+
+def _summarize_graph(
+    rows: list[dict],
+    strategies: tuple[str, ...],
+    expected_runs: int | None = None,
+    expected_seeds: tuple[int, ...] | None = None,
+) -> dict:
+    available = {
+        strategy: [
+            row for row in rows
+            if row["strategy"] == strategy and row["status"] == "ok"
+        ]
+        for strategy in strategies
+    }
+    means = {
+        strategy: {
+            "edge_cut": _mean([float(row["edge_cut"]) for row in items]),
+            "balance_error": _mean([float(row["balance_error"]) for row in items]),
+            "runtime_seconds": _mean([float(row["runtime_seconds"]) for row in items]),
+        }
+        for strategy, items in available.items()
+        if items
+    }
+    if not means:
+        return {"strategies": {}, "best_quality": None, "matched": False}
+
+    if expected_seeds is not None:
+        expected_seed_set = {int(seed) for seed in expected_seeds}
+        seed_incomplete = {
+            strategy: sorted(
+                int(row["seed"])
+                for row in available[strategy]
+            )
+            for strategy in strategies
+            if {
+                int(row["seed"])
+                for row in available[strategy]
+            } != expected_seed_set
+        }
+        if seed_incomplete:
+            return {
+                "strategies": means,
+                "best_quality": None,
+                "matched": False,
+                "incomplete_strategies": sorted(seed_incomplete),
+                "expected_runs": expected_runs,
+                "expected_seeds": sorted(expected_seed_set),
+                "observed_seeds": seed_incomplete,
+            }
+
+    incomplete_strategies = (
+        [
+            strategy
+            for strategy in strategies
+            if len(available[strategy]) != expected_runs
+        ]
+        if expected_runs is not None
+        else []
+    )
+    if len(means) != len(strategies) or incomplete_strategies:
+        return {
+            "strategies": means,
+            "best_quality": None,
+            "matched": False,
+            "incomplete_strategies": incomplete_strategies,
+            "expected_runs": expected_runs,
+        }
+
+    best_quality = min(
+        means,
+        key=lambda name: (means[name]["edge_cut"], means[name]["runtime_seconds"], name),
+    )
+    best_edge_cut = means[best_quality]["edge_cut"]
+    median_runtime = statistics.median(
+        value["runtime_seconds"] for value in means.values()
+    )
+    for metrics in means.values():
+        metrics["relative_quality_gap"] = (
+            (metrics["edge_cut"] - best_edge_cut) / best_edge_cut
+            if best_edge_cut
+            else 0.0
+        )
+        metrics["runtime_ratio_to_graph_median"] = (
+            metrics["runtime_seconds"] / median_runtime
+            if median_runtime
+            else 0.0
+        )
+    return {
+        "strategies": means,
+        "best_quality": best_quality,
+        "best_edge_cut": best_edge_cut,
+        "matched": True,
+        "expected_runs": expected_runs,
+    }
+
+
+def _aggregate_graph_summaries(
+    graph_summaries: dict[str, dict],
+    strategies: tuple[str, ...],
+) -> dict:
+    summary = {}
+    for strategy in strategies:
+        values = [
+            data["strategies"][strategy]["relative_quality_gap"]
+            for data in graph_summaries.values()
+            if data.get("matched") and strategy in data["strategies"]
+        ]
+        runtimes = [
+            data["strategies"][strategy]["runtime_ratio_to_graph_median"]
+            for data in graph_summaries.values()
+            if data.get("matched") and strategy in data["strategies"]
+        ]
+        excess = [
+            data["strategies"][strategy]["edge_cut"]
+            - data["best_edge_cut"]
+            for data in graph_summaries.values()
+            if data.get("matched")
+            and strategy in data["strategies"]
+            and data.get("best_edge_cut") is not None
+        ]
+        summary[strategy] = {
+            "graphs_evaluated": len(values),
+            "mean_relative_quality_gap": _mean(values),
+            "mean_relative_quality_gap_percent": 100.0 * _mean(values),
+            "median_relative_quality_gap": statistics.median(values) if values else 0.0,
+            "median_relative_quality_gap_percent": 100.0 * (statistics.median(values) if values else 0.0),
+            "mean_excess_edge_cut": _mean(excess),
+            "median_excess_edge_cut": statistics.median(excess) if excess else 0.0,
+            "mean_runtime_ratio_to_graph_median": _mean(runtimes),
+        }
+    return summary
+
+
+def run_state_of_art_benchmark(
+    output_path: str | Path = "results/state_of_art/latest.json",
+    *,
+    k: int = 2,
+    seeds: tuple[int, ...] = SEEDS,
+    iterations: int = ITERATIONS,
+    cache_dir: str | Path | None = None,
+) -> dict:
+    if k != 2:
+        raise ValueError(
+            "The current state-of-art protocol is locked to k=2 so every "
+            "core candidate uses the same balanced-bisection contract."
+        )
+    if not seeds:
+        raise ValueError("seeds must not be empty")
+    if iterations != ITERATIONS:
+        raise ValueError("iterations must remain fixed at 25 for this protocol")
+
+    started = time.perf_counter()
+    corpora, provenance = _load_expanded_corpora(cache_dir=cache_dir)
+    strategies = CORE_STRATEGIES
+    rows: list[dict] = []
+
+    # Keep Python implementations in-process.
+    for corpus, graphs in corpora.items():
+        for graph_name, graph in graphs.items():
+            graph_id = f"{corpus}/{graph_name}"
+            for seed in seeds:
+                for strategy in LOCAL_STRATEGIES:
+                    row = {
+                        "corpus": corpus,
+                        "graph": graph_name,
+                        "graph_id": graph_id,
+                        "nodes": graph.number_of_nodes(),
+                        "edges": graph.number_of_edges(),
+                        "seed": seed,
+                        "strategy": strategy,
+                    }
+                    try:
+                        result = _strategy_run(
+                            strategy,
+                            graph,
+                            seed=seed,
+                            k=k,
+                            graph_id=graph_id,
+                        )
+                        row.update(result)
+                        row["status"] = "ok"
+                    except Exception as exc:
+                        row.update(
+                            {
+                                "status": "error",
+                                "error": f"{type(exc).__name__}: {exc}",
+                            }
+                        )
+                    rows.append(row)
+
+    # C/C++ backends are isolated one strategy at a time. A native crash in
+    # one extension therefore cannot corrupt the Python process or hide rows
+    # for the remaining strategies.
+    for strategy in ISOLATED_STRATEGIES:
+        command = [
+            sys.executable,
+            "-m",
+            "experiments.run_isolated_state_of_art_backend",
+            "--strategy",
+            strategy,
+        ]
+        if cache_dir is not None:
+            command.extend(["--cache-dir", str(cache_dir)])
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            env={**__import__("os").environ, "PYTHONUNBUFFERED": "1"},
+        )
+        if completed.returncode == 0:
+            try:
+                isolated_rows = _decode_worker_rows(completed.stdout)
+            except (json.JSONDecodeError, ValueError) as exc:
+                isolated_rows = []
+                error = f"invalid worker JSON: {exc}"
+        else:
+            isolated_rows = []
+            error = (
+                f"isolated worker exit {completed.returncode}"
+                + (f": {completed.stderr[-1000:]}" if completed.stderr else "")
+            )
+
+        if isolated_rows:
+            rows.extend(isolated_rows)
+        else:
+            for corpus, graphs in corpora.items():
+                for graph_name, graph in graphs.items():
+                    graph_id = f"{corpus}/{graph_name}"
+                    for seed in seeds:
+                        rows.append(
+                            {
+                                "corpus": corpus,
+                                "graph": graph_name,
+                                "graph_id": graph_id,
+                                "nodes": graph.number_of_nodes(),
+                                "edges": graph.number_of_edges(),
+                                "seed": seed,
+                                "strategy": strategy,
+                                "status": "error",
+                                "error": error,
+                            }
+                        )
+
+    graph_rows: dict[str, list[dict]] = {}
+    for row in rows:
+        graph_rows.setdefault(row["graph_id"], []).append(row)
+
+    topology_profiler = TopologyProfiler()
+    graph_metadata = {
+        f"{corpus}/{graph_name}": {
+            "nodes": graph.number_of_nodes(),
+            "edges": graph.number_of_edges(),
+            "topology": topology_profiler.profile(graph).to_dict(),
+        }
+        for corpus, graphs in corpora.items()
+        for graph_name, graph in graphs.items()
+    }
+
+    graph_summaries = {
+        graph_id: _summarize_graph(
+            group,
+            strategies,
+            expected_runs=len(seeds),
+            expected_seeds=seeds,
+        )
+        for graph_id, group in graph_rows.items()
+    }
+
+    payload = {
+        "schema_version": "0.1",
+        "protocol": (
+            "20-graph head-to-head balanced-bisection benchmark across "
+            "ATOF local/hybrid refinements, NetworkX Kernighan-Lin, METIS, "
+            "and KaHIP"
+        ),
+        "unit_of_analysis": "graph",
+        "objective": {
+            "name": "unweighted edge cut",
+            "balance": "balanced 2-way partition",
+            "direction": "minimize edge cut",
+        },
+        "commit_sha": _commit_sha(),
+        "python": sys.version,
+        "platform": platform.platform(),
+        "networkx": nx.__version__,
+        "package_versions": _package_versions(),
+        "k": k,
+        "seeds": list(seeds),
+        "iterations": iterations,
+        "hybrid": {
+            "period": HYBRID_PERIOD,
+            "samples": HYBRID_SAMPLES,
+            "adaptive_probe_samples": HYBRID_PROBE_SAMPLES,
+            "adaptive_witness_patience": HYBRID_WITNESS_PATIENCE,
+        },
+        "candidate_strategies": list(strategies),
+        "isolated_native_strategies": list(ISOLATED_STRATEGIES),
+        "corpora": {
+            corpus: {
+                "graph_count": len(graphs),
+                "provenance": provenance[corpus],
+            }
+            for corpus, graphs in corpora.items()
+        },
+        "rows": rows,
+        "graph_summaries": graph_summaries,
+        "graph_metadata": graph_metadata,
+        "aggregate": _aggregate_graph_summaries(graph_summaries, strategies),
+        "limitations": [
+            "This is a balanced-bisection comparison, so it does not replace k-way evaluation.",
+            "Runtime values are machine-specific and include Python wrapper overhead.",
+            "KaMinPar is identified as a required next reference integration but is not silently approximated by another backend.",
+            "No claim of state-of-the-art superiority is made by this benchmark alone.",
+        ],
+        "runtime_seconds": time.perf_counter() - started,
+    }
+
+    destination = Path(output_path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return payload
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("results/state_of_art/latest.json"),
+    )
+    parser.add_argument("--cache-dir", type=Path, default=None)
+    args = parser.parse_args()
+
+    payload = run_state_of_art_benchmark(
+        output_path=args.output,
+        cache_dir=args.cache_dir,
+    )
+    print(json.dumps(payload["aggregate"], indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

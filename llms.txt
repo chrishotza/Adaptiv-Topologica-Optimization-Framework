@@ -52,11 +52,11 @@ Engine variants:
 - affinity = degree-affinity weighted surrogate, with unweighted edge_cut reported;
 - auto = heuristic selection between baseline and affinity.
 
-ATOF Portfolio = empirical composition over the available open backends.
+ATOF Portfolio = empirical composition over the available open backends: BLOC-RELOC, NetworkX Kernighan-Lin, METIS, KaHIP, KaMinPar, and Mt-KaHyPar when installed.
 
 Engine contract = k>=2, undirected, simple graphs with balanced node counts; reported metric = unweighted edge cut.
 
-Portfolio contract = k>=2, undirected, simple, unweighted balanced edge cut; NetworkX Kernighan-Lin is k=2 only.
+Portfolio contract = k>=2, undirected, simple, unweighted balanced edge cut; NetworkX Kernighan-Lin is k=2 only; native KaMinPar and Mt-KaHyPar are optional and isolated from the parent process.
 
 JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 
@@ -76,3 +76,11 @@ JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 ## Evidence rule
 
 Comparative claims must identify the graph/corpus, objective, protocol, and environment. Do not infer universal superiority from a single benchmark.
+
+
+## State-of-art research surface
+
+- Locked k=2 comparison: 20 graphs x 3 seeds x 11 candidates.
+- Matched k-way research gate: k={4,8,32,64} on the same corpus and seed set.
+- SEA 2026 alignment: learned-coarsening snapshot tracked separately from current Mt-KaHyPar product presets.
+- Dynamic compute allocation: research-only marginal-return controller, not a public default.

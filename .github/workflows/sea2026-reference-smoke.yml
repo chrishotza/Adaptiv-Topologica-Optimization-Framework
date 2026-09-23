@@ -1,0 +1,106 @@
+name: SEA 2026 reference gate
+# Research gate: exact 1.5.3 learned-coarsening snapshot vs matched baseline.
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Number of Set A graphs to benchmark; use -1 for all"
+        required: true
+        default: "4"
+        type: string
+      threads:
+        description: "Threads requested for the exact snapshot"
+        required: true
+        default: "4"
+        type: string
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "docs/sea2026-alignment.md"
+      - "docs/state-of-art-2026-map.md"
+      - "experiments/run_sea2026_reference_gate.py"
+      - "tests/test_sea2026_reference_gate.py"
+      - ".github/workflows/sea2026-reference-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout ATOF
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ATOF test surface
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build build-essential libhwloc-dev unzip
+
+      - name: Checkout exact SEA 2026 Mt-KaHyPar snapshot
+        run: |
+          git clone --recurse-submodules https://github.com/kahypar/mt-kahypar.git sea-mtkahypar
+          cd sea-mtkahypar
+          git checkout 6d12d9cf210390624f3757e9b5399469d2d2ae68
+          git submodule update --init --recursive
+
+      - name: Configure exact snapshot
+        run: |
+          cmake -S sea-mtkahypar -B sea-mtkahypar/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DKAHYPAR_DOWNLOAD_BOOST=ON \
+            -DKAHYPAR_DOWNLOAD_TBB=ON \
+            -DKAHYPAR_ENABLE_GRAPH_PARTITIONING_FEATURES=ON \
+            -DKAHYPAR_ENABLE_HIGHEST_QUALITY_FEATURES=ON \
+            -DKAHYPAR_ENABLE_ARCH_COMPILE_OPTIMIZATIONS=ON \
+            -DKAHYPAR_ENABLE_EXTENDED_INSTRUCTIONS=ON \
+            -DKAHYPAR_ENABLE_THREAD_PINNING=OFF \
+            -DKAHYPAR_ENABLE_TESTING=OFF
+
+      - name: Build exact snapshot
+        run: |
+          cmake --build sea-mtkahypar/build --target MtKaHyPar --parallel 2
+
+      - name: Download and verify SEA Set A
+        run: |
+          curl --fail --location --retry 5 \
+            "https://zenodo.org/records/19387774/files/set_a.zip?download=1" \
+            --output set_a.zip
+          echo "94606409c10bced915890cf6e6fda213  set_a.zip" | md5sum -c -
+          mkdir -p data/set_a
+          unzip -q set_a.zip -d data/set_a
+
+      - name: Run learned-vs-baseline reference gate
+        run: |
+          python -m experiments.run_sea2026_reference_gate \
+            --binary sea-mtkahypar/build/mt-kahypar/application/MtKaHyPar \
+            --set-a-dir data/set_a \
+            --limit "${{ inputs.limit || '4' }}" \
+            --threads "${{ inputs.threads || '4' }}" \
+            --output results/state_of_art/sea2026_reference_gate.json
+
+      - name: Upload exact reference artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sea2026-reference-gate
+          path: |
+            results/state_of_art/sea2026_reference_gate.json
+            results/state_of_art/sea_reference_runs
+          if-no-files-found: error

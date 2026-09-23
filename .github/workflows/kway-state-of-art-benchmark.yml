@@ -1,0 +1,128 @@
+name: K-way state-of-art benchmark
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "experiments/run_kway_state_of_art_benchmark.py"
+      - "experiments/run_isolated_kway_backend.py"
+      - "experiments/mtkahypar_backend.py"
+      - "tests/test_kway_state_of_art_benchmark.py"
+      - ".github/workflows/kway-state-of-art-benchmark.yml"
+      - "src/atof/strategies.py"
+      - "src/atof/partition.py"
+      - "src/atof/backends.py"
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: k-way benchmark (k=${{ matrix.k }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        k: [4, 8, 32, 64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install benchmark dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,kaminpar,mtkahypar,dev]"
+
+      - name: Run matched k-way benchmark
+        run: |
+          python -m experiments.run_kway_state_of_art_benchmark \
+            --k ${{ matrix.k }} \
+            --output results/state_of_art/k${{ matrix.k }}.json \
+            --cache-dir .cache/snap
+
+      - name: Validate matched k-way manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          k = ${{ matrix.k }}
+          payload = json.loads(
+              Path(f"results/state_of_art/k{k}.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          expected_strategies = set(payload["candidate_strategies"])
+          expected_seeds = {42, 101, 2024}
+
+          rows = [row for row in payload["rows"] if row["k"] == k]
+          assert payload["k_values"] == [k]
+          assert len(expected_strategies) == 10
+          assert payload["seeds"] == [42, 101, 2024]
+
+          eligible_graphs = {
+              row["graph_id"]
+              for row in rows
+              if int(row["nodes"]) >= k
+          }
+          assert eligible_graphs
+
+          for graph_id in sorted(eligible_graphs):
+              graph_rows = [row for row in rows if row["graph_id"] == graph_id]
+              assert len(graph_rows) == len(expected_strategies) * len(expected_seeds)
+              assert {row["strategy"] for row in graph_rows} == expected_strategies
+              for strategy in expected_strategies:
+                  strategy_rows = [
+                      row for row in graph_rows if row["strategy"] == strategy
+                  ]
+                  assert len(strategy_rows) == len(expected_seeds)
+                  assert {int(row["seed"]) for row in strategy_rows} == expected_seeds
+                  bad_rows = [
+                      {
+                          "graph_id": row["graph_id"],
+                          "strategy": row["strategy"],
+                          "seed": row["seed"],
+                          "status": row["status"],
+                          "error": row.get("error"),
+                      }
+                      for row in strategy_rows
+                      if row["status"] != "ok"
+                  ]
+                  if bad_rows:
+                      print(json.dumps({"invalid_rows": bad_rows}, indent=2, sort_keys=True))
+                  assert not bad_rows
+
+              summary = payload["graph_summaries"][f"k={k}:{graph_id}"]
+              assert summary["matched"] is True
+              assert set(summary["strategies"]) == expected_strategies
+
+          assert set(payload["aggregate"][f"k={k}"]["strategies"]) == expected_strategies
+          assert payload["aggregate"][f"k={k}"]["matched_graphs"] == len(eligible_graphs)
+          PY
+
+      - name: Upload k-way manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-of-art-kway-k${{ matrix.k }}
+          path: results/state_of_art/k${{ matrix.k }}.json
+          if-no-files-found: error
+
+      - name: Upload SNAP cache
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-of-art-kway-snap-cache-k${{ matrix.k }}
+          path: .cache/snap
+          if-no-files-found: ignore

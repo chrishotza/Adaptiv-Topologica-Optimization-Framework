@@ -34,3 +34,26 @@ def test_paired_summary_aggregates_by_graph():
     assert summary["mean_difference_a_minus_b"] == -1.0
     assert summary["a_wins"] == 1
     assert summary["b_wins"] == 1
+
+
+def test_paired_summary_preserves_corpus_identity():
+    rows = [
+        {"graph": "shared", "graph_id": "corpus_a/shared", "seed": 1, "strategy": "A", "edge_cut": 10},
+        {"graph": "shared", "graph_id": "corpus_a/shared", "seed": 1, "strategy": "B", "edge_cut": 20},
+        {"graph": "shared", "graph_id": "corpus_b/shared", "seed": 1, "strategy": "A", "edge_cut": 30},
+        {"graph": "shared", "graph_id": "corpus_b/shared", "seed": 1, "strategy": "B", "edge_cut": 15},
+    ]
+
+    summary = paired_summary(
+        rows,
+        strategy_a="A",
+        strategy_b="B",
+        resamples=250,
+        seed=11,
+    )
+
+    assert summary["n_graphs"] == 2
+    assert summary["graphs"] == ["corpus_a/shared", "corpus_b/shared"]
+    assert summary["mean_difference_a_minus_b"] == 2.5
+    assert summary["a_wins"] == 1
+    assert summary["b_wins"] == 1

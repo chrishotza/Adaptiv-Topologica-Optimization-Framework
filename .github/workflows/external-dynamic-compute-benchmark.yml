@@ -1,0 +1,109 @@
+name: External dynamic compute benchmark
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - "src/atof/strategies.py"
+      - "src/atof/refinement.py"
+      - "src/atof/statistics.py"
+      - "experiments/run_dynamic_compute_external_benchmark.py"
+      - "experiments/run_expanded_20graph_kahip_transfer.py"
+      - "tests/test_dynamic_compute_external_benchmark.py"
+      - "docs/dynamic-compute-allocation-research-gap.md"
+      - ".github/workflows/external-dynamic-compute-benchmark.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: 20-graph dynamic compute
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: python -m pip install -e ".[analysis,dev]"
+
+      - name: Run external dynamic-compute benchmark
+        run: |
+          python -m experiments.run_dynamic_compute_external_benchmark \
+            --output results/state_of_art/dynamic_compute_external.json \
+            --cache-dir .cache/snap
+
+      - name: Validate benchmark manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/state_of_art/dynamic_compute_external.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["unit_of_analysis"] == "graph"
+          assert payload["k"] == 2
+          assert payload["seeds"] == [42, 101, 2024]
+          assert payload["policies"] == ["off", "fixed", "adaptive", "marginal"]
+          assert sum(item["graph_count"] for item in payload["corpora"].values()) == 20
+          assert len(payload["rows"]) == 20 * 3 * 4
+          graph_ids = sorted({row["graph_id"] for row in payload["rows"]})
+          assert len(graph_ids) == 20
+          for graph_id in graph_ids:
+              graph_rows = [row for row in payload["rows"] if row["graph_id"] == graph_id]
+              assert len(graph_rows) == 3 * 4
+              assert sorted({row["seed"] for row in graph_rows}) == [42, 101, 2024]
+              assert {row["strategy"] for row in graph_rows} == {"off", "fixed", "adaptive", "marginal"}
+              observed_pairs = {(int(row["seed"]), row["strategy"]) for row in graph_rows}
+              expected_pairs = {
+                  (seed, strategy)
+                  for seed in [42, 101, 2024]
+                  for strategy in ["off", "fixed", "adaptive", "marginal"]
+              }
+              assert observed_pairs == expected_pairs
+          for row in payload["rows"]:
+              assert row["total_work"] >= 0
+              assert row["probe_work"] >= 0
+              assert row["total_work"] >= row["probe_work"]
+          curve = row["work_curve"]
+          assert len(curve) == payload["iterations"]
+          curve_work = [int(point["work"]) for point in curve]
+          assert curve_work == sorted(curve_work)
+          assert curve_work[-1] == int(row["total_work"])
+          assert all(int(point["edge_cut"]) >= 0 for point in curve)
+          n = int(row["nodes"])
+          target = n / payload["k"]
+          lower = n // payload["k"]
+          upper = (n + payload["k"] - 1) // payload["k"]
+          expected_balance = max(abs(lower - target), abs(upper - target)) / target if target else 0.0
+          assert abs(float(row["balance_error"]) - expected_balance) <= 1e-12
+          for policy in ("adaptive", "marginal"):
+              assert "edge_cut_vs_fixed" in payload["comparisons"][policy]
+              assert "total_work_vs_fixed" in payload["comparisons"][policy]
+              assert "dominance_vs_fixed" in payload["comparisons"][policy]
+              assert "equal_work_vs_fixed" in payload["comparisons"][policy]
+              equal_work = payload["comparisons"][policy]["equal_work_vs_fixed"]
+              assert equal_work["graphs"] == 20
+              assert set(payload["by_corpus"][policy]) == set(payload["corpora"])
+              assert sum(
+                  item["graphs"] for item in payload["by_corpus"][policy].values()
+              ) == 20
+          PY
+
+      - name: Upload benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-dynamic-compute-benchmark
+          path: results/state_of_art/dynamic_compute_external.json
+          if-no-files-found: error
