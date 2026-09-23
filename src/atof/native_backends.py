@@ -72,7 +72,13 @@ def run_kaminpar(
             kaminpar.GraphFileFormat.METIS,
             compress=False,
         )
-        membership = list(instance.compute_partition(backend_graph, k, 0.0))
+        max_block_factor = (graph.number_of_nodes() + k - 1) // k / graph.number_of_nodes()
+        membership = list(
+            instance.compute_partition(
+                backend_graph,
+                [max_block_factor] * k,
+            )
+        )
 
     partition = _validated_partition(graph, membership, k=k)
     return (
