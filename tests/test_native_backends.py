@@ -15,7 +15,7 @@ def test_kaminpar_adapter_maps_backend_membership(monkeypatch):
         pass
 
     class FakeKaminPar:
-        def __init__(self, num_threads, context):
+        def __init__(self, num_threads, ctx):
             assert num_threads == 1
 
         def compute_partition(self, backend_graph, k, eps):
