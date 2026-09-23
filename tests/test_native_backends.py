@@ -81,10 +81,10 @@ def test_mtkahypar_adapter_maps_block_ids(monkeypatch):
             assert len(edges) == 6
             return BackendGraph()
 
-    class FakeModule:
-        PresetType = PresetType
-        Objective = Objective
+    fake_preset_type = PresetType
+    fake_objective = Objective
 
+    class FakeModule:
         def initialize(self, threads, print_warnings=True):
             assert threads == 1
             assert print_warnings is False
@@ -93,7 +93,10 @@ def test_mtkahypar_adapter_maps_block_ids(monkeypatch):
         def set_seed(self, seed):
             assert seed == 42
 
-    monkeypatch.setitem(sys.modules, "mtkahypar", FakeModule())
+    fake = FakeModule()
+    fake.PresetType = fake_preset_type
+    fake.Objective = fake_objective
+    monkeypatch.setitem(sys.modules, "mtkahypar", fake)
 
     partition, cut, balance = run_mtkahypar(graph, seed=42, k=3)
 
