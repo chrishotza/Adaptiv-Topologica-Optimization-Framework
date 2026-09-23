@@ -7,9 +7,27 @@ import pytest
 
 from experiments.run_sea2026_reference_gate import (
     balance_bound_ok,
+    build_command,
     parse_partition,
     partition_file_for,
 )
+
+
+
+
+def test_command_uses_builtin_default_preset_type() -> None:
+    command = build_command(
+        Path("/tmp/MtKaHyPar"),
+        Path("/tmp/sample.graph"),
+        Path("/tmp/output"),
+        k=4,
+        seed=1,
+        threads=4,
+        epsilon=0.03,
+        learned=True,
+    )
+    assert "--preset-type=default" in command
+    assert "--preset=default" not in command
 
 
 def test_partition_parser_requires_exact_node_count(tmp_path: Path) -> None:
