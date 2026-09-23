@@ -114,12 +114,12 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             ],
         },
         "limits": [
-            "optional backends are selected by stable backend ID",
+            "backends use stable IDs",
             "portfolio mode supports k>=2; NetworkX Kernighan-Lin is available only for k=2",
             "current common portfolio objective is unweighted edge cut",
             "Engine affinity uses a degree-affinity weighted surrogate and reports unweighted edge_cut",
             "weight attributes are accepted as input metadata but ignored by the current unweighted graph model",
-            "Machine-readable partition outputs canonicalize node IDs with str(); node IDs that collide after string conversion are rejected.",
+            "partition exports canonicalize node IDs with str(); collisions are rejected.",
         ],
     }
     return manifest if full else {
@@ -127,6 +127,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "name": manifest["name"],
         "primary_flow": manifest["primary_flow"],
         "version": manifest["version"],
+        "purpose": manifest["purpose"],
         "commands": {key: value for key, value in manifest["commands"].items() if key != "module"},
         "input": manifest["input"],
         "capabilities": manifest["capabilities"],
