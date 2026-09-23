@@ -89,7 +89,7 @@ ATOF is built around a simple interface problem:
 - AI agents need small, explicit, machine-readable contracts;
 - benchmark claims need provenance instead of hand-written summaries.
 
-ATOF provides one surface over a small portfolio of open backends and keeps the evidence boundary explicit.
+ATOF provides one surface over a portfolio of open backends, including METIS, KaHIP, KaMinPar, and Mt-KaHyPar when their optional Python bindings are installed, and keeps the evidence boundary explicit.
 
 ## Product architecture
 
@@ -136,10 +136,12 @@ Machine consumers should use `objective.optimization_metric` to identify the sca
 The portfolio is the composition layer:
 
 - BLOC-RELOC baseline;
-- BLOC-RELOC affinity;
+- BLOC-RELOC baseline and affinity;
 - NetworkX Kernighan-Lin;
 - METIS via PyMetis, when installed;
-- KaHIP via KaFFPa-Strong, when installed.
+- KaHIP via KaFFPa-Strong, when installed;
+- KaMinPar default and strong, when installed;
+- Mt-KaHyPar default and quality, when installed.
 
 The current portfolio contract uses **k-way balanced partitioning for k>=2** on undirected, simple, unweighted graphs. NetworkX Kernighan-Lin remains a k=2 candidate; METIS, KaHIP, and the native BLOC-RELOC paths can serve k-way requests.
 
