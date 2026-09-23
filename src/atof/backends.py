@@ -24,6 +24,10 @@ _SPECS = (
     ("networkx-kl", "NetworkX Kernighan-Lin", "networkx", False),
     ("metis", "METIS via PyMetis", "pymetis", True),
     ("kahip", "KaHIP via KaFFPa-Strong", "kahip", True),
+    ("kaminpar", "KaMinPar default", "kaminpar", True),
+    ("kaminpar-strong", "KaMinPar strong", "kaminpar", True),
+    ("mtkahypar", "Mt-KaHyPar default", "mtkahypar", True),
+    ("mtkahypar-quality", "Mt-KaHyPar quality", "mtkahypar", True),
 )
 
 

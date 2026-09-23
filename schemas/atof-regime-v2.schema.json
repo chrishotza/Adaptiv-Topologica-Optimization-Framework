@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-regime-v2.schema.json",
+  "title": "ATOF Regime Signature v2",
+  "type": "object",
+  "required": ["schema", "signature", "regime_flags"],
+  "properties": {
+    "schema": {"const": "atof.regime.v2"},
+    "signature": {
+      "type": "object",
+      "required": [
+        "node_count","edge_count","k","density","avg_degree","degree_std",
+        "degree_cv","max_degree","hub_ratio","hub_concentration","degree_gini",
+        "clustering","transitivity","assortativity","core_number","diameter",
+        "avg_path_length","communities","modularity","component_count",
+        "giant_component_fraction","edge_to_node","log_nodes","log_edges",
+        "hub_dominated","modular","regular_like","disconnected"
+      ],
+      "additionalProperties": false
+    },
+    "regime_flags": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false
+}

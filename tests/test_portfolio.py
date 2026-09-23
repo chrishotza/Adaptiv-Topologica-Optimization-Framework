@@ -127,6 +127,17 @@ def test_kahip_kway_balance_is_measured_across_all_blocks(monkeypatch):
     assert balance == 0.0
 
 
+def test_portfolio_reports_sota_optional_backends_when_unavailable():
+    graph = nx.path_graph(10)
+    result = optimize_portfolio(graph, k=2, seed=42, iterations=5, include_optional=True)
+    payload = result.to_dict()
+    names = {item["name"] for item in payload["candidates"]}
+    assert "KaMinPar(default)" in names
+    assert "KaMinPar(strong)" in names
+    assert "Mt-KaHyPar(default)" in names
+    assert "Mt-KaHyPar(quality)" in names
+
+
 def test_portfolio_reports_optional_backends_when_unavailable():
     graph = nx.path_graph(10)
     result = optimize_portfolio(graph, k=2, seed=42, iterations=5, include_optional=True)

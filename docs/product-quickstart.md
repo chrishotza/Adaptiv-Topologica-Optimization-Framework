@@ -10,10 +10,16 @@ Core installation:
 python -m pip install -e .
 ```
 
-Optional METIS and KaHIP engines:
+Optional METIS, KaHIP, KaMinPar, and Mt-KaHyPar engines:
 
 ```bash
-python -m pip install -e ".[metis,kahip]"
+python -m pip install -e ".[sota]"
+```
+
+Or install each SOTA binding group explicitly:
+
+```bash
+python -m pip install -e ".[metis,kahip,sota]"
 ```
 
 ## AI-first path

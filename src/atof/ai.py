@@ -75,10 +75,14 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 "result_schema": "atof.portfolio.v1",
                 "objective": "minimize unweighted edge cut subject to balanced k-way partition",
                 "backends": [
-                    "BLOC-RELOC",
-                    "NetworkX Kernighan-Lin",
-                    "METIS via PyMetis (optional)",
-                    "KaHIP via KaFFPa-Strong (optional)",
+                    "bloc",
+                    "networkx-kl",
+                    "metis",
+                    "kahip",
+                    "kaminpar",
+                    "kaminpar-strong",
+                    "mtkahypar",
+                    "mtkahypar-quality",
                 ],
                 "selection": "empirical minimum observed edge_cut; ties prefer balance, runtime, name",
             },
@@ -110,11 +114,12 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             ],
         },
         "limits": [
+            "backends use stable IDs",
             "portfolio mode supports k>=2; NetworkX Kernighan-Lin is available only for k=2",
             "current common portfolio objective is unweighted edge cut",
             "Engine affinity uses a degree-affinity weighted surrogate and reports unweighted edge_cut",
             "weight attributes are accepted as input metadata but ignored by the current unweighted graph model",
-            "Machine-readable partition outputs canonicalize node IDs with str(); node IDs that collide after string conversion are rejected.",
+            "partition exports canonicalize node IDs with str(); collisions are rejected.",
         ],
     }
     return manifest if full else {
