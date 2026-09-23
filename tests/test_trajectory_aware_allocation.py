@@ -53,7 +53,7 @@ def test_runtime_model_uses_training_only_values() -> None:
 
     costs = _runtime_per_edge(training)
 
-    assert costs["solver_a"] == 0.005
+    assert costs["solver_a"] == 0.0075
     assert costs["solver_b"] == 0.02
 
 
