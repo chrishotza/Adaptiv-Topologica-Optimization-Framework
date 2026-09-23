@@ -18,9 +18,8 @@ def test_kaminpar_adapter_maps_backend_membership(monkeypatch):
         def __init__(self, num_threads, ctx):
             assert num_threads == 1
 
-        def compute_partition(self, backend_graph, k, eps):
-            assert k == 3
-            assert eps == 0.0
+        def compute_partition(self, backend_graph, max_block_weights):
+            assert max_block_weights == [0.5, 0.5, 0.5]
             return [0, 0, 1, 1, 2, 2]
 
     class FakeModule:
