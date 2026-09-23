@@ -2,13 +2,10 @@ name: SEA 2026 reference gate
 # Research gate: exact 1.5.3 learned-coarsening snapshot vs matched baseline.
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 on:
-  push:
-    branches:
-      - research/state-of-art-benchmark
   workflow_dispatch:
     inputs:
       limit:
