@@ -19,7 +19,7 @@ def test_kaminpar_adapter_maps_backend_membership(monkeypatch):
             assert num_threads == 1
 
         def compute_partition(self, backend_graph, max_block_weights):
-            assert max_block_weights == [0.5, 0.5, 0.5]
+            assert max_block_weights == [1 / 3, 1 / 3, 1 / 3]
             return [0, 0, 1, 1, 2, 2]
 
     class FakeModule:
