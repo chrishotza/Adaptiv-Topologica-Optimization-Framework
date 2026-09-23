@@ -537,3 +537,7 @@ def main() -> int:
         "strategies": payload["candidate_strategies"],
     }, indent=2))
     return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
