@@ -5,7 +5,6 @@ import json
 import subprocess
 import sys
 import statistics
-from collections import Counter
 from pathlib import Path
 
 import networkx as nx
