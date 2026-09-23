@@ -12,9 +12,6 @@ from experiments.run_sea2026_reference_gate import (
     partition_file_for,
 )
 
-
-
-
 def test_command_uses_builtin_default_preset_type() -> None:
     command = build_command(
         Path("/tmp/MtKaHyPar"),
