@@ -23,9 +23,11 @@ Portfolio mode currently evaluates, when available:
 - BLOC-RELOC;
 - NetworkX Kernighan-Lin;
 - METIS via PyMetis;
-- KaHIP via KaFFPa-Strong.
+- KaHIP via KaFFPa-Strong;
+- KaMinPar default and strong;
+- Mt-KaHyPar default and quality.
 
-The common product contract is currently k=2, unweighted, undirected edge cut with balance reported explicitly.
+The common product contract is balanced k-way partitioning on simple, undirected, unweighted graphs with edge cut as the shared reported objective.
 
 ### Reproducible handoff
 
