@@ -27,6 +27,7 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    # Full 20-graph x 11-strategy gate; native backends run in isolated workers.
 
     steps:
       - name: Checkout
