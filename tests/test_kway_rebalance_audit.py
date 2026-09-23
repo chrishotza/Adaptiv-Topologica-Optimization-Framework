@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import networkx as nx
+import pytest
 
 from experiments.run_kway_rebalance_audit import audit_membership
 
@@ -27,8 +28,10 @@ def test_audit_reports_repair_delta() -> None:
     assert result["repair_needed"] is True
     assert result["repair_moves"] > 0
     assert sorted(result["repaired_block_counts"]) == [2, 2, 2, 2]
-    assert result["raw_edge_cut"] <= result["repaired_edge_cut"]
-    assert result["cut_delta"] >= 0
+    assert result["cut_delta"] == result["repaired_edge_cut"] - result["raw_edge_cut"]
+    assert result["cut_delta_percent"] == pytest.approx(
+        100.0 * result["cut_delta"] / result["raw_edge_cut"]
+    )
 
 
 def test_audit_rejects_invalid_membership_length() -> None:
