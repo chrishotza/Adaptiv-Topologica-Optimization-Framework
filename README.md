@@ -75,10 +75,10 @@ Request the partition mapping:
 atof solve examples/demo.edgelist --partition-output partition.csv
 ```
 
-For the optional METIS and KaHIP backends:
+For the optional METIS, KaHIP, KaMinPar, and Mt-KaHyPar backends:
 
 ```bash
-python -m pip install -e ".[metis,kahip]"
+python -m pip install -e ".[sota]"
 ```
 
 ## Why ATOF
