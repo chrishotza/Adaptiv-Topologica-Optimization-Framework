@@ -63,7 +63,7 @@ def run_kaminpar(
         else kaminpar.default_context()
     )
     kaminpar.reseed(int(seed))
-    instance = kaminpar.KaMinPar(num_threads=1, context=context)
+    instance = kaminpar.KaMinPar(num_threads=1, ctx=context)
 
     with tempfile.TemporaryDirectory(prefix="atof-kaminpar-") as directory:
         input_path = write_metis_graph(graph, Path(directory) / "graph.metis")
