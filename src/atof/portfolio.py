@@ -12,6 +12,7 @@ from .product import validate_product_graph
 from .selector import HeuristicRegimeSelector
 from .strategies import BLOCReloc, PartitionResult
 from .topology import TopologyProfile, TopologyProfiler
+from .native_backends import run_kaminpar, run_mtkahypar
 
 
 @dataclass(frozen=True)
@@ -485,6 +486,34 @@ def optimize_portfolio(
                     package="kahip",
                     postprocess="balance_repair",
                     runner=lambda: _run_kahip(graph, seed=seed, k=k),
+                ),
+                _candidate(
+                    backend_id="kaminpar",
+                    name="KaMinPar(default)",
+                    package="kaminpar",
+                    postprocess="balance_repair",
+                    runner=lambda: run_kaminpar(graph, seed=seed, k=k, quality=False),
+                ),
+                _candidate(
+                    backend_id="kaminpar-strong",
+                    name="KaMinPar(strong)",
+                    package="kaminpar",
+                    postprocess="balance_repair",
+                    runner=lambda: run_kaminpar(graph, seed=seed, k=k, quality=True),
+                ),
+                _candidate(
+                    backend_id="mtkahypar",
+                    name="Mt-KaHyPar(default)",
+                    package="mtkahypar",
+                    postprocess="balance_repair",
+                    runner=lambda: run_mtkahypar(graph, seed=seed, k=k, quality=False),
+                ),
+                _candidate(
+                    backend_id="mtkahypar-quality",
+                    name="Mt-KaHyPar(quality)",
+                    package="mtkahypar",
+                    postprocess="balance_repair",
+                    runner=lambda: run_mtkahypar(graph, seed=seed, k=k, quality=True),
                 ),
             ]
         )
