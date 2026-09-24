@@ -171,7 +171,6 @@ def run(path: Path) -> dict:
     runtime_by_k: dict[int, dict[str, list[float]]] = {
         k: defaultdict(list) for k in TOP_K
     }
-    top1_regret_by_graph: dict[str, list[float]] = defaultdict(list)
     fold_outputs = []
 
     for heldout in corpora:
@@ -210,9 +209,6 @@ def run(path: Path) -> dict:
                     ceiling_regret_by_k[k][item["graph_id"]].append(regret)
                     runtime_by_k[k][item["graph_id"]].append(total_runtime)
 
-                    if k == 1:
-                        top1_regret_by_graph[item["graph_id"]].append(regret)
-
                     fold_coverage[k].append(covered)
                     fold_ceiling[k].append(regret)
                     if k > 1:
@@ -244,7 +240,7 @@ def run(path: Path) -> dict:
     aggregate = {"graphs": len(records), "seed_units": len(records) * 3}
     aggregate["coverage"] = {}
     aggregate["best_of_k_ceiling_regret"] = {}
-    aggregate["extra_runtime_seconds"] = {}
+    aggregate["estimated_total_runtime_seconds"] = {}
 
     for k in TOP_K:
         coverage_summary = _aggregate_metric(coverage_by_k[k])
@@ -267,7 +263,7 @@ def run(path: Path) -> dict:
                 ceiling_regret_by_k[k], records
             ),
         }
-        aggregate["extra_runtime_seconds"][str(k)] = {
+        aggregate["estimated_total_runtime_seconds"][str(k)] = {
             "mean_graph_total_runtime_seconds": runtime_summary["mean_graph_value"],
             "note": (
                 "For k>1 this is the estimated runtime of executing all k "
