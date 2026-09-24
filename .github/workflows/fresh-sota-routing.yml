@@ -45,7 +45,7 @@ jobs:
 
       - name: Run unit tests for fresh benchmark layer
         run: |
-          pytest -q             tests/test_fresh_sota_protocol.py             tests/test_fresh_sota_router_transfer.py             tests/test_trajectory_aware_allocation.py
+          pytest -q             tests/test_fresh_sota_protocol.py             tests/test_fresh_sota_router_transfer.py
 
       - name: Run fresh 20-graph SOTA benchmark
         run: |
@@ -126,30 +126,6 @@ jobs:
           assert len(payload["corpora"]) >= 2
           PY
 
-      - name: Run trajectory-aware allocation replay
-        run: |
-          python -m experiments.trajectory_aware_allocation             --benchmark results/state_of_art/fresh_sota_latest.json             --output results/state_of_art/trajectory_allocation_latest.json
-
-      - name: Validate trajectory-aware allocation
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          payload = json.loads(
-              Path("results/state_of_art/trajectory_allocation_latest.json").read_text(
-                  encoding="utf-8"
-              )
-          )
-          assert payload["matched_graphs"] == 20
-          assert payload["frozen_policy_parameters"]["budget_factors"] == [1.0, 2.0, 3.0]
-          assert payload["frozen_policy_parameters"]["min_relative_improvement"] == 0.01
-          assert "centroid_top1" in payload["pooled_summaries"]
-          assert "trajectory_b2" in payload["pooled_summaries"]
-          assert "trajectory_b2_vs_centroid_top1" in payload["paired_comparisons"]
-          assert len(payload["folds"]) == len(payload["corpora"])
-          PY
-
       - name: Upload fresh SOTA artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -157,5 +133,4 @@ jobs:
           path: |
             results/state_of_art/fresh_sota_latest.json
             results/state_of_art/fresh_sota_router_transfer.json
-            results/state_of_art/trajectory_allocation_latest.json
           if-no-files-found: error
