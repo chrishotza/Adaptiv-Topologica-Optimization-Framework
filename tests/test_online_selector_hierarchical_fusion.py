@@ -1,7 +1,81 @@
 import json
 from pathlib import Path
 
-from experiments.online_selector_hierarchical_fusion import LOCAL_KS, RADIUS_THRESHOLDS, run
+from experiments.online_selector_hierarchical_fusion import (
+    LOCAL_KS,
+    RADIUS_THRESHOLDS,
+    _fused_prediction,
+    run,
+)
+
+
+def test_fused_prediction_preserves_candidate_specific_global_priors() -> None:
+    global_candidates = [
+        {"rank": 1, "candidate": "s1", "prediction": 0.20},
+        {"rank": 2, "candidate": "s2", "prediction": -0.10},
+    ]
+    local = [
+        {
+            "rank": 1,
+            "candidate": "s1",
+            "prediction": 0.01,
+            "radius": 1.0,
+            "support": 3,
+            "neighbor_ids": ["a", "b", "c"],
+        },
+        {
+            "rank": 2,
+            "candidate": "s2",
+            "prediction": 0.02,
+            "radius": 1.0,
+            "support": 3,
+            "neighbor_ids": ["d", "e", "f"],
+        },
+    ]
+    candidate, prediction, meta = _fused_prediction(
+        global_candidates,
+        local,
+        radius_threshold=10.0,
+        orientation="global_near",
+    )
+    assert candidate == "s2"
+    assert prediction == -0.10
+    assert meta["global_candidate_predictions"]["s1"] == 0.20
+    assert meta["global_candidate_predictions"]["s2"] == -0.10
+
+
+def test_fused_prediction_keeps_global_fallback_for_missing_local_support() -> None:
+    global_candidates = [
+        {"rank": 1, "candidate": "s1", "prediction": 0.10},
+        {"rank": 2, "candidate": "s2", "prediction": -0.20},
+    ]
+    local = [
+        {
+            "rank": 1,
+            "candidate": "s1",
+            "prediction": 0.01,
+            "radius": 10.0,
+            "support": 3,
+            "neighbor_ids": ["a", "b", "c"],
+        },
+        {
+            "rank": 2,
+            "candidate": "s2",
+            "prediction": None,
+            "radius": None,
+            "support": 0,
+            "neighbor_ids": [],
+        },
+    ]
+    candidate, prediction, meta = _fused_prediction(
+        global_candidates,
+        local,
+        radius_threshold=5.0,
+        orientation="global_near",
+    )
+    assert candidate == "s2"
+    assert prediction == -0.20
+    assert meta["source"] == "global"
 
 
 def test_online_selector_hierarchical_fusion_smoke(tmp_path: Path) -> None:
