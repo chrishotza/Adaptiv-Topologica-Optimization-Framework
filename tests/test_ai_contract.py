@@ -269,3 +269,18 @@ def test_doctor_probe_payload_validates_against_schema(monkeypatch):
     )
 
     Draft202012Validator(schema).validate(payload)
+
+
+def test_doctor_probe_reports_global_failure_without_raising(monkeypatch):
+    def fail(*args, **kwargs):
+        raise RuntimeError("all backends failed")
+
+    monkeypatch.setattr("atof.ai.inspect_backends", lambda: ())
+    monkeypatch.setattr("atof.ai.optimize_portfolio", fail)
+
+    report = build_doctor_report(full=True, probe=True)
+
+    assert report["probe"]["requested"] is True
+    assert report["probe"]["ok"] is False
+    assert report["probe"]["backends"] == {}
+    assert report["probe"]["error"] == "RuntimeError: all backends failed"
