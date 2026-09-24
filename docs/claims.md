@@ -87,6 +87,12 @@ The claim is deliberately bounded. It does **not** establish cross-domain genera
 
 The artifact and workflow are the primary evidence. Interpret the result together with the frozen protocol, seed-stability record, and the repository's explicit uncertainty/promotion rules.
 
+### K=4 five-seed replication
+
+The same frozen k=4 routing protocol was rerun with five fixed solver seeds (7/42/101/2024/8191) on the current branch HEAD. Across the same 20-graph corpus, graph-level mean relative regret was 1.841% for centroid routing, 0.440% for nearest routing, and 3.701% for the majority control. The paired bootstrap 95% interval was [-6.761, -0.562] percentage points for nearest-minus-majority and [-5.700, +1.187] percentage points for centroid-minus-majority.
+
+The replication also measured 12/20 graphs (60%) with changing oracle strategy across the five seeds. This is a quantified seed-instability limitation, not evidence that routing is universally stable.
+
 The clean-environment access benchmark measures setup, import, first-run time, repeat-run time, edge cut, balance, versions, and determinism separately for ATOF Engine, ATOF Portfolio, NetworkX, METIS, and KaHIP.
 
 Do not summarize those measurements as a universal winner without a defined corpus and protocol. The Karate Club result above is the current concrete benchmark example.
