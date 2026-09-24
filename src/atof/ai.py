@@ -18,7 +18,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "primary_flow": "ai->doctor->solve->compact JSON",
         "commands": {
             "ai": "atof ai",
-            "doctor": "atof doctor",
+            "doctor": "atof doctor [--probe]",
             "solve": "atof solve <graph> [--k N]",
             "compare": "atof compare <graph> [--k N]",
             "module": "python -m atof",
@@ -35,6 +35,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 "output": "-o",
                 "partition_output": "-p",
                 "full": "-F",
+                "probe": "--probe",
             },
         },
         "input": {
@@ -137,7 +138,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
     }
 
 
-def build_doctor_report(*, full: bool = False) -> dict:
+def build_doctor_report(*, full: bool = False, probe: bool = False) -> dict:
     """Describe the current execution environment and backend availability."""
     backends = [item.to_dict() for item in inspect_backends()]
     usable_ids = {
@@ -175,6 +176,37 @@ def build_doctor_report(*, full: bool = False) -> dict:
         "portfolio_kway_ready": bool(usable_ids & kway_backend_ids),
         "portfolio_kway_backends": sorted(usable_ids & kway_backend_ids),
     }
+    if probe:
+        import networkx as nx
+
+        from .portfolio import optimize_portfolio
+
+        probe_graph = nx.path_graph(8)
+        probe_result = optimize_portfolio(
+            probe_graph,
+            k=2,
+            seed=0,
+            iterations=1,
+            include_optional=True,
+        )
+        probe_backends = {}
+        for candidate in probe_result.candidates:
+            probe_backends[candidate.id] = {
+                "ok": bool(candidate.available and candidate.partition is not None),
+                "edge_cut": candidate.edge_cut,
+                "balance_error": candidate.balance_error,
+                "runtime_seconds": candidate.runtime_seconds,
+                "error": candidate.error,
+            }
+        report["probe"] = {
+            "requested": True,
+            "graph": {"nodes": 8, "edges": 7},
+            "k": 2,
+            "seed": 0,
+            "iterations": 1,
+            "backends": probe_backends,
+        }
+
     if not full:
         report["runtime"] = {
             "python": report["runtime"]["python"],
