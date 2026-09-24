@@ -51,6 +51,7 @@ jobs:
           assert sum(item['graphs'] for item in payload['corpora'].values()) == 20
           assert payload['evaluation']['graphs'] == 20
           assert payload['evaluation']['seed_stability']['graphs'] == 20
+          assert payload['evaluation']['seed_stability']['seed_count'] == 5
           PY
       - name: Upload five-seed artifact
         if: always()
