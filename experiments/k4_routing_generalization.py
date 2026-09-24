@@ -40,10 +40,11 @@ def _integer_feasible_imbalance(graph, k: int, *, base: float = 0.03) -> float:
 
 def _postprocess_partition(graph, partition):
     from atof.portfolio import _edge_cut, _rebalance_kway
+    from atof.partition import balance_error
     membership = [int(partition[node]) for node in graph.nodes()]
     repaired = _rebalance_kway(graph, membership, K)
     repaired_partition = {node: repaired[i] for i, node in enumerate(graph.nodes())}
-    return repaired_partition, _edge_cut(graph, repaired_partition), 0.0
+    return repaired_partition, _edge_cut(graph, repaired_partition), balance_error(graph, repaired_partition, K)
 
 
 def _pad_isolated_nodes(graph, k: int) -> tuple[object, list[object]]:
