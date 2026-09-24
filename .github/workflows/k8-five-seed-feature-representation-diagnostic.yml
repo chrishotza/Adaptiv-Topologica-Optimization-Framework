@@ -1,0 +1,46 @@
+name: K8 five-seed feature representation diagnostic
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k8_five_seed_feature_representation_diagnostic.py"
+      - "experiments/k8_degree_hub_replication.py"
+      - "tests/test_k8_five_seed_feature_representation_diagnostic.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+      - ".github/workflows/k8-five-seed-feature-representation-diagnostic.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  k8-feature-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 220
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+      - name: Run protocol tests
+        run: |
+          pytest -q tests/test_k8_five_seed_feature_representation_diagnostic.py
+      - name: Reproduce frozen five-seed solver outcomes
+        run: |
+          python -m experiments.k8_degree_hub_replication             --output results/state_of_art/k8_degree_hub_replication_latest.json             --cache-dir .cache/snap
+      - name: Compare feature representations on identical outcomes
+        run: |
+          python -m experiments.k8_five_seed_feature_representation_diagnostic             --benchmark results/state_of_art/k8_degree_hub_replication_latest.json             --output results/state_of_art/k8_five_seed_feature_representation_diagnostic_latest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: k8-five-seed-feature-representation-diagnostic
+          path: |
+            results/state_of_art/k8_degree_hub_replication_latest.json
+            results/state_of_art/k8_five_seed_feature_representation_diagnostic_latest.json
+          if-no-files-found: error
