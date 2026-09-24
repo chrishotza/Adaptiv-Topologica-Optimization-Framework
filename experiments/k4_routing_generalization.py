@@ -346,6 +346,19 @@ def run(output_path: str | Path, cache_dir: str | Path | None = None, *, seeds: 
     if total_graphs != 20:
         raise AssertionError(f"expected 20 graphs, got {total_graphs}")
 
+    seed_lengths = {
+        len(record["seed_oracles"])
+        for corpus_records in records_by_corpus.values()
+        for record in corpus_records
+    }
+    if seed_lengths != {len(seeds)}:
+        raise AssertionError(
+            f"seed-oracle cardinality mismatch: expected {len(seeds)}, got {sorted(seed_lengths)}"
+        )
+
+    evaluation = _evaluate(records_by_corpus)
+    evaluation["seed_stability"]["seed_count"] = len(seeds)
+
     result = {
         "schema_version": "1.0",
         "protocol": "frozen k=4 leave-one-corpus-out routing generalization",
@@ -361,7 +374,7 @@ def run(output_path: str | Path, cache_dir: str | Path | None = None, *, seeds: 
             for corpus, records in records_by_corpus.items()
         },
         "router": {"features": list(FEATURES), "scale_mode": "iqr", "metric": "l2"},
-        "evaluation": _evaluate(records_by_corpus),
+        "evaluation": evaluation,
         "evidence_boundary": [
             "The k=4 strategy set is fixed before evaluation and excludes the k=2-only NetworkX Kernighan-Lin backend.",
             "Topology vectors and routing parameters are frozen from the existing all-feature IQR/L2 configuration.",
