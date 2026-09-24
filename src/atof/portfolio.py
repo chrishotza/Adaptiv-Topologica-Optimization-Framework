@@ -173,7 +173,13 @@ def _rebalance_kway(
                 candidates.append((delta, repr(node), i, target))
 
         if not candidates:
-            raise RuntimeError("could not repair partition balance")
+            raise RuntimeError(
+                "could not repair partition balance; "
+                f"n={len(result)}, k={k}, counts={counts}, "
+                f"oversized={oversized}, undersized={list(undersized)}, "
+                f"source={source}, source_count={counts[source]}, "
+                f"membership_labels={sorted(set(result), key=repr)}"
+            )
 
         _, _, chosen, target = min(candidates)
         result[chosen] = target
