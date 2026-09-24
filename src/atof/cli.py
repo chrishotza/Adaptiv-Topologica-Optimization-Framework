@@ -88,11 +88,6 @@ def main(argv: list[str] | None = None) -> int:
         help="inspect runtime and backend availability",
     )
     doctor_parser.add_argument("--full", "-F", action="store_true")
-    doctor_parser.add_argument(
-        "--probe",
-        action="store_true",
-        help="run a tiny real partition through available backends",
-    )
 
     solve_parser = subparsers.add_parser(
         "solve",
@@ -217,7 +212,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "doctor":
-        payload = build_doctor_report(full=args.full, probe=args.probe)
+        payload = build_doctor_report(full=args.full)
         print(
             json.dumps(payload, indent=2, sort_keys=True)
             if args.full
