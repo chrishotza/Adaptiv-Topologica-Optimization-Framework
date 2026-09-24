@@ -5,6 +5,7 @@
 ### Added
 
 - Bounded topology profiling for `atof profile --compact`, with a 2,000-node guard around all-pairs path metrics and greedy modularity detection; full profiling remains unchanged.
+- Reproducible SNAP topology scalability runner and manual GitHub Actions workflow for the larger ca-GrQc, ca-HepTh, and Wiki-Vote corpus.
 
 - `atof doctor --probe` now exercises both k=2 and k=4 Portfolio paths and reports backend-level operational status for each.
 
