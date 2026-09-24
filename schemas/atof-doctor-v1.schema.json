@@ -3,7 +3,7 @@
   "$id": "https://github.com/chrishotza/Adaptiv-Topologica-Optimization-Framework/blob/main/schemas/atof-doctor-v1.schema.json",
   "title": "ATOF doctor report",
   "type": "object",
-  "required": ["schema", "name", "version", "runtime", "backends", "input_formats", "portfolio_ready"],
+  "required": ["schema", "name", "version", "runtime", "backends", "input_formats", "portfolio_ready", "portfolio_kway_ready", "portfolio_kway_backends"],
   "properties": {
     "schema": {"const": "atof.doctor.v1"},
     "name": {"const": "atof"},
