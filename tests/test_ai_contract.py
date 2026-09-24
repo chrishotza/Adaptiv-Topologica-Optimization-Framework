@@ -68,3 +68,63 @@ def test_doctor_portfolio_ready_is_false_when_no_backend_is_available(monkeypatc
 def test_doctor_report_is_json_serializable():
     payload = build_doctor_report(full=True)
     json.dumps(payload, sort_keys=True)
+
+
+def test_doctor_reports_kway_capability_separately(monkeypatch):
+    monkeypatch.setattr(
+        "atof.ai.inspect_backends",
+        lambda: (
+            BackendInfo(
+                id="networkx-kl",
+                name="NetworkX Kernighan-Lin",
+                package="networkx",
+                optional=False,
+                available=True,
+                version="3.0",
+            ),
+        ),
+    )
+
+    report = build_doctor_report(full=True)
+
+    assert report["portfolio_ready"] is True
+    assert report["portfolio_kway_ready"] is False
+    assert report["portfolio_kway_backends"] == []
+
+
+def test_doctor_reports_available_kway_backends(monkeypatch):
+    monkeypatch.setattr(
+        "atof.ai.inspect_backends",
+        lambda: (
+            BackendInfo(
+                id="bloc",
+                name="BLOC-RELOC",
+                package="atof",
+                optional=False,
+                available=True,
+                version="0.6.0",
+            ),
+            BackendInfo(
+                id="metis",
+                name="METIS via PyMetis",
+                package="pymetis",
+                optional=True,
+                available=True,
+                version="2025.0",
+            ),
+            BackendInfo(
+                id="networkx-kl",
+                name="NetworkX Kernighan-Lin",
+                package="networkx",
+                optional=False,
+                available=True,
+                version="3.0",
+            ),
+        ),
+    )
+
+    report = build_doctor_report(full=True)
+
+    assert report["portfolio_ready"] is True
+    assert report["portfolio_kway_ready"] is True
+    assert report["portfolio_kway_backends"] == ["bloc", "metis"]
