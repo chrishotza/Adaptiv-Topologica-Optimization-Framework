@@ -217,3 +217,55 @@ def test_doctor_schema_declares_importability_fields():
     backend_schema = schema["properties"]["backends"]["items"]
     assert "importable" in backend_schema["properties"]
     assert "import_error" in backend_schema["properties"]
+
+
+def test_doctor_operational_probe_reports_backend_execution(monkeypatch):
+    from types import SimpleNamespace
+
+    class FakeCandidate:
+        def __init__(self, backend_id, ok, error=None):
+            self.id = backend_id
+            self.available = ok
+            self.partition = {0: 0, 1: 1} if ok else None
+            self.edge_cut = 1 if ok else None
+            self.balance_error = 0.0 if ok else None
+            self.runtime_seconds = 0.01 if ok else 0.0
+            self.error = error
+
+    class FakeResult:
+        candidates = (
+            FakeCandidate("bloc", True),
+            FakeCandidate("metis", False, "native failure"),
+        )
+
+    monkeypatch.setattr("atof.ai.inspect_backends", lambda: ())
+    monkeypatch.setattr("atof.ai.optimize_portfolio", lambda *args, **kwargs: FakeResult())
+
+    report = build_doctor_report(full=True, probe=True)
+
+    assert report["probe"]["requested"] is True
+    assert report["probe"]["k"] == 2
+    assert report["probe"]["graph"] == {"nodes": 8, "edges": 7}
+    assert report["probe"]["backends"]["bloc"]["ok"] is True
+    assert report["probe"]["backends"]["metis"]["ok"] is False
+    assert report["probe"]["backends"]["metis"]["error"] == "native failure"
+
+
+def test_doctor_probe_payload_validates_against_schema(monkeypatch):
+    import json
+    from jsonschema import Draft202012Validator
+    from pathlib import Path
+
+    monkeypatch.setattr("atof.ai.inspect_backends", lambda: ())
+    class FakeResult:
+        candidates = ()
+    monkeypatch.setattr("atof.ai.optimize_portfolio", lambda *args, **kwargs: FakeResult())
+
+    payload = build_doctor_report(full=True, probe=True)
+    schema = json.loads(
+        (Path(__file__).parents[1] / "schemas" / "atof-doctor-v1.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    Draft202012Validator(schema).validate(payload)
