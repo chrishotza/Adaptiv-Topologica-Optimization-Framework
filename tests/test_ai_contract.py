@@ -243,11 +243,12 @@ def test_doctor_operational_probe_reports_backend_execution(monkeypatch):
     report = build_doctor_report(full=True, probe=True)
 
     assert report["probe"]["requested"] is True
-    assert report["probe"]["k"] == 2
-    assert report["probe"]["graph"] == {"nodes": 8, "edges": 7}
-    assert report["probe"]["backends"]["bloc"]["ok"] is True
-    assert report["probe"]["backends"]["metis"]["ok"] is False
-    assert report["probe"]["backends"]["metis"]["error"] == "native failure"
+    assert report["probe"]["ok"] is True
+    assert report["probe"]["k2"]["k"] == 2
+    assert report["probe"]["k4"]["k"] == 4
+    assert report["probe"]["k2"]["backends"]["bloc"]["ok"] is True
+    assert report["probe"]["k4"]["backends"]["metis"]["ok"] is False
+    assert report["probe"]["k4"]["backends"]["metis"]["error"] == "native failure"
 
 
 def test_doctor_probe_payload_validates_against_schema(monkeypatch):
@@ -281,7 +282,8 @@ def test_doctor_probe_reports_global_failure_without_raising(monkeypatch):
 
     assert report["probe"]["requested"] is True
     assert report["probe"]["ok"] is False
-    assert report["probe"]["backends"] == {}
+    assert report["probe"]["k2"]["backends"] == {}
+    assert report["probe"]["k4"]["backends"] == {}
     assert report["probe"]["error"] == "RuntimeError: all backends failed"
 
 
@@ -294,3 +296,56 @@ def test_ai_manifest_exposes_optional_probe_flag(capsys):
 
     assert manifest["commands"]["doctor"] == "atof doctor"
     assert manifest["commands"]["short_flags"]["probe"] == "--probe"
+
+
+def test_doctor_probe_uses_kway_path_and_sets_overall_ok(monkeypatch):
+    calls = []
+
+    class Candidate:
+        def __init__(self, backend_id):
+            self.id = backend_id
+            self.available = True
+            self.partition = {i: i % 4 for i in range(8)}
+            self.edge_cut = 1
+            self.balance_error = 0.0
+            self.runtime_seconds = 0.01
+            self.error = None
+
+    class Result:
+        candidates = (Candidate("bloc"),)
+
+    def fake_optimize(graph, *, k, seed, iterations, include_optional):
+        calls.append(k)
+        return Result()
+
+    monkeypatch.setattr("atof.ai.inspect_backends", lambda: ())
+    monkeypatch.setattr("atof.ai.optimize_portfolio", fake_optimize)
+
+    report = build_doctor_report(full=True, probe=True)
+
+    assert calls == [2, 4]
+    assert report["probe"]["ok"] is True
+    assert report["probe"]["k4"]["ok"] is True
+
+
+def test_doctor_probe_marks_no_operational_backend_as_failure(monkeypatch):
+    class Candidate:
+        id = "metis"
+        available = False
+        partition = None
+        edge_cut = None
+        balance_error = None
+        runtime_seconds = 0.0
+        error = "unavailable"
+
+    class Result:
+        candidates = (Candidate(),)
+
+    monkeypatch.setattr("atof.ai.inspect_backends", lambda: ())
+    monkeypatch.setattr("atof.ai.optimize_portfolio", lambda *args, **kwargs: Result())
+
+    report = build_doctor_report(full=True, probe=True)
+
+    assert report["probe"]["ok"] is False
+    assert report["probe"]["k2"]["error"] == "no backend completed the probe"
+    assert report["probe"]["k4"]["error"] == "no backend completed the probe"
