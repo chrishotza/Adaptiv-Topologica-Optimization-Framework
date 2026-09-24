@@ -268,6 +268,7 @@ def run_isolated_strategy(
     strategy: str,
     *,
     cache_dir: str | Path | None,
+    seeds: tuple[int, ...] = SEEDS,
 ) -> list[dict]:
     corpora, _ = _load_expanded_corpora(
         cache_dir=Path(cache_dir) if cache_dir else None
@@ -276,7 +277,7 @@ def run_isolated_strategy(
     for corpus, graphs in corpora.items():
         for graph_name, graph in graphs.items():
             graph_id = f"{corpus}/{graph_name}"
-            for seed in SEEDS:
+            for seed in seeds:
                 base = {
                     "corpus": corpus,
                     "graph": graph_name,
@@ -429,6 +430,8 @@ def run_benchmark(
             "--worker",
             "--strategy",
             strategy,
+            "--seeds",
+            *[str(seed) for seed in seeds],
         ]
         if cache_dir is not None:
             command.extend(["--cache-dir", str(cache_dir)])
@@ -521,6 +524,7 @@ def main() -> int:
     parser.add_argument("--cache-dir", type=Path, default=None)
     parser.add_argument("--worker", action="store_true")
     parser.add_argument("--strategy", choices=ISOLATED_STRATEGIES)
+    parser.add_argument("--seeds", nargs="+", type=int, default=list(SEEDS))
     args = parser.parse_args()
 
     if args.worker:
@@ -530,7 +534,11 @@ def main() -> int:
         print(json.dumps(rows, separators=(",", ":")))
         return 0
 
-    payload = run_benchmark(args.output, cache_dir=args.cache_dir)
+    payload = run_benchmark(
+        args.output,
+        seeds=tuple(args.seeds),
+        cache_dir=args.cache_dir,
+    )
     print(json.dumps({
         "matched_graphs": payload["matched_graphs"],
         "total_rows": len(payload["rows"]),

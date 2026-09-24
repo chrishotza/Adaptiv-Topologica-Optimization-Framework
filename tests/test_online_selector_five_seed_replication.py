@@ -1,3 +1,4 @@
+import experiments.fresh_sota_protocol as fresh_sota_protocol
 import json
 from pathlib import Path
 
@@ -56,6 +57,43 @@ def test_loader_accepts_five_seed_grid(tmp_path: Path) -> None:
     payload, rows = _load(path)
     assert payload["seeds"] == list(SEEDS)
     assert len(rows) == 20 * 11 * 5
+
+
+def test_worker_honors_explicit_seed_manifest(monkeypatch) -> None:
+    import networkx as nx
+
+    graph = nx.path_graph(4)
+    seen = []
+
+    monkeypatch.setattr(
+        fresh_sota_protocol,
+        "_load_expanded_corpora",
+        lambda cache_dir=None: (
+            {"fixture": {"g": graph}},
+            {"fixture": {"type": "unit-test"}},
+        ),
+    )
+    monkeypatch.setattr(
+        fresh_sota_protocol,
+        "run_strategy",
+        lambda strategy, graph, *, seed, k: (
+            seen.append((strategy, seed, k))
+            or {
+                "edge_cut": 1,
+                "balance_error": 0.0,
+                "runtime_seconds": 0.001,
+            }
+        ),
+    )
+
+    rows = fresh_sota_protocol.run_isolated_strategy(
+        "metis",
+        cache_dir=None,
+        seeds=(7, 8191),
+    )
+
+    assert [row["seed"] for row in rows] == [7, 8191]
+    assert seen == [("metis", 7, 2), ("metis", 8191, 2)]
 
 
 def test_seed_stability_flags_changed_oracles(tmp_path: Path) -> None:
