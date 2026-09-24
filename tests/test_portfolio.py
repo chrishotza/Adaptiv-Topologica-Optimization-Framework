@@ -112,15 +112,15 @@ def test_portfolio_supports_kway_without_optional_backends():
 
 
 
-def test_rebalance_kway_preserves_valid_floor_ceil_state():
+def test_rebalance_kway_repairs_oversized_floor_ceil_state():
     graph = nx.empty_graph(1899)
     membership = [0] * 476 + [1] * 474 + [2] * 474 + [3] * 475
 
     repaired = _rebalance_kway(graph, membership, 4)
     counts = [repaired.count(block) for block in range(4)]
 
-    assert repaired == membership
-    assert sorted(counts) == [474, 474, 475, 476]
+    assert sorted(counts) == [474, 475, 475, 475]
+    assert all(count in {474, 475} for count in counts)
 
 
 def test_rebalance_kway_repairs_from_ceil_sized_donor():
