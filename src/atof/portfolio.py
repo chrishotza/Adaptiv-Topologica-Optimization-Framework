@@ -146,10 +146,8 @@ def _rebalance_kway(
 
     while True:
         # A valid balanced k-way partition has block sizes floor(n/k) or
-        # ceil(n/k). Move nodes only from blocks above floor(n/k) into blocks
-        # below floor(n/k); this reaches a floor/ceil state without requiring
-        # an oversized block to remain after an intermediate move.
-        sources = [block for block, count in enumerate(counts) if count > lower]
+        # ceil(n/k). Only blocks outside that closed interval require repair.
+        sources = [block for block, count in enumerate(counts) if count > upper]
         undersized = [block for block, count in enumerate(counts) if count < lower]
         if not sources and not undersized:
             return result
