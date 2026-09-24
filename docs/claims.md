@@ -66,6 +66,27 @@ It does **not** support a speed claim. In the same run, direct NetworkX/METIS/Ka
 
 This is evidence for one named graph, one protocol, one environment, and one objective—not a universal performance result.
 
+### K=4 topology-routing generalization
+
+In the final corrected GitHub Actions run on commit 72ba33ae2610a362eefa471def06d485244cc02d, the frozen research protocol evaluated 20 graphs, seeds 42/101/2024, and eight k=4 strategies using leave-one-corpus-out training.
+
+The measured graph-level mean relative regret was:
+
+- majority control: 3.408%;
+- centroid topology router: 0.714%;
+- nearest topology router: 0.445%.
+
+Router-minus-majority paired bootstrap 95% confidence intervals were:
+
+- centroid: [-6.356, -0.013] percentage points;
+- nearest: [-6.617, -0.202] percentage points.
+
+This supports a narrow research claim: under this fixed graph-partitioning corpus and protocol, topology-based routing retained measurable transfer value when moving from the earlier k=2 setting to genuine k=4 partitioning.
+
+The claim is deliberately bounded. It does **not** establish cross-domain generalization, universal superiority, production readiness, or validity for arbitrary graph populations/objectives. The experiment made no production/default behavior change.
+
+The artifact and workflow are the primary evidence. Interpret the result together with the frozen protocol, seed-stability record, and the repository's explicit uncertainty/promotion rules.
+
 The clean-environment access benchmark measures setup, import, first-run time, repeat-run time, edge cut, balance, versions, and determinism separately for ATOF Engine, ATOF Portfolio, NetworkX, METIS, and KaHIP.
 
 Do not summarize those measurements as a universal winner without a defined corpus and protocol. The Karate Club result above is the current concrete benchmark example.
@@ -93,7 +114,8 @@ ATOF should not claim:
 - universally faster execution than METIS, KaHIP, or NetworkX;
 - universally easier setup than every competing graph optimizer;
 - production readiness for every graph size, graph model, objective, or workload;
-- superiority based only on open-source licensing.
+- superiority based only on open-source licensing;
+- cross-domain adaptive-routing generality based on graph-partitioning experiments.
 
 ## Preferred language
 
@@ -101,12 +123,16 @@ Use:
 
 > Open-source graph optimization with an AI-first machine interface, reproducible provenance, and a common portfolio layer over multiple backends.
 
-Use comparative language only in the form:
+For research findings use:
 
-> On [named benchmark/corpus], under [named objective/protocol], ATOF produced [measured result].
+> On [named benchmark/corpus], under [named objective/protocol], [method] produced [measured result].
+
+For the k=4 finding, the bounded formulation is:
+
+> Under the frozen 20-graph k=4 protocol, topology-based routing showed lower graph-level relative regret than the majority control, with the reported bootstrap uncertainty shown explicitly.
 
 Avoid:
 
 > ATOF is better than everything else.
 
-The repository is designed to make the first statement easy to verify and the second one unnecessary.
+The repository is designed to make the first statements easy to verify and the second one unnecessary.
