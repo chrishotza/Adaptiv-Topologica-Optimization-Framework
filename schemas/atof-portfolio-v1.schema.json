@@ -45,7 +45,8 @@
       "properties": {
         "k": {"type": "integer", "minimum": 2},
         "seed": {"type": "integer"},
-        "iterations": {"type": "integer", "minimum": 1}
+        "iterations": {"type": "integer", "minimum": 1},
+        "profile_mode": {"enum": ["full", "bounded"]}
       },
       "additionalProperties": false
     },

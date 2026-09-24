@@ -44,13 +44,14 @@ def _emit_error(exc: Exception) -> int:
     return 2
 
 
-def _profile(path: Path, format: str = "auto") -> dict:
+def _profile(path: Path, format: str = "auto", *, mode: str = "full") -> dict:
     graph = load_graph(path, format=format)
-    profile = TopologyProfiler().profile(graph)
+    profile = TopologyProfiler().profile(graph, mode=mode)
     recommendation = HeuristicRegimeSelector().recommend(profile)
     return {
         "file": str(path),
         "version": __version__,
+        "profile_mode": mode,
         "nodes": graph.number_of_nodes(),
         "edges": graph.number_of_edges(),
         "graph": {
@@ -227,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
                 k=args.k,
                 seed=args.seed,
                 iterations=args.iterations,
+                profile_mode="bounded",
             )
             if args.partition_output is not None:
                 write_partition_mapping(
@@ -273,11 +275,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "profile":
         try:
-            payload = _profile(args.path, args.format)
+            profile_mode = "bounded" if args.compact else "full"
+            payload = _profile(args.path, args.format, mode=profile_mode)
             if args.compact:
                 compact = {
                     "mode": "profile",
                     "version": payload["version"],
+                    "profile_mode": payload["profile_mode"],
                     "graph": payload["graph"],
                     "recommendation": {
                         "regime": payload["recommendation"]["regime"],
@@ -306,6 +310,7 @@ def main(argv: list[str] | None = None) -> int:
                     k=args.k,
                     seed=args.seed,
                     iterations=args.iterations,
+                    profile_mode="bounded" if args.compact else "full",
                 )
             else:
                 result = optimize_graph(

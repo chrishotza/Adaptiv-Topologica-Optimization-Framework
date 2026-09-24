@@ -61,6 +61,7 @@ class PortfolioOptimizationResult:
     seed: int
     iterations: int
     graph_fingerprint: str
+    profile_mode: str = "full"
     selection_policy: str = "empirical_min_edge_cut"
 
     def to_dict(self, *, include_partition: bool = True) -> dict:
@@ -81,6 +82,7 @@ class PortfolioOptimizationResult:
                 "k": self.k,
                 "seed": self.seed,
                 "iterations": self.iterations,
+                "profile_mode": self.profile_mode,
             },
             "objective": {
                 "name": "edge_cut",
@@ -401,6 +403,7 @@ def optimize_portfolio(
     seed: int = 42,
     iterations: int = 25,
     include_optional: bool = True,
+    profile_mode: str = "full",
 ) -> PortfolioOptimizationResult:
     """Evaluate available open-source backends under one auditable contract."""
     if k < 2:
@@ -411,7 +414,7 @@ def optimize_portfolio(
         raise ValueError("k cannot exceed the number of graph nodes")
     validate_product_graph(graph)
 
-    topology = TopologyProfiler().profile(graph)
+    topology = TopologyProfiler().profile(graph, mode=profile_mode)
     recommendation = HeuristicRegimeSelector().recommend(topology)
 
     candidates = [
@@ -554,4 +557,5 @@ def optimize_portfolio(
         seed=seed,
         iterations=iterations,
         graph_fingerprint=graph_fingerprint(graph),
+        profile_mode=profile_mode,
     )

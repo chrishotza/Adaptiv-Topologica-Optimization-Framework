@@ -4,6 +4,13 @@
 
 ### Added
 
+- Bounded topology profiling for `atof profile --compact`, with a 2,000-node guard around all-pairs path metrics and greedy modularity detection; full profiling remains unchanged.
+
+- Reproducible SNAP topology scalability runner and manual GitHub Actions workflow for the larger ca-GrQc, ca-HepTh, and Wiki-Vote corpus.
+- Portfolio compact paths now request bounded topology profiling and record the selected profiling mode in `atof.portfolio.v1` parameters.
+- Manual SNAP k-way operational stress workflow covering k=2, 4, and 8.
+- Validated 2026-09-24 SNAP k-way stress evidence: 9/9 cases completed successfully with bounded profiling; artifact 10814886223.
+
 - Runtime JSON Schema validation for AI, Engine, and Portfolio outputs in the development test suite.
 
 - Stable `atof.optimize.v1` result schema and self-identifying Engine responses for AI validation.

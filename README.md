@@ -171,7 +171,7 @@ The stable contracts are:
 - `atof.compare.v1` — stable Engine-vs-Portfolio comparison envelope;
 - `schemas/` — machine-readable contract definitions.
 
-Use `--compact` for low-token orchestration. Use full JSON when topology, provenance, candidate details, or the node-to-block mapping is needed.
+Use `--compact` for low-token orchestration. For `atof profile`, compact mode uses bounded profiling on graphs above 2,000 nodes to avoid unbounded path/modularity work; use full JSON when exact topology descriptors, provenance, candidate details, or the node-to-block mapping is needed.
 
 ## Reproducibility
 

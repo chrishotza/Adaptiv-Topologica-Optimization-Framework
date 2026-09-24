@@ -7,7 +7,7 @@ ATOF is an open-source graph optimization interface with a stable machine contra
 1. Run `atof ai` for the stable machine contract.
 2. Run `atof doctor` to inspect available engines and the runtime.
 3. Run `atof solve examples/demo.edgelist` for the shortest practical portfolio path.
-4. Use `--compact` when topology detail or node assignments are not required.
+4. Use `--compact` when topology detail or node assignments are not required. For `atof profile`, compact mode uses the bounded topology profiler on large graphs; full `atof profile` preserves exact historical descriptors.
 5. For k-way native Engine work, use `atof optimize <graph> --engine bloc --k <k>` with `k>=2`.
 6. Use JSON input when a machine-friendly nodes/edges payload is already available.
 7. Preserve `--seed` for reproducible experiments.

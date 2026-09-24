@@ -87,3 +87,39 @@ jobs:
 
       - name: Validate distribution metadata
         run: python -m twine check dist/*
+
+  snap-kway-scalability:
+    name: SNAP k-way scalability (hardening branch)
+    if: github.event_name == 'pull_request' && github.head_ref == 'hardening/topology-profile-scalability-clean'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: python -m pip install -e ".[dev,sota]"
+
+      - name: Run k-way stress
+        run: python -m experiments.run_snap_kway_scalability
+
+      - name: Validate manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("results/snap/kway-scalability-latest.json").read_text(encoding="utf-8"))
+          assert payload["parameters"]["ks"] == [2, 4, 8]
+          assert payload["parameters"]["profile_mode"] == "bounded"
+          assert len(payload["rows"]) == 9
+          PY
+
+      - name: Upload stress manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: atof-snap-kway-scalability
+          path: results/snap/kway-scalability-latest.json
