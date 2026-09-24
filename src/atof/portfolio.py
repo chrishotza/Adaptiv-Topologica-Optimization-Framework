@@ -242,6 +242,7 @@ def _run_metis(
     seed: int,
     k: int,
     recursive: bool = True,
+    ufactor: int | None = None,
 ) -> tuple[dict[Any, int], int, float]:
     import pymetis
 
@@ -251,12 +252,15 @@ def _run_metis(
         [index[neighbor] for neighbor in graph.neighbors(node)]
         for node in nodes
     ]
+    options_kwargs = {"seed": seed}
+    if ufactor is not None:
+        options_kwargs["ufactor"] = int(ufactor)
     raw = pymetis.part_graph(
         k,
         adjacency=adjacency,
         tpwgts=[1.0 / k] * k,
         recursive=recursive,
-        options=pymetis.Options(seed=seed),
+        options=pymetis.Options(**options_kwargs),
     )
     membership = _rebalance_kway(graph, list(raw.vertex_part), k)
     partition = {node: membership[index[node]] for node in nodes}
@@ -272,6 +276,7 @@ def _run_kahip(
     *,
     seed: int,
     k: int,
+    imbalance: float = 0.03,
 ) -> tuple[dict[Any, int], int, float]:
     import kahip
 
@@ -288,7 +293,7 @@ def _run_kahip(
         [1] * len(adjncy),
         adjncy,
         k,
-        0.03,
+        float(imbalance),
         1,
         int(seed),
         2,
