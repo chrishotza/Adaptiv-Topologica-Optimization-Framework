@@ -140,6 +140,30 @@ def build_ai_manifest(*, full: bool = False) -> dict:
 def build_doctor_report(*, full: bool = False) -> dict:
     """Describe the current execution environment and backend availability."""
     backends = [item.to_dict() for item in inspect_backends()]
+    available_ids = {
+        item["id"]
+        for item in backends
+        if item["available"]
+    }
+    portfolio_backend_ids = {
+        "bloc",
+        "networkx-kl",
+        "metis",
+        "kahip",
+        "kaminpar",
+        "kaminpar-strong",
+        "mtkahypar",
+        "mtkahypar-quality",
+    }
+    kway_backend_ids = {
+        "bloc",
+        "metis",
+        "kahip",
+        "kaminpar",
+        "kaminpar-strong",
+        "mtkahypar",
+        "mtkahypar-quality",
+    }
     report = {
         "schema": "atof.doctor.v1",
         "name": "atof",
@@ -147,20 +171,9 @@ def build_doctor_report(*, full: bool = False) -> dict:
         "runtime": runtime_metadata(),
         "backends": backends,
         "input_formats": [item for item in SUPPORTED_INPUT_FORMATS if item != "auto"],
-        "portfolio_ready": any(
-            item["available"]
-            for item in backends
-            if item["id"] in {
-                "bloc",
-                "networkx-kl",
-                "metis",
-                "kahip",
-                "kaminpar",
-                "kaminpar-strong",
-                "mtkahypar",
-                "mtkahypar-quality",
-            }
-        ),
+        "portfolio_ready": bool(available_ids & portfolio_backend_ids),
+        "portfolio_kway_ready": bool(available_ids & kway_backend_ids),
+        "portfolio_kway_backends": sorted(available_ids & kway_backend_ids),
     }
     if not full:
         report["runtime"] = {
