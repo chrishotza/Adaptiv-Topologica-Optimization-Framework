@@ -1,8 +1,14 @@
 from __future__ import annotations
+
 import math
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Any
+
 import networkx as nx
+
+PROFILE_EXPENSIVE_NODE_LIMIT = 2000
+PROFILE_MODULARITY_NODE_LIMIT = 2000
+PROFILE_MODES = ("full", "bounded")
 
 @dataclass(frozen=True)
 class TopologyProfile:
@@ -22,24 +28,53 @@ class TopologyProfile:
     avg_path_length: float
     communities: int
     modularity: float
+
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 class TopologyProfiler:
-    """Compute interpretable structural descriptors for a graph."""
+    """Compute interpretable structural descriptors for a graph.
+
+    ``full`` preserves the historical profiler behavior. ``bounded`` keeps the
+    inexpensive structural descriptors but skips all-pairs path metrics and
+    greedy modularity detection once their graph-size limits are exceeded.
+    """
     @staticmethod
     def _gini(values: list[float]) -> float:
         if not values:
             return 0.0
-        ordered = sorted(values); total = sum(ordered); n = len(ordered)
+        ordered = sorted(values)
+        total = sum(ordered)
+        n = len(ordered)
         if total == 0:
             return 0.0
         weighted = sum((i + 1) * value for i, value in enumerate(ordered))
         return (2 * weighted) / (n * total) - (n + 1) / n
 
-    def profile(self, graph: nx.Graph) -> TopologyProfile:
+    @staticmethod
+    def _validate_mode(mode: str) -> None:
+        if mode not in PROFILE_MODES:
+            raise ValueError(
+                f"unknown topology profile mode {mode!r}; "
+                f"expected one of {PROFILE_MODES}"
+            )
+
+    def profile(
+        self,
+        graph: nx.Graph,
+        *,
+        mode: str = "full",
+        expensive_node_limit: int = PROFILE_EXPENSIVE_NODE_LIMIT,
+        modularity_node_limit: int = PROFILE_MODULARITY_NODE_LIMIT,
+    ) -> TopologyProfile:
+        self._validate_mode(mode)
+        if expensive_node_limit < 1:
+            raise ValueError("expensive_node_limit must be >= 1")
+        if modularity_node_limit < 1:
+            raise ValueError("modularity_node_limit must be >= 1")
         if graph.number_of_nodes() == 0:
             raise ValueError("cannot profile an empty graph")
+
         degrees = [d for _, d in graph.degree()]
         n = graph.number_of_nodes()
         avg = sum(degrees) / n
@@ -47,35 +82,69 @@ class TopologyProfiler:
         max_degree = max(degrees)
         components = list(nx.connected_components(graph))
         largest = graph.subgraph(max(components, key=len)).copy()
-        try: clustering = float(nx.average_clustering(graph))
-        except Exception: clustering = float("nan")
-        try: transitivity = float(nx.transitivity(graph))
-        except Exception: transitivity = float("nan")
-        try: assortativity = float(nx.degree_assortativity_coefficient(graph))
-        except Exception: assortativity = float("nan")
-        try: core = float(max(nx.core_number(graph).values()))
-        except Exception: core = float("nan")
-        if largest.number_of_nodes() > 1:
-            try: diameter = float(nx.diameter(largest))
-            except Exception: diameter = float("nan")
-            try: avg_path = float(nx.average_shortest_path_length(largest))
-            except Exception: avg_path = float("nan")
-        else:
-            diameter = 0.0; avg_path = 0.0
-        communities = 0; modularity = float("nan")
+
         try:
-            from networkx.algorithms.community import greedy_modularity_communities, modularity
-            detected = list(greedy_modularity_communities(graph))
-            communities = len(detected)
-            if detected: modularity = float(modularity(graph, detected))
+            clustering = float(nx.average_clustering(graph))
         except Exception:
-            pass
+            clustering = float("nan")
+        try:
+            transitivity = float(nx.transitivity(graph))
+        except Exception:
+            transitivity = float("nan")
+        try:
+            assortativity = float(nx.degree_assortativity_coefficient(graph))
+        except Exception:
+            assortativity = float("nan")
+        try:
+            core = float(max(nx.core_number(graph).values()))
+        except Exception:
+            core = float("nan")
+
+        calculate_expensive = mode == "full" or largest.number_of_nodes() <= expensive_node_limit
+        if largest.number_of_nodes() > 1 and calculate_expensive:
+            try:
+                diameter = float(nx.diameter(largest))
+            except Exception:
+                diameter = float("nan")
+            try:
+                avg_path = float(nx.average_shortest_path_length(largest))
+            except Exception:
+                avg_path = float("nan")
+        elif largest.number_of_nodes() <= 1:
+            diameter = 0.0
+            avg_path = 0.0
+        else:
+            diameter = float("nan")
+            avg_path = float("nan")
+
+        communities = 0
+        modularity = float("nan")
+        calculate_modularity = mode == "full" or n <= modularity_node_limit
+        if calculate_modularity:
+            try:
+                from networkx.algorithms.community import greedy_modularity_communities, modularity
+                detected = list(greedy_modularity_communities(graph))
+                communities = len(detected)
+                if detected:
+                    modularity = float(modularity(graph, detected))
+            except Exception:
+                pass
+
         return TopologyProfile(
-            node_count=n, edge_count=graph.number_of_edges(), density=float(nx.density(graph)),
-            avg_degree=float(avg), degree_std=float(std), max_degree=int(max_degree),
+            node_count=n,
+            edge_count=graph.number_of_edges(),
+            density=float(nx.density(graph)),
+            avg_degree=float(avg),
+            degree_std=float(std),
+            max_degree=int(max_degree),
             hub_ratio=float(max_degree / avg) if avg else 0.0,
-            degree_gini=self._gini([float(d) for d in degrees]), clustering=clustering,
-            transitivity=transitivity, assortativity=assortativity, core_number=core,
-            diameter=diameter, avg_path_length=avg_path, communities=communities,
+            degree_gini=self._gini([float(d) for d in degrees]),
+            clustering=clustering,
+            transitivity=transitivity,
+            assortativity=assortativity,
+            core_number=core,
+            diameter=diameter,
+            avg_path_length=avg_path,
+            communities=communities,
             modularity=modularity,
         )
