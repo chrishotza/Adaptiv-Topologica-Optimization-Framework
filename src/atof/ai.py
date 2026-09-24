@@ -120,7 +120,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
             "Engine affinity uses a degree-affinity weighted surrogate and reports unweighted edge_cut",
             "weight attributes are accepted as input metadata but ignored by the current unweighted graph model",
             "partition exports canonicalize node IDs with str(); collisions are rejected.",
-            "atof profile --compact uses bounded topology profiling above 2000 nodes; use full profile for exact path and modularity descriptors.",
+            "compact profile is bounded above 2000 nodes; use full profile for exact path/modularity.",
         ],
     }
     return manifest if full else {
