@@ -4,6 +4,8 @@
 
 ### Added
 
+- `atof doctor --probe` now exercises both k=2 and k=4 Portfolio paths and reports backend-level operational status for each.
+
 - Runtime JSON Schema validation for AI, Engine, and Portfolio outputs in the development test suite.
 
 - Stable `atof.optimize.v1` result schema and self-identifying Engine responses for AI validation.
