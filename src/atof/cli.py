@@ -228,6 +228,7 @@ def main(argv: list[str] | None = None) -> int:
                 k=args.k,
                 seed=args.seed,
                 iterations=args.iterations,
+                profile_mode="bounded",
             )
             if args.partition_output is not None:
                 write_partition_mapping(
@@ -309,6 +310,7 @@ def main(argv: list[str] | None = None) -> int:
                     k=args.k,
                     seed=args.seed,
                     iterations=args.iterations,
+                    profile_mode="bounded" if args.compact else "full",
                 )
             else:
                 result = optimize_graph(
