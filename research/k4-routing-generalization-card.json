@@ -1,0 +1,77 @@
+{
+  "schema": "atof.research-card.v1",
+  "experiment": "k4-routing-generalization",
+  "status": "completed",
+  "question": "Does topology-based routing retain measurable transfer value when graph partitioning moves from k=2 to genuine k=4?",
+  "scope": {
+    "domain": "graph partitioning",
+    "problem": "balanced unweighted k-way partitioning",
+    "k": 4,
+    "graphs": 20,
+    "seeds": [42, 101, 2024],
+    "strategies": [
+      "bloc",
+      "bloc-affinity",
+      "metis",
+      "kahip",
+      "kaminpar",
+      "kaminpar-strong",
+      "mtkahypar",
+      "mtkahypar-quality"
+    ]
+  },
+  "protocol": {
+    "training": "leave-one-corpus-out",
+    "oracle": "graph-level mean edge-cut across fixed solver seeds",
+    "router": {
+      "features": [
+        "density",
+        "avg_degree",
+        "degree_std",
+        "hub_ratio",
+        "degree_gini",
+        "clustering",
+        "transitivity",
+        "core_number",
+        "diameter",
+        "avg_path_length",
+        "modularity"
+      ],
+      "scale_mode": "iqr",
+      "metric": "l2",
+      "methods": ["centroid", "nearest"]
+    },
+    "control": "training-fold majority oracle strategy",
+    "uncertainty": "graph-level paired bootstrap, 5000 resamples",
+    "production_change": false
+  },
+  "results": {
+    "majority_mean_relative_regret": 0.034083627443203944,
+    "centroid_mean_relative_regret": 0.007135111543501732,
+    "nearest_mean_relative_regret": 0.0044454541203391455,
+    "centroid_minus_majority_delta": -0.026948515899702218,
+    "nearest_minus_majority_delta": -0.0296381733228648,
+    "centroid_minus_majority_bootstrap_95_ci": [
+      -0.06355675250505122,
+      -0.0001298584791470217
+    ],
+    "nearest_minus_majority_bootstrap_95_ci": [
+      -0.06617352177790438,
+      -0.0020173137889131225
+    ]
+  },
+  "evidence_boundary": [
+    "This is evidence within graph partitioning, not cross-domain optimization generality.",
+    "The experiment does not establish universal superiority, universal runtime superiority, or production readiness.",
+    "No held-out corpus outcome is used to fit its router.",
+    "Tiny-graph backend retries use isolated-node padding only inside the research protocol and strip those nodes before scoring the original graph."
+  ],
+  "reproducibility": {
+    "commit_sha": "72ba33ae2610a362eefa471def06d485244cc02d",
+    "workflow": "K4 routing generalization research",
+    "workflow_run_id": 35962238393,
+    "artifact_name": "k4-routing-generalization",
+    "artifact_id": 10794035248,
+    "artifact_digest": "sha256:330ed42174aedda1fe31937e4de3be3930195e252f885228c33a0af85de74a0c"
+  }
+}
