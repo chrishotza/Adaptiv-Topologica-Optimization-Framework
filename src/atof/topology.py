@@ -1,5 +1,6 @@
 from __future__ import annotations
 import math
+import warnings
 from dataclasses import dataclass, asdict
 from typing import Any
 import networkx as nx
@@ -51,8 +52,12 @@ class TopologyProfiler:
         except Exception: clustering = float("nan")
         try: transitivity = float(nx.transitivity(graph))
         except Exception: transitivity = float("nan")
-        try: assortativity = float(nx.degree_assortativity_coefficient(graph))
-        except Exception: assortativity = float("nan")
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                assortativity = float(nx.degree_assortativity_coefficient(graph))
+        except Exception:
+            assortativity = float("nan")
         try: core = float(max(nx.core_number(graph).values()))
         except Exception: core = float("nan")
         if largest.number_of_nodes() > 1:
