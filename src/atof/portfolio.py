@@ -155,6 +155,7 @@ def _rebalance_kway(
             return result
 
         source = min(sources)
+        targets = tuple(undersized)
 
         candidates: list[tuple[int, str, int, int]] = []
         for node in nodes:
@@ -179,7 +180,7 @@ def _rebalance_kway(
             raise RuntimeError(
                 "could not repair partition balance; "
                 f"n={len(result)}, k={k}, counts={counts}, "
-                f"oversized={oversized}, undersized={list(undersized)}, "
+                f"oversized={list(sources)}, undersized={list(undersized)}, "
                 f"source={source}, source_count={counts[source]}, "
                 f"membership_labels={sorted(set(result), key=repr)}"
             )
