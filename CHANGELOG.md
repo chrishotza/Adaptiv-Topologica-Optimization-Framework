@@ -4,6 +4,10 @@
 
 ### Added
 
+- Bounded topology profiling for `atof profile --compact`, with a 2,000-node guard around all-pairs path metrics and greedy modularity detection; full profiling remains unchanged.
+
+- Reproducible SNAP topology scalability runner and manual GitHub Actions workflow for the larger ca-GrQc, ca-HepTh, and Wiki-Vote corpus.
+
 - Runtime JSON Schema validation for AI, Engine, and Portfolio outputs in the development test suite.
 
 - Stable `atof.optimize.v1` result schema and self-identifying Engine responses for AI validation.
