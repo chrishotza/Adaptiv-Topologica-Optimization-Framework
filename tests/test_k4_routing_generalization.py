@@ -1,7 +1,7 @@
 import inspect
 
-from atof.portfolio import _run_metis
-from experiments.k4_routing_generalization import FEATURES, K, SEEDS, STRATEGIES
+from atof.portfolio import _run_kahip, _run_metis
+from experiments.k4_routing_generalization import FEATURES, K, SEEDS, STRATEGIES, _integer_feasible_imbalance
 
 
 def test_k4_protocol_manifest_is_frozen() -> None:
@@ -19,3 +19,17 @@ def test_k4_protocol_manifest_is_frozen() -> None:
 
 def test_metis_runner_keeps_recursive_product_default() -> None:
     assert inspect.signature(_run_metis).parameters["recursive"].default is True
+
+
+def test_integer_feasible_imbalance_is_minimum_for_floor_ceil_balance():
+    class G:
+        def number_of_nodes(self):
+            return 15
+
+    assert _integer_feasible_imbalance(G(), 4) == 4 / 3.75 - 1.0
+
+
+def test_backend_product_defaults_remain_locked():
+    assert inspect.signature(_run_metis).parameters["recursive"].default is True
+    assert inspect.signature(_run_metis).parameters["ufactor"].default is None
+    assert inspect.signature(_run_kahip).parameters["imbalance"].default == 0.03
