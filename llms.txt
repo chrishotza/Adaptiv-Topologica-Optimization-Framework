@@ -75,7 +75,9 @@ JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 
 ## Research status
 
-`docs/research-evidence-map.md` is the fast path for distinguishing product contracts from research evidence. It records the recent adaptive-selection lineage, including negative results and open experiments, and must be read before making claims about adaptive routing.
+`docs/research-evidence-map.md` is the fast path for distinguishing product contracts from research evidence. It records the recent adaptive-selection lineage, including negative results and completed k=4 transfer evidence, and must be read before making claims about adaptive routing.
+
+For a machine-readable summary of the completed k=4 study, use `research/k4-routing-generalization-card.json`. It records the frozen protocol, metrics, uncertainty, evidence boundary, workflow run, and artifact identity.
 
 ## Evidence rule
 
