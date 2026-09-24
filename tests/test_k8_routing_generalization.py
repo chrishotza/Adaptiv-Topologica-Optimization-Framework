@@ -26,7 +26,7 @@ def test_integer_feasible_imbalance_is_minimum_for_floor_ceil_balance():
         def number_of_nodes(self):
             return 15
 
-    assert _integer_feasible_imbalance(G(), 4) == 8 / 1.875 - 1.0
+    assert _integer_feasible_imbalance(G(), 8) == 2 / 1.875 - 1.0
 
 
 def test_backend_product_defaults_remain_locked():
@@ -39,10 +39,10 @@ def test_tiny_graph_padding_isolated_and_reversible():
     import networkx as nx
     from experiments.k8_routing_generalization import _pad_isolated_nodes, _strip_padding
 
-    graph = nx.path_graph(15)
+    graph = nx.path_graph(65)
     padded, padding = _pad_isolated_nodes(graph, 8)
-    assert padded.number_of_nodes() == 16
-    assert len(padding) == 1
+    assert padded.number_of_nodes() == 72
+    assert len(padding) == 7
     assert set(padded) == set(graph) | set(padding)
     membership = {node: index % 8 for index, node in enumerate(padded)}
     stripped = _strip_padding(graph, membership, padding)
