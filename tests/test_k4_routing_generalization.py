@@ -33,3 +33,16 @@ def test_backend_product_defaults_remain_locked():
     assert inspect.signature(_run_metis).parameters["recursive"].default is True
     assert inspect.signature(_run_metis).parameters["ufactor"].default is None
     assert inspect.signature(_run_kahip).parameters["imbalance"].default == 0.03
+
+
+def test_tiny_graph_padding_isolated_and_reversible():
+    import networkx as nx
+    from experiments.k4_routing_generalization import _pad_isolated_nodes, _strip_padding
+
+    graph = nx.path_graph(15)
+    padded, padding = _pad_isolated_nodes(graph, 4)
+    assert padded.number_of_nodes() == 16
+    assert len(padding) == 1
+    assert set(padded) == set(graph) | set(padding)
+    stripped = _strip_padding(graph, {node: node % 4 for node in padded}, padding)
+    assert set(stripped) == set(graph)
