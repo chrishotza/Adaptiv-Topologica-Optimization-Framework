@@ -23,7 +23,7 @@
 ## Start here
 
 - `atof ai` — stable AI capability contract
-- `atof doctor` — runtime/backend inspection; use `--probe` for a real tiny-graph execution check, including `portfolio_kway_ready` and `portfolio_kway_backends`
+- `atof doctor` — runtime/backend inspection; use `--probe` for real tiny-graph execution checks at k=2 and k=4; `probe.ok` is true only when both paths have an operational backend
 - `atof solve examples/demo.edgelist` — shortest practical portfolio path
 - `cat graph.edgelist | atof solve -` — solve edge-list data from stdin
 - `cat graph.json | atof solve - --format json` — solve minimal JSON graph data
