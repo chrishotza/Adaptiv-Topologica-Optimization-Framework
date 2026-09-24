@@ -15,4 +15,4 @@ def test_regular_graph_assortativity_does_not_emit_runtime_warning():
         profile = TopologyProfiler().profile(nx.cycle_graph(8))
 
     assert not [warning for warning in captured if warning.category is RuntimeWarning]
-    assert profile.assortativity != profile.assortativity or isinstance(profile.assortativity, float)
+    assert isinstance(profile.assortativity, float)
