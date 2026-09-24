@@ -339,6 +339,7 @@ def run_analysis(
         "source_commit": benchmark.get("commit_sha"),
         "candidate_strategies": benchmark["candidate_strategies"],
         "matched_graphs": len(records),
+        "corpora": corpora,
         "router": {
             "family": "inverse-distance strategy-specific quality predictor",
             "scale_mode": "iqr",
