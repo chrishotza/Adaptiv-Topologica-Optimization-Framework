@@ -21,9 +21,10 @@ For machine-facing work, use this order:
 2. `schemas/` — stable machine-readable response contracts;
 3. `AGENTS.md` — operating rules for agents;
 4. product docs — human-readable operational detail;
-5. `research/` and `experiments/` — evidence/history, not product capability guarantees.
+5. `docs/research-evidence-map.md` — fast research status/evidence map;
+6. `research/` and `experiments/` — evidence/history, not product capability guarantees.
 
-Do not infer current capabilities from historical research branches or frozen experiment results.
+Do not infer current capabilities from historical research branches or frozen experiment results. For the research status, use `docs/research-evidence-map.md`; it explicitly marks negative and open findings.
 
 ## Canonical commands
 
