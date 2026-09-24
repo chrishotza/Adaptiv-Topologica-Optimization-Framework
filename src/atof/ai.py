@@ -115,12 +115,12 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         },
         "limits": [
             "backends use stable IDs",
-            "portfolio mode supports k>=2; NetworkX Kernighan-Lin is available only for k=2",
+            "portfolio supports k>=2; NetworkX KL is k=2 only",
             "current common portfolio objective is unweighted edge cut",
             "Engine affinity uses a degree-affinity weighted surrogate and reports unweighted edge_cut",
             "weight attributes are accepted but ignored by the unweighted graph model",
             "partition exports canonicalize node IDs with str(); collisions are rejected.",
-            "compact profile is bounded above 2000 nodes; full profile keeps exact path/modularity.",
+            "compact profile bounds >2000 nodes; full keeps exact path/modularity.",
         ],
     }
     return manifest if full else {
