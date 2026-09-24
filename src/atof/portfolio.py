@@ -61,6 +61,7 @@ class PortfolioOptimizationResult:
     seed: int
     iterations: int
     graph_fingerprint: str
+    profile_mode: str = "full"
     selection_policy: str = "empirical_min_edge_cut"
 
     def to_dict(self, *, include_partition: bool = True) -> dict:
@@ -81,6 +82,7 @@ class PortfolioOptimizationResult:
                 "k": self.k,
                 "seed": self.seed,
                 "iterations": self.iterations,
+                "profile_mode": self.profile_mode,
             },
             "objective": {
                 "name": "edge_cut",
@@ -555,4 +557,5 @@ def optimize_portfolio(
         seed=seed,
         iterations=iterations,
         graph_fingerprint=graph_fingerprint(graph),
+        profile_mode=profile_mode,
     )
