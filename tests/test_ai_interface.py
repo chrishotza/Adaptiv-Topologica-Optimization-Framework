@@ -14,7 +14,7 @@ def test_ai_manifest_is_stable_and_compact():
     assert manifest["name"] == "atof"
     assert manifest["capabilities"]["portfolio"]["k"] == ">=2"
     assert manifest["capabilities"]["portfolio"]["result_schema"] == "atof.portfolio.v1"
-    assert any("compact profile is bounded" in item for item in manifest["limits"])
+    assert any("compact profile bounds" in item for item in manifest["limits"])
     assert manifest["capabilities"]["engine"]["result_schema"] == "atof.optimize.v1"
     assert manifest["commands"]["compare"] == "atof compare <graph> [--k N]"
     assert manifest["capabilities"]["comparison"]["result_schema"] == "atof.compare.v1"
