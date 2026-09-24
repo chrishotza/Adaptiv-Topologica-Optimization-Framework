@@ -77,7 +77,31 @@ def run(output: Path, cache_dir: Path | None = None) -> dict:
     if benchmark["seeds"] != list(SEEDS):
         raise AssertionError("fresh benchmark seed manifest drifted")
     if benchmark["matched_graphs"] != 20:
-        raise AssertionError("expected exactly 20 matched graphs")
+        incomplete = {
+            graph_id: summary
+            for graph_id, summary in benchmark.get("graph_summaries", {}).items()
+            if not summary.get("matched")
+        }
+        diagnostic = {
+            "status": "incomplete_benchmark",
+            "expected_graphs": 20,
+            "matched_graphs": benchmark["matched_graphs"],
+            "expected_rows": 20 * 11 * len(SEEDS),
+            "observed_rows": len(benchmark["rows"]),
+            "seeds": list(SEEDS),
+            "incomplete_graphs": incomplete,
+        }
+        output.parent.mkdir(parents=True, exist_ok=True)
+        diagnostic_path = output.parent / "online_selector_five_seed_diagnostic.json"
+        diagnostic_path.write_text(
+            json.dumps(diagnostic, indent=2),
+            encoding="utf-8",
+        )
+        raise AssertionError(
+            "fresh benchmark incomplete: "
+            f"{benchmark['matched_graphs']}/20 graphs matched; "
+            f"diagnostic={diagnostic_path}"
+        )
     if len(benchmark["rows"]) != 20 * 11 * len(SEEDS):
         raise AssertionError("unexpected fresh benchmark row count")
 
