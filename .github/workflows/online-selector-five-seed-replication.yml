@@ -49,11 +49,13 @@ jobs:
           assert payload["seed_stability"]["graphs"] == 20
           assert 0.0 <= payload["seed_stability"]["unstable_graph_rate"] <= 1.0
           PY
-      - name: Upload replication artifact
+      - name: Upload replication and diagnostic artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: online-selector-five-seed-replication
           path: |
             results/state_of_art/fresh_sota_five_seed_latest.json
             results/state_of_art/online_selector_five_seed_replication_latest.json
-          if-no-files-found: error
+            results/state_of_art/online_selector_five_seed_diagnostic.json
+          if-no-files-found: warn
