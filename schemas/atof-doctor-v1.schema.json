@@ -31,6 +31,41 @@
     "input_formats": {"type": "array", "items": {"type": "string"}},
     "portfolio_ready": {"type": "boolean"},
     "portfolio_kway_ready": {"type": "boolean"},
-    "portfolio_kway_backends": {"type": "array", "items": {"type": "string"}}
+    "portfolio_kway_backends": {"type": "array", "items": {"type": "string"}},
+    "probe": {
+      "type": "object",
+      "required": ["requested", "graph", "k", "seed", "iterations", "backends"],
+      "properties": {
+        "requested": {"const": true},
+        "graph": {
+          "type": "object",
+          "required": ["nodes", "edges"],
+          "properties": {
+            "nodes": {"type": "integer"},
+            "edges": {"type": "integer"}
+          },
+          "additionalProperties": false
+        },
+        "k": {"type": "integer"},
+        "seed": {"type": "integer"},
+        "iterations": {"type": "integer"},
+        "backends": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["ok", "edge_cut", "balance_error", "runtime_seconds", "error"],
+            "properties": {
+              "ok": {"type": "boolean"},
+              "edge_cut": {"type": ["integer", "null"]},
+              "balance_error": {"type": ["number", "null"]},
+              "runtime_seconds": {"type": ["number", "null"]},
+              "error": {"type": ["string", "null"]}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
   }
 }
