@@ -139,6 +139,8 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                         retry_metadata["kahip_retry_reason"] = "fixed 3% tolerance was infeasible for integer k-way balance"
                     except Exception as exc:
                         retry_metadata["kahip_retry_error"] = f"{type(exc).__name__}: {exc}"
+
+                missing = sorted(set(STRATEGIES) - set(candidates))
             if missing:
                 raise RuntimeError(
                     f"{corpus}/{name} seed={seed}: missing k=4 candidates {missing}; "
