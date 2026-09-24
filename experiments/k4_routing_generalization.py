@@ -38,6 +38,36 @@ def _integer_feasible_imbalance(graph, k: int, *, base: float = 0.03) -> float:
     return max(base, required)
 
 
+def _postprocess_partition(graph, partition):
+    from atof.portfolio import _edge_cut, _rebalance_kway
+    membership = [int(partition[node]) for node in graph.nodes()]
+    repaired = _rebalance_kway(graph, membership, K)
+    repaired_partition = {node: repaired[i] for i, node in enumerate(graph.nodes())}
+    return repaired_partition, _edge_cut(graph, repaired_partition), 0.0
+
+
+def _pad_isolated_nodes(graph, k: int) -> tuple[object, list[object]]:
+    """Pad a small graph to a k-divisible order with isolated nodes."""
+    import networkx as nx
+
+    target = max(graph.number_of_nodes(), k * k)
+    if target % k:
+        target += k - target % k
+    padded = graph.copy()
+    padding = [f"__atof_k4_padding_{i}" for i in range(target - graph.number_of_nodes())]
+    while any(node in padded for node in padding):
+        padding = [f"__atof_k4_padding_{i}_x" for i in range(len(padding))]
+    padded.add_nodes_from(padding)
+    return padded, padding
+
+
+def _strip_padding(graph, partition, padding):
+    stripped = {node: int(block) for node, block in partition.items() if node not in set(padding)}
+    if set(stripped) != set(graph):
+        raise RuntimeError("research padding changed original node coverage")
+    return stripped
+
+
 def _mean(values) -> float:
     values = list(values)
     return sum(values) / len(values) if values else 0.0
@@ -81,21 +111,27 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
             if any(candidate_id in missing for candidate_id in ("metis", "kahip")):
                 backend_imbalance = _integer_feasible_imbalance(graph, K)
                 backend_ufactor = int(ceil(backend_imbalance * 1000))
+                padded_graph, padding_nodes = _pad_isolated_nodes(graph, K)
                 retry_metadata = {
                     "research_balance_tolerance": backend_imbalance,
                     "research_metis_ufactor": backend_ufactor,
+                    "research_padding_nodes": len(padding_nodes),
+                    "research_padding_target_nodes": padded_graph.number_of_nodes(),
                 }
 
                 if "metis" in missing:
                     try:
                         retry_started = time.perf_counter()
-                        partition, edge_cut, balance_error = _run_metis(
-                            graph,
+                        padded_partition, _, _ = _run_metis(
+                            padded_graph,
                             seed=seed,
                             k=K,
                             recursive=False,
                             ufactor=backend_ufactor,
                         )
+                        partition = _strip_padding(graph, padded_partition, padding_nodes)
+                        partition, edge_cut, balance_error = _postprocess_partition(graph, partition)
+
                         candidates["metis"] = PortfolioCandidate(
                             id="metis",
                             name="METIS(PyMetis)",
@@ -117,12 +153,14 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                     try:
                         from atof.portfolio import _run_kahip
                         retry_started = time.perf_counter()
-                        partition, edge_cut, balance_error = _run_kahip(
-                            graph,
+                        padded_partition, _, _ = _run_kahip(
+                            padded_graph,
                             seed=seed,
                             k=K,
                             imbalance=backend_imbalance,
                         )
+                        partition = _strip_padding(graph, padded_partition, padding_nodes)
+                        partition, edge_cut, balance_error = _postprocess_partition(graph, partition)
                         candidates["kahip"] = PortfolioCandidate(
                             id="kahip",
                             name="KaHIP(KaFFPa-Strong)",
