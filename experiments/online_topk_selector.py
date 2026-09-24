@@ -6,7 +6,6 @@ from collections import defaultdict
 from pathlib import Path
 
 from experiments.topk_routing_coverage import (
-    TOP_K,
     _build_records,
     _fit,
     _load,
@@ -76,7 +75,11 @@ def _predict_alternate(
             candidate_median.get(candidate, rank_median.get(rank, 0.0)),
         )
         candidates.append((prediction, rank, candidate))
-    return min(candidates, key=lambda item: (item[0], item[1], item[2]))[2:]
+    prediction, _, candidate = min(
+        candidates,
+        key=lambda item: (item[0], item[1], item[2]),
+    )
+    return candidate, prediction
 
 
 def _summary(values_by_graph: dict[str, list[float]]) -> dict:
