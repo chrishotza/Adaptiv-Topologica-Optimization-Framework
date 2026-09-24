@@ -61,6 +61,14 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
         missing = sorted(set(STRATEGIES) - set(candidates))
         if missing:
             retry_metadata = {}
+            original_errors = {
+                candidate_id: next(
+                    candidate.error
+                    for candidate in result.candidates
+                    if candidate.id == candidate_id
+                )
+                for candidate_id in missing
+            }
             if missing == ["metis"]:
                 try:
                     retry_started = time.perf_counter()
@@ -109,7 +117,7 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
             if missing:
                 raise RuntimeError(
                     f"{corpus}/{name} seed={seed}: missing k=4 candidates {missing}; "
-                    f"retry_metadata={retry_metadata}"
+                    f"original_errors={original_errors}; retry_metadata={retry_metadata}"
                 )
         if retry_metadata:
             retry_by_seed[str(seed)] = retry_metadata
