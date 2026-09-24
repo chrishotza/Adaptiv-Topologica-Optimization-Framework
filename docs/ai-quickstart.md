@@ -50,7 +50,7 @@ The minimal JSON contract is `nodes` (optional for edge-only graphs) plus `edges
 atof profile graph.edgelist --compact
 ~~~
 
-Use this when the agent needs graph size and structural recommendation without the full topology descriptor set.
+Use this when the agent needs graph size and structural recommendation without the full topology descriptor set. `--compact` uses the bounded topology profiler: on graphs above the 2,000-node operational limit it omits all-pairs path metrics and greedy modularity detection rather than silently paying their full cost. Full `atof profile` retains the historical exact profile.
 
 ## 7. k-way Engine mode
 
