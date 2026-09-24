@@ -45,7 +45,7 @@ The adaptive-selection sequence is intentionally cumulative.
 | #104 | Does a topology-local predictor outperform the global pair prior? | Negative result preserved. |
 | #105 | Does hierarchical global/local fusion improve the global selector? | Corrected negative result. The initial implementation was found to collapse candidate-specific priors; it was corrected, rerun, and the corrected evidence did not establish an improvement. |
 | #106 | Does the online selector survive a larger fixed seed grid? | Completed five-seed replication. On the fixed 20-graph corpus and 11-strategy selector protocol, top-1 mean regret was 10.16% and selector regret 1.95%, a paired delta of -8.21 percentage points. The graph-level bootstrap 95% CI was [-23.62, 0] pp, so this replication strengthened consistency but did not establish definitive statistical separation from zero. |
-| #108 | Does topology routing transfer from bisection to a genuine k=4 partitioning setting? | Completed frozen k=4 leave-one-corpus-out study on 20 graphs × 3 seeds × 8 strategies. On the final corrected HEAD, centroid routing had 0.714% mean relative regret and nearest routing 0.445%, versus 3.408% for the majority control. Paired bootstrap 95% CIs for router-minus-majority were [-6.356, -0.013] pp and [-6.617, -0.202] pp respectively. This is domain-local transfer evidence within graph partitioning, not cross-domain generality. |
+| #108 | Does topology routing transfer from bisection to a genuine k=4 partitioning setting? | Completed frozen k=4 leave-one-corpus-out study on 20 graphs × 3 seeds × 8 strategies. Current-head rerun reproduces the 0.714% centroid / 0.445% nearest mean regret versus 3.408% majority control, with paired bootstrap CIs [-6.356, -0.013] pp and [-6.617, -0.202] pp. A validated five-seed replication (7/42/101/2024/8191) gives 1.841% centroid, 0.440% nearest, 3.701% majority; nearest CI remains below zero while centroid CI crosses zero. Seed-instability is 60% (12/20 graphs). Evidence remains domain-local to graph partitioning. |
 
 The sequence matters: later experiments are attempts to explain or stress-test earlier effects, not a stack of independently selected wins.
 
@@ -109,7 +109,7 @@ For research claims, inspect in this order:
 
 Do not infer a result from a PR title, branch name, or README sentence alone.
 
-The final k=4 evidence currently corresponds to the corrected branch HEAD and successful workflow artifact produced from commit 72ba33ae2610a362eefa471def06d485244cc02d.
+The historical k=4 validation was first recorded on commit 72ba33ae2610a362eefa471def06d485244cc02d. The current branch HEAD 6178b820befda5368035bcd2b38aa1aede24ffc2 reran the same three-seed protocol successfully; GitHub Actions executed the PR merge ref 060dad6af5b5591b903397e4747d3a20a2481725. A separate five-seed replication also completed successfully on the current HEAD.
 
 ## Promotion rule
 
