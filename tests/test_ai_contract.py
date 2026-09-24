@@ -177,3 +177,43 @@ def test_doctor_report_validates_against_json_schema(capsys):
     )
 
     Draft202012Validator(schema).validate(instance)
+
+
+def test_doctor_readiness_excludes_installed_but_unimportable_backend(monkeypatch):
+    from atof.backends import inspect_backends
+
+    real_import = __import__("importlib").import_module
+
+    def fake_import(name):
+        if name == "pymetis":
+            raise OSError("native library unavailable")
+        return real_import(name)
+
+    monkeypatch.setattr("atof.backends.importlib.import_module", fake_import)
+
+    def fake_version(name):
+        return "test-version" if name == "pymetis" else None
+
+    monkeypatch.setattr("atof.backends.package_version", fake_version)
+
+    backends = inspect_backends()
+    metis = next(item for item in backends if item.id == "metis")
+
+    assert metis.available is True
+    assert metis.importable is False
+    assert "native library unavailable" in metis.import_error
+    assert metis.error == "package installed but import failed"
+
+
+def test_doctor_schema_declares_importability_fields():
+    import json
+    from pathlib import Path
+
+    schema = json.loads(
+        (Path(__file__).parents[1] / "schemas" / "atof-doctor-v1.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    backend_schema = schema["properties"]["backends"]["items"]
+    assert "importable" in backend_schema["properties"]
+    assert "import_error" in backend_schema["properties"]
