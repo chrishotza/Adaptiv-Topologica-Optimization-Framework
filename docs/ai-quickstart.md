@@ -16,7 +16,7 @@ Returns the compact atof.ai.v1 manifest.
 atof doctor
 ~~~
 
-Returns backend availability, versions, input formats, and a compact runtime summary. Its `portfolio_kway_ready` field tells an agent whether the current environment has at least one k-way-capable Portfolio backend that is actually importable. Each backend also reports `available` (package installed) separately from `importable` (Python/native module loads successfully). Use "atof doctor --full" for the expanded environment record and `portfolio_kway_backends` list.
+Returns backend availability, versions, input formats, and a compact runtime summary. Its `portfolio_kway_ready` field tells an agent whether the current environment has at least one k-way-capable Portfolio backend that is actually importable. Each backend also reports `available` (package installed) separately from `importable` (Python/native module loads successfully). Use `atof doctor --probe` when the agent needs a real execution check on a tiny graph; each backend gets an operational result without requiring the agent to parse logs. Use `atof doctor --full` for the expanded environment record and `portfolio_kway_backends` list.
 
 ## 3. Fast solve
 
