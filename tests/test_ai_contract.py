@@ -284,3 +284,14 @@ def test_doctor_probe_reports_global_failure_without_raising(monkeypatch):
     assert report["probe"]["ok"] is False
     assert report["probe"]["backends"] == {}
     assert report["probe"]["error"] == "RuntimeError: all backends failed"
+
+
+def test_ai_manifest_exposes_optional_probe_flag(capsys):
+    from atof.cli import main
+    import json
+
+    assert main(["ai"]) == 0
+    manifest = json.loads(capsys.readouterr().out)
+
+    assert manifest["commands"]["doctor"] == "atof doctor"
+    assert manifest["commands"]["short_flags"]["probe"] == "--probe"
