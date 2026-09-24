@@ -44,5 +44,6 @@ def test_tiny_graph_padding_isolated_and_reversible():
     assert padded.number_of_nodes() == 16
     assert len(padding) == 1
     assert set(padded) == set(graph) | set(padding)
-    stripped = _strip_padding(graph, {node: node % 4 for node in padded}, padding)
+    membership = {node: index % 4 for index, node in enumerate(padded)}
+    stripped = _strip_padding(graph, membership, padding)
     assert set(stripped) == set(graph)
