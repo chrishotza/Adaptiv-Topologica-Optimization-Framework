@@ -180,38 +180,58 @@ def build_doctor_report(*, full: bool = False, probe: bool = False) -> dict:
     if probe:
         import networkx as nx
 
-        probe_payload = {
-            "requested": True,
-            "ok": False,
-            "error": None,
-            "graph": {"nodes": 8, "edges": 7},
-            "k": 2,
-            "seed": 0,
-            "iterations": 1,
-            "backends": {},
-        }
-        try:
-            probe_graph = nx.path_graph(8)
-            probe_result = optimize_portfolio(
-                probe_graph,
-                k=2,
-                seed=0,
-                iterations=1,
-                include_optional=True,
-            )
-            probe_payload["ok"] = True
-            for candidate in probe_result.candidates:
-                probe_payload["backends"][candidate.id] = {
-                    "ok": bool(candidate.available and candidate.partition is not None),
-                    "edge_cut": candidate.edge_cut,
-                    "balance_error": candidate.balance_error,
-                    "runtime_seconds": candidate.runtime_seconds,
-                    "error": candidate.error,
-                }
-        except Exception as exc:
-            probe_payload["error"] = f"{type(exc).__name__}: {exc}"
+        probe_graph = nx.path_graph(8)
 
-        report["probe"] = probe_payload
+        def _run_probe(requested_k: int) -> dict:
+            payload = {
+                "ok": False,
+                "error": None,
+                "graph": {
+                    "nodes": probe_graph.number_of_nodes(),
+                    "edges": probe_graph.number_of_edges(),
+                },
+                "k": requested_k,
+                "seed": 0,
+                "iterations": 1,
+                "backends": {},
+            }
+            try:
+                result = optimize_portfolio(
+                    probe_graph,
+                    k=requested_k,
+                    seed=0,
+                    iterations=1,
+                    include_optional=True,
+                )
+                for candidate in result.candidates:
+                    operational = bool(
+                        candidate.available and candidate.partition is not None
+                    )
+                    payload["backends"][candidate.id] = {
+                        "ok": operational,
+                        "edge_cut": candidate.edge_cut,
+                        "balance_error": candidate.balance_error,
+                        "runtime_seconds": candidate.runtime_seconds,
+                        "error": candidate.error,
+                    }
+                payload["ok"] = any(
+                    item["ok"] for item in payload["backends"].values()
+                )
+                if not payload["ok"] and payload["backends"]:
+                    payload["error"] = "no backend completed the probe"
+            except Exception as exc:
+                payload["error"] = f"{type(exc).__name__}: {exc}"
+            return payload
+
+        k2_probe = _run_probe(2)
+        kway_probe = _run_probe(4)
+        report["probe"] = {
+            "requested": True,
+            "ok": k2_probe["ok"] and kway_probe["ok"],
+            "error": k2_probe["error"] or kway_probe["error"],
+            "k2": k2_probe,
+            "k4": kway_probe,
+        }
 
     if not full:
         report["runtime"] = {
