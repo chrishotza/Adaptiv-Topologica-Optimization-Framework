@@ -1,0 +1,71 @@
+name: K8 degree-hub prospective replication
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k8_degree_hub_replication.py"
+      - "tests/test_k8_degree_hub_replication.py"
+      - "experiments/run_expanded_20graph_kahip_transfer.py"
+      - "src/atof/routing.py"
+      - "src/atof/portfolio.py"
+      - "src/atof/topology.py"
+      - "src/atof/statistics.py"
+      - ".github/workflows/k8-degree-hub-replication.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  k8-degree-hub:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+
+      - name: Run protocol tests
+        run: |
+          pytest -q tests/test_k8_degree_hub_replication.py
+
+      - name: Run frozen k=8 five-seed replication
+        run: |
+          python -m experiments.k8_degree_hub_replication             --output results/state_of_art/k8_degree_hub_replication_latest.json             --cache-dir .cache/snap
+
+      - name: Validate replication manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/state_of_art/k8_degree_hub_replication_latest.json")
+              .read_text(encoding="utf-8")
+          )
+          assert payload["k"] == 8
+          assert payload["seeds"] == [7, 42, 101, 2024, 8191]
+          assert payload["router"]["features"] == [
+              "density", "avg_degree", "degree_std", "hub_ratio", "degree_gini"
+          ]
+          assert len(payload["candidate_strategies"]) == 8
+          assert len(payload["graph_manifest"]) == 20
+          assert payload["evaluation"]["graphs"] == 20
+          assert payload["evaluation"]["seed_stability"]["seed_count"] == 5
+          print(json.dumps(payload["evaluation"]["macro"], indent=2))
+          PY
+
+      - name: Upload replication artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8-degree-hub-replication
+          path: results/state_of_art/k8_degree_hub_replication_latest.json
+          if-no-files-found: error
