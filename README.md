@@ -224,7 +224,7 @@ See [docs/claims.md](docs/claims.md), [docs/open-source-access-benchmark.md](doc
 | Portfolio partitioning | k-way (`k>=2`) |
 | Input | edge-list, JSON, GraphML, GEXF, GML |
 | Output | JSON + JSON/CSV/TSV partition mapping |
-| Optional engines | METIS / KaHIP |
+| Optional engines | METIS / KaHIP / KaMinPar / Mt-KaHyPar |
 | Evidence | reproducible provenance + benchmark-qualified claims |
 
 The public graph model remains unweighted: source edge `weight` attributes are accepted as metadata but ignored. Portfolio mode supports balanced `k>=2` unweighted partitioning; NetworkX Kernighan-Lin is available only for `k=2`, while METIS/KaHIP and ATOF Engine support k-way requests.
