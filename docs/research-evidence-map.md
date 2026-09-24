@@ -29,7 +29,7 @@ See docs/claims.md for the supported claim boundary.
 
 ## Research lineage
 
-The recent adaptive-selection sequence is intentionally cumulative.
+The adaptive-selection sequence is intentionally cumulative.
 
 | PR | Research question | Evidence status |
 |---|---|---|
@@ -44,15 +44,18 @@ The recent adaptive-selection sequence is intentionally cumulative.
 | #103 | Are training-only predicted benefits calibrated to held-out realized benefits? | Calibration study; shows why aggregate activation is not enough. |
 | #104 | Does a topology-local predictor outperform the global pair prior? | Negative result preserved. |
 | #105 | Does hierarchical global/local fusion improve the global selector? | Corrected negative result. The initial implementation was found to collapse candidate-specific priors; it was corrected, rerun, and the corrected evidence did not establish an improvement. |
-| #106 | Does the online selector survive a larger fixed seed grid? | Open research run. Five fixed seeds are being evaluated; do not cite it as completed evidence until the benchmark is complete and validated. |
+| #106 | Does the online selector survive a larger fixed seed grid? | Completed five-seed replication. On the fixed 20-graph corpus and 11-strategy selector protocol, top-1 mean regret was 10.16% and selector regret 1.95%, a paired delta of -8.21 percentage points. The graph-level bootstrap 95% CI was [-23.62, 0] pp, so this replication strengthened consistency but did not establish definitive statistical separation from zero. |
+| #108 | Does topology routing transfer from bisection to a genuine k=4 partitioning setting? | Completed frozen k=4 leave-one-corpus-out study on 20 graphs × 3 seeds × 8 strategies. On the final corrected HEAD, centroid routing had 0.714% mean relative regret and nearest routing 0.445%, versus 3.408% for the majority control. Paired bootstrap 95% CIs for router-minus-majority were [-6.356, -0.013] pp and [-6.617, -0.202] pp respectively. This is domain-local transfer evidence within graph partitioning, not cross-domain generality. |
 
 The sequence matters: later experiments are attempts to explain or stress-test earlier effects, not a stack of independently selected wins.
 
-## The current scientific question
+## Current strongest research question
 
 The strongest current research question is not: Can ATOF always choose the best graph partitioner?
 
 The better-posed question is: Under a fixed graph-partitioning contract, can topology-only information plus training-fold outcomes support a bounded, oracle-free decision about when to spend an additional solver action?
+
+A second research question is now established as a separate line: whether topology-based routing transfers across partitioning cardinality within the same graph domain, from k=2 to genuine k-way k=4 partitioning.
 
 That question is measurable because the protocol can expose:
 
@@ -76,9 +79,12 @@ The repository does not currently establish:
 - a universally calibrated adaptive selector;
 - robustness to arbitrary unseen graph populations;
 - validity for objectives other than the documented partitioning objective;
-- validity of the adaptive-selection research outside graph partitioning.
+- validity of the adaptive-selection research outside graph partitioning;
+- cross-domain generality merely from the k=4 result.
 
-The last point is important. The repository's current adaptive-selection evidence is domain-specific. A future cross-domain validation should be treated as a new research program with its own benchmark, oracle definition, costs, and held-out protocol rather than inferred from graph results.
+The k=4 experiment addresses a narrower and falsifiable question: transfer across partitioning cardinality while holding the graph domain fixed.
+
+A future cross-domain validation should be treated as a new research program with its own benchmark, oracle definition, costs, and held-out protocol rather than inferred from graph results.
 
 ## Why the negative results are retained
 
@@ -103,6 +109,8 @@ For research claims, inspect in this order:
 
 Do not infer a result from a PR title, branch name, or README sentence alone.
 
+The final k=4 evidence currently corresponds to the corrected branch HEAD and successful workflow artifact produced from commit 72ba33ae2610a362eefa471def06d485244cc02d.
+
 ## Promotion rule
 
 No research experiment automatically changes the public/default ATOF behavior.
@@ -115,6 +123,8 @@ A research finding becomes a product candidate only after:
 - uncertainty is reported;
 - the result is replicated or independently stress-tested;
 - the product contract is updated explicitly.
+
+The k=4 routing experiment made no production/default change.
 
 ## Research directory map
 
