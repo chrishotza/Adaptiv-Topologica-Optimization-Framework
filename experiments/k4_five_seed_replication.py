@@ -9,11 +9,10 @@ from experiments import k4_routing_generalization as base
 # controls, and leave-one-corpus-out split; only the fixed solver seed grid
 # is expanded from 3 seeds to 5.
 SEEDS = (7, 42, 101, 2024, 8191)
-base.SEEDS = SEEDS
 
 
 def run(output_path: str | Path, cache_dir: str | Path | None = None) -> dict:
-    return base.run(output_path, cache_dir)
+    return base.run(output_path, cache_dir, seeds=SEEDS)
 
 
 def main() -> int:
