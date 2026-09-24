@@ -65,7 +65,10 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                 try:
                     retry_started = time.perf_counter()
                     partition, edge_cut, balance_error = _run_metis(
-                        graph, seed=seed, k=K
+                        graph,
+                        seed=seed,
+                        k=K,
+                        recursive=False,
                     )
                     candidates["metis"] = {
                         "edge_cut": int(edge_cut),
@@ -80,6 +83,7 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                     retry_metadata = {
                         "metis_retry_count": 1,
                         "metis_retry_reason": "first portfolio invocation returned unavailable",
+                        "metis_retry_mode": "direct_kway",
                         "metis_original_error": original_candidate.error,
                     }
                     missing = sorted(set(STRATEGIES) - set(candidates))
