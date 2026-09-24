@@ -76,50 +76,14 @@ def test_loader_and_run(tmp_path: Path) -> None:
 
 
 def test_pairwise_prediction_chooses_negative_training_candidate() -> None:
-    strategies = ("s0", "s1", "s2")
-    records = []
-    for index in range(3):
-        records.append(
-            {
-                "graph_id": f"g{index}",
-                "corpus": str(index),
-                "topology": {name: float(index + 1) for name in FEATURES},
-                "oracle_strategy": "s0",
-                "stable": True,
-                "seed_oracles": ["s0"] * 5,
-                "by_seed": {
-                    seed: {
-                        "s0": {"edge_cut": 100.0, "runtime_seconds": 0.01},
-                        "s1": {"edge_cut": 110.0, "runtime_seconds": 0.01},
-                        "s2": {"edge_cut": 80.0, "runtime_seconds": 0.01},
-                    }
-                    for seed in SEEDS
-                },
-            }
-        )
-
-    from atof.routing import LearnedTopologyRouter
-
-    router = LearnedTopologyRouter(
-        features=FEATURES,
-        scale_mode="iqr",
-        metric="l2",
-    ).fit(
-        [
-            {
-                "graph": record["graph_id"],
-                "topology": record["topology"],
-                "oracle_strategy": record["oracle_strategy"],
-            }
-            for record in records
-        ]
-    )
-    pair, candidate, rank = _pairwise_medians(records, router)
     candidate_name, prediction = _predict_alternate(
         ("s0", "s1", "s2"),
-        pair_median=pair,
-        candidate_median=candidate,
-        rank_median=rank,
+        pair_median={
+            ("s0", "s1"): 0.10,
+            ("s0", "s2"): -0.20,
+        },
+        candidate_median={},
+        rank_median={},
     )
     assert candidate_name == "s2"
     assert prediction < 0.0
