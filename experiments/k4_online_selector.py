@@ -225,7 +225,14 @@ def run(path: Path) -> dict:
                 seed_values = record["by_seed"].get(seed)
                 if seed_values is None:
                     seed_values = record["by_seed"][str(seed)]
-                oracle_cut = _oracle_cut(seed_values)
+                oracle_strategy = min(
+                    seed_values,
+                    key=lambda name: (
+                        float(seed_values[name]["edge_cut"]),
+                        name,
+                    ),
+                )
+                oracle_cut = float(seed_values[oracle_strategy]["edge_cut"])
                 top1_cut = float(seed_values[top1]["edge_cut"])
                 alternate_cut = float(seed_values[alternate]["edge_cut"])
                 majority_cut = float(seed_values[majority]["edge_cut"])
@@ -255,12 +262,10 @@ def run(path: Path) -> dict:
                 realized_by_graph[record["graph_id"]].append(realized_delta)
                 probe_flags.append(int(probe))
                 action_counts.append(action)
-                oracle_hits.append(
-                    int(
-                        oracle_cut == top1_cut
-                        or (probe and oracle_cut == min(top1_cut, alternate_cut))
-                    )
-                )
+                selected_strategy = top1
+                if probe and alternate_cut < top1_cut:
+                    selected_strategy = alternate
+                oracle_hits.append(int(selected_strategy == oracle_strategy))
 
                 fold_top1.append(top1_value)
                 fold_selector.append(selector_value)
@@ -415,11 +420,6 @@ def run(path: Path) -> dict:
                 "graph_id": graph_id,
                 "predicted_relative_delta_mean": _mean(predicted_by_graph[graph_id]),
                 "realized_relative_delta_mean": _mean(realized_by_graph[graph_id]),
-                "probe": bool(
-                    any(
-                        False for _ in ()
-                    )
-                ),
             }
             for graph_id in graph_ids
         ],
