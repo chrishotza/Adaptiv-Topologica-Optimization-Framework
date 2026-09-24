@@ -42,6 +42,14 @@ Inspect the environment:
 atof doctor
 ```
 
+Run a real backend execution probe when runtime health matters:
+
+```bash
+atof doctor --probe
+```
+
+The probe uses a tiny graph and reports operational success/failure per backend without changing product defaults.
+
 Run the shortest practical AI path:
 
 ```bash
@@ -154,6 +162,7 @@ The machine-facing surface is deliberately small:
 ```bash
 atof ai
 atof doctor
+atof doctor --probe
 atof solve graph.edgelist
 atof solve graph.edgelist --k 4
 atof compare graph.edgelist --k 4 --compact
