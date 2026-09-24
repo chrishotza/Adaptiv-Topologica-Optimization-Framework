@@ -140,10 +140,10 @@ def build_ai_manifest(*, full: bool = False) -> dict:
 def build_doctor_report(*, full: bool = False) -> dict:
     """Describe the current execution environment and backend availability."""
     backends = [item.to_dict() for item in inspect_backends()]
-    available_ids = {
+    usable_ids = {
         item["id"]
         for item in backends
-        if item["available"]
+        if item.get("available") and item.get("importable")
     }
     portfolio_backend_ids = {
         "bloc",
@@ -171,9 +171,9 @@ def build_doctor_report(*, full: bool = False) -> dict:
         "runtime": runtime_metadata(),
         "backends": backends,
         "input_formats": [item for item in SUPPORTED_INPUT_FORMATS if item != "auto"],
-        "portfolio_ready": bool(available_ids & portfolio_backend_ids),
-        "portfolio_kway_ready": bool(available_ids & kway_backend_ids),
-        "portfolio_kway_backends": sorted(available_ids & kway_backend_ids),
+        "portfolio_ready": bool(usable_ids & portfolio_backend_ids),
+        "portfolio_kway_ready": bool(usable_ids & kway_backend_ids),
+        "portfolio_kway_backends": sorted(usable_ids & kway_backend_ids),
     }
     if not full:
         report["runtime"] = {
