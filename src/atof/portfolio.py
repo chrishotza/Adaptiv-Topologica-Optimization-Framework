@@ -147,10 +147,24 @@ def _rebalance_kway(
     while True:
         # A valid balanced k-way partition has block sizes floor(n/k) or
         # ceil(n/k). Only blocks outside that closed interval require repair.
-        sources = [block for block, count in enumerate(counts) if count > upper]
+        oversized = [block for block, count in enumerate(counts) if count > upper]
         undersized = [block for block, count in enumerate(counts) if count < lower]
-        if not sources and not undersized:
+        if not oversized and not undersized:
             return result
+
+        # When a block is below floor(n/k), another block may only be at
+        # ceil(n/k) rather than above it (e.g. [20, 18, 19, 20] for n=77,k=4).
+        # That ceil-sized block is a valid donor for the one-node repair.
+        if undersized:
+            sources = [block for block, count in enumerate(counts) if count > lower]
+        else:
+            sources = oversized
+        if not sources:
+            raise RuntimeError(
+                "could not identify a donor block for partition balance; "
+                f"n={len(result)}, k={k}, counts={counts}, "
+                f"oversized={oversized}, undersized={undersized}"
+            )
 
         source = min(sources)
         targets = tuple(undersized)
