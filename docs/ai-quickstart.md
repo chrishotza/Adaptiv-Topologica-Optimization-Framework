@@ -26,7 +26,7 @@ atof solve graph.edgelist --k 4
 atof solve graph.edgelist --partition-output partition.csv
 ~~~
 
-This is the shortest practical path: portfolio optimization, `k=2` by default, with `--k N` available for balanced k-way runs, compact JSON output, default seed 42.
+This is the shortest practical path: portfolio optimization, `k=2` by default, with `--k N` available for balanced k-way runs, compact JSON output, default seed 42. The solve path uses bounded topology profiling and records `parameters.profile_mode="bounded"` in Portfolio output.
 
 ## 4. Pipe a graph directly
 
@@ -68,7 +68,7 @@ atof compare graph.edgelist
 atof compare graph.edgelist --k 4 --compact
 ~~~
 
-Use this when an agent needs both ATOF's native Engine and the empirical Portfolio under identical parameters. The response is identified as `atof.compare.v1` and reports observed edge-cut and balance deltas without claiming global optimality.
+Use this when an agent needs both ATOF's native Engine and the empirical Portfolio under identical parameters. Portfolio `--compact` uses bounded profiling; full Portfolio output keeps exact historical profiling. The response is identified as `atof.compare.v1` and reports observed edge-cut and balance deltas without claiming global optimality.
 
 ## 8. Full evidence
 
