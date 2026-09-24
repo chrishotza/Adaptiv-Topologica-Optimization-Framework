@@ -19,7 +19,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
         "primary_flow": "ai->doctor->solve->compact JSON",
         "commands": {
             "ai": "atof ai",
-            "doctor": "atof doctor [--probe]",
+            "doctor": "atof doctor",
             "solve": "atof solve <graph> [--k N]",
             "compare": "atof compare <graph> [--k N]",
             "module": "python -m atof",
