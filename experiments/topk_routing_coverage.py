@@ -119,6 +119,13 @@ def _summary(values_by_graph: dict[str, list[float]]) -> dict:
         for graph_id, values in sorted(values_by_graph.items())
     }
     values = list(graph_means.values())
+    if not values:
+        return {
+            "graphs": 0,
+            "mean_graph_value": None,
+            "bootstrap_95_ci": None,
+            "graph_values": {},
+        }
     lower, upper = bootstrap_mean_ci(
         values,
         resamples=RESAMPLES,
