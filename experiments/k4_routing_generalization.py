@@ -9,7 +9,7 @@ import time
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from atof.portfolio import optimize_portfolio
+from atof.portfolio import _run_metis, optimize_portfolio
 from atof.routing import LearnedTopologyRouter, NearestTopologyRouter
 from atof.statistics import bootstrap_mean_ci
 from atof.topology import TopologyProfiler
@@ -58,9 +58,34 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
         }
         missing = sorted(set(STRATEGIES) - set(candidates))
         if missing:
-            raise RuntimeError(
-                f"{corpus}/{name} seed={seed}: missing k=4 candidates {missing}"
-            )
+            retry_metadata = {}
+            if missing == ["metis"]:
+                try:
+                    retry_started = time.perf_counter()
+                    partition, edge_cut, balance_error = _run_metis(
+                        graph, seed=seed, k=K
+                    )
+                    candidates["metis"] = {
+                        "edge_cut": int(edge_cut),
+                        "runtime_seconds": float(time.perf_counter() - retry_started),
+                        "balance_error": float(balance_error),
+                    }
+                    retry_metadata = {
+                        "metis_retry_count": 1,
+                        "metis_retry_reason": "first portfolio invocation returned unavailable",
+                    }
+                    missing = sorted(set(STRATEGIES) - set(candidates))
+                except Exception as exc:
+                    retry_metadata = {
+                        "metis_retry_count": 1,
+                        "metis_retry_reason": "first portfolio invocation returned unavailable",
+                        "metis_retry_error": f"{type(exc).__name__}: {exc}",
+                    }
+            if missing:
+                raise RuntimeError(
+                    f"{corpus}/{name} seed={seed}: missing k=4 candidates {missing}; "
+                    f"retry_metadata={retry_metadata}"
+                )
         by_seed[seed] = {
             strategy: {
                 "edge_cut": int(candidates[strategy].edge_cut),
@@ -91,6 +116,7 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
         "seed_oracles": seed_oracles,
         "stable": len(set(seed_oracles)) == 1,
         "by_seed": by_seed,
+        "backend_retries": retry_metadata if "retry_metadata" in locals() else {},
     }
 
 
