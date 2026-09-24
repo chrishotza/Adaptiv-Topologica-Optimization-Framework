@@ -530,7 +530,11 @@ def main() -> int:
     if args.worker:
         if not args.strategy:
             raise SystemExit("--strategy is required with --worker")
-        rows = run_isolated_strategy(args.strategy, cache_dir=args.cache_dir)
+        rows = run_isolated_strategy(
+            args.strategy,
+            cache_dir=args.cache_dir,
+            seeds=tuple(args.seeds),
+        )
         print(json.dumps(rows, separators=(",", ":")))
         return 0
 
