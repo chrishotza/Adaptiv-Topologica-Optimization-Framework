@@ -220,7 +220,6 @@ def test_doctor_schema_declares_importability_fields():
 
 
 def test_doctor_operational_probe_reports_backend_execution(monkeypatch):
-    from types import SimpleNamespace
 
     class FakeCandidate:
         def __init__(self, backend_id, ok, error=None):
