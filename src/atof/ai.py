@@ -180,31 +180,38 @@ def build_doctor_report(*, full: bool = False, probe: bool = False) -> dict:
     if probe:
         import networkx as nx
 
-        probe_graph = nx.path_graph(8)
-        probe_result = optimize_portfolio(
-            probe_graph,
-            k=2,
-            seed=0,
-            iterations=1,
-            include_optional=True,
-        )
-        probe_backends = {}
-        for candidate in probe_result.candidates:
-            probe_backends[candidate.id] = {
-                "ok": bool(candidate.available and candidate.partition is not None),
-                "edge_cut": candidate.edge_cut,
-                "balance_error": candidate.balance_error,
-                "runtime_seconds": candidate.runtime_seconds,
-                "error": candidate.error,
-            }
-        report["probe"] = {
+        probe_payload = {
             "requested": True,
+            "ok": False,
+            "error": None,
             "graph": {"nodes": 8, "edges": 7},
             "k": 2,
             "seed": 0,
             "iterations": 1,
-            "backends": probe_backends,
+            "backends": {},
         }
+        try:
+            probe_graph = nx.path_graph(8)
+            probe_result = optimize_portfolio(
+                probe_graph,
+                k=2,
+                seed=0,
+                iterations=1,
+                include_optional=True,
+            )
+            probe_payload["ok"] = True
+            for candidate in probe_result.candidates:
+                probe_payload["backends"][candidate.id] = {
+                    "ok": bool(candidate.available and candidate.partition is not None),
+                    "edge_cut": candidate.edge_cut,
+                    "balance_error": candidate.balance_error,
+                    "runtime_seconds": candidate.runtime_seconds,
+                    "error": candidate.error,
+                }
+        except Exception as exc:
+            probe_payload["error"] = f"{type(exc).__name__}: {exc}"
+
+        report["probe"] = probe_payload
 
     if not full:
         report["runtime"] = {
