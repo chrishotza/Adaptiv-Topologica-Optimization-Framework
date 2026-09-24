@@ -37,12 +37,12 @@ def test_quality_router_uses_strategy_specific_outcomes() -> None:
     ]
     router = QualityConditionedRouter(k_neighbors=3).fit(training)
 
-    near_low = {"density": 0.10}
+    near_low = training[0]["topology"]
     scores_low = router.predict_scores(near_low)
     assert scores_low["solver_a"] < scores_low["solver_b"]
     assert router.rank(near_low)[0] == "solver_a"
 
-    near_high = {"density": 0.80}
+    near_high = training[2]["topology"]
     scores_high = router.predict_scores(near_high)
     assert scores_high["solver_b"] < scores_high["solver_a"]
     assert router.rank(near_high)[0] == "solver_b"
