@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - hardening/topology-profile-scalability-clean
+  pull_request:
 
 jobs:
   snap-scalability:
+    if: github.event_name != 'pull_request' || github.head_ref == 'hardening/topology-profile-scalability-clean'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
