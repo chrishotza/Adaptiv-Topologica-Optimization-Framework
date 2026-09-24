@@ -188,3 +188,17 @@ def test_portfolio_is_reproducible_for_same_seed():
     assert first["result"]["partition"] == second["result"]["partition"]
     assert first["result"]["edge_cut"] == second["result"]["edge_cut"]
     assert first["provenance"]["graph_fingerprint"] == second["provenance"]["graph_fingerprint"]
+
+
+def test_portfolio_records_profile_mode():
+    graph = nx.cycle_graph(8)
+    result = optimize_portfolio(
+        graph,
+        k=2,
+        seed=42,
+        iterations=2,
+        include_optional=False,
+        profile_mode="bounded",
+    )
+    assert result.profile_mode == "bounded"
+    assert result.to_dict()["parameters"]["profile_mode"] == "bounded"
