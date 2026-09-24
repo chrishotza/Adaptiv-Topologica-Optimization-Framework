@@ -152,22 +152,28 @@ def _rebalance_kway(
         if not oversized and not undersized:
             return result
 
-        # When a block is below floor(n/k), another block may only be at
-        # ceil(n/k) rather than above it (e.g. [20, 18, 19, 20] for n=77,k=4).
-        # That ceil-sized block is a valid donor for the one-node repair.
-        if undersized:
-            sources = [block for block, count in enumerate(counts) if count > lower]
-        else:
+        if oversized:
+            # Repair a block above ceil(n/k) by moving one node into any block
+            # below ceil(n/k), including a floor-sized block.
             sources = oversized
-        if not sources:
+            targets = tuple(
+                block for block, count in enumerate(counts) if count < upper
+            )
+        else:
+            # When a block is below floor(n/k), another block may only be at
+            # ceil(n/k) rather than above it (e.g. [20, 18, 19, 20] for n=77,k=4).
+            # That ceil-sized block is a valid donor for the one-node repair.
+            sources = [block for block, count in enumerate(counts) if count > lower]
+            targets = tuple(undersized)
+
+        if not sources or not targets:
             raise RuntimeError(
-                "could not identify a donor block for partition balance; "
+                "could not identify donor/target blocks for partition balance; "
                 f"n={len(result)}, k={k}, counts={counts}, "
                 f"oversized={oversized}, undersized={undersized}"
             )
 
         source = min(sources)
-        targets = tuple(undersized)
 
         candidates: list[tuple[int, str, int, int]] = []
         for node in nodes:
