@@ -9,6 +9,7 @@
 - Reproducible SNAP topology scalability runner and manual GitHub Actions workflow for the larger ca-GrQc, ca-HepTh, and Wiki-Vote corpus.
 - Portfolio compact paths now request bounded topology profiling and record the selected profiling mode in `atof.portfolio.v1` parameters.
 - Manual SNAP k-way operational stress workflow covering k=2, 4, and 8.
+- Validated 2026-09-24 SNAP k-way stress evidence: 9/9 cases completed successfully with bounded profiling; artifact 10814886223.
 
 - Runtime JSON Schema validation for AI, Engine, and Portfolio outputs in the development test suite.
 
