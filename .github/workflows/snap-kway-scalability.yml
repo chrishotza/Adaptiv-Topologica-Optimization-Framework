@@ -2,9 +2,11 @@ name: SNAP k-way portfolio scalability
 
 on:
   workflow_dispatch:
+  pull_request:
 
 jobs:
   kway-scalability:
+    if: github.event_name != 'pull_request' || github.head_ref == 'hardening/topology-profile-scalability-clean'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
