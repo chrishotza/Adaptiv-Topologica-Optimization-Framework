@@ -128,3 +128,18 @@ def test_doctor_reports_available_kway_backends(monkeypatch):
     assert report["portfolio_ready"] is True
     assert report["portfolio_kway_ready"] is True
     assert report["portfolio_kway_backends"] == ["bloc", "metis"]
+
+
+def test_doctor_kway_fields_are_declared_by_schema():
+    import json
+    from pathlib import Path
+
+    schema = json.loads(
+        (Path(__file__).parents[1] / "schemas" / "atof-doctor-v1.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    properties = schema["properties"]
+    assert properties["portfolio_kway_ready"]["type"] == "boolean"
+    assert properties["portfolio_kway_backends"]["type"] == "array"
