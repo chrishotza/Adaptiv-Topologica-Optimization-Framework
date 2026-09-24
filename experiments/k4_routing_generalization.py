@@ -205,7 +205,7 @@ def _graph_record(graph, corpus: str, name: str, *, seeds: tuple[int, ...] = SEE
             by_seed[seed],
             key=lambda strategy: (by_seed[seed][strategy]["edge_cut"], strategy),
         )
-        for seed in SEEDS
+        for seed in seeds
     ]
     return {
         "corpus": corpus,
