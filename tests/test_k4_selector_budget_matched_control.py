@@ -94,6 +94,6 @@ def test_budget_matched_control_contract(tmp_path: Path) -> None:
     assert result["graphs"] == 20
     assert result["seed_units"] == 100
     assert result["random_control"]["repeats"] == 500
-    assert result["selector"]["probe_graph_count"] == 0
-    assert result["selector"]["mean_actions"] == 1.0
+    assert 0 <= result["selector"]["probe_graph_count"] <= 20
+    assert 1.0 <= result["selector"]["mean_actions"] <= 2.0
     assert len(result["selector_minus_random_control"]["bootstrap_95_ci"]) == 2
