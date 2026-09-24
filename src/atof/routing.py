@@ -238,23 +238,29 @@ class LearnedTopologyRouter:
         }
         return self
 
-    def predict(self, topology: Mapping) -> str:
+    def rank(self, topology: Mapping) -> tuple[str, ...]:
+        """Rank candidate strategies by topology-centroid distance."""
         if not self._centroids:
-            raise RuntimeError("router must be fitted before predict()")
+            raise RuntimeError("router must be fitted before rank()")
 
         vector = topology_vector(topology, self.features)
-        return min(
-            self._centroids,
-            key=lambda strategy: (
-                _distance(
-                    vector,
-                    self._centroids[strategy],
-                    self._scale,
-                    self.metric,
+        return tuple(
+            sorted(
+                self._centroids,
+                key=lambda strategy: (
+                    _distance(
+                        vector,
+                        self._centroids[strategy],
+                        self._scale,
+                        self.metric,
+                    ),
+                    strategy,
                 ),
-                strategy,
-            ),
+            )
         )
+
+    def predict(self, topology: Mapping) -> str:
+        return self.rank(topology)[0]
 
 
 class NearestTopologyRouter:
@@ -304,12 +310,14 @@ class NearestTopologyRouter:
         )
         return self
 
-    def predict(self, topology: Mapping) -> str:
+    def rank(self, topology: Mapping) -> tuple[str, ...]:
+        """Rank candidate strategies by nearest observed topology examples."""
         if not self._training:
-            raise RuntimeError("router must be fitted before predict()")
+            raise RuntimeError("router must be fitted before rank()")
 
         vector = topology_vector(topology, self.features)
-        graph, strategy, _ = min(
+        ranked: list[str] = []
+        for _, strategy, _ in sorted(
             self._training,
             key=lambda item: (
                 _distance(
@@ -321,9 +329,13 @@ class NearestTopologyRouter:
                 item[1],
                 item[0],
             ),
-        )
-        del graph
-        return strategy
+        ):
+            if strategy not in ranked:
+                ranked.append(strategy)
+        return tuple(ranked)
+
+    def predict(self, topology: Mapping) -> str:
+        return self.rank(topology)[0]
 
 
 def graph_oracle(rows: Iterable[Mapping]) -> dict[str, str]:
