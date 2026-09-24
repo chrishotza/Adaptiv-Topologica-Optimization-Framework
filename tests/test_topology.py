@@ -24,7 +24,12 @@ def test_bounded_matches_full_on_small_graph():
     graph = nx.cycle_graph(12)
     full = TopologyProfiler().profile(graph, mode="full")
     bounded = TopologyProfiler().profile(graph, mode="bounded")
-    assert bounded == full
+    for field in full.__dataclass_fields__:
+        actual = getattr(bounded, field)
+        expected = getattr(full, field)
+        if isinstance(actual, float) and math.isnan(actual) and isinstance(expected, float) and math.isnan(expected):
+            continue
+        assert actual == expected, field
 
 
 def test_bounded_skips_expensive_metrics_for_large_graph(monkeypatch):
