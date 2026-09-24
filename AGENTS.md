@@ -5,7 +5,7 @@ ATOF is an open-source graph optimization interface with a stable machine contra
 ## First 30 seconds
 
 1. Run `atof ai` for the stable machine contract.
-2. Run `atof doctor` to inspect available engines and the runtime.
+2. Run `atof doctor` to inspect backend installation/importability and the runtime; use `atof doctor --probe` for a real tiny-graph execution check.
 3. Run `atof solve examples/demo.edgelist` for the shortest practical portfolio path.
 4. Use `--compact` when topology detail or node assignments are not required.
 5. For k-way native Engine work, use `atof optimize <graph> --engine bloc --k <k>` with `k>=2`.
@@ -62,7 +62,7 @@ Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-l
 
 - Default machine output is JSON.
 - `atof.ai.v1` describes capabilities, variant semantics, and limits.
-- `atof.doctor.v1` describes backend installation state, importability, runtime, and whether the current environment can run k-way Portfolio requests (`portfolio_kway_ready`). Treat `available=true` with `importable=false` as installed-but-unusable until the import failure is resolved.
+- `atof.doctor.v1` describes backend installation state, importability, runtime, and whether the current environment can run k-way Portfolio requests (`portfolio_kway_ready`). Treat `available=true` with `importable=false` as installed-but-unusable until the import failure is resolved. Use `doctor --probe` for an actual solver-path check when backend execution matters.
 - `atof.error.v1` describes structured CLI failures.
 - Optional backend failures are reported rather than silently hidden.
 - Full results include provenance suitable for agent-to-agent handoff.
