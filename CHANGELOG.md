@@ -4,6 +4,8 @@
 
 ### Added
 
+- Bounded topology profiling for `atof profile --compact`, with a 2,000-node guard around all-pairs path metrics and greedy modularity detection; full profiling remains unchanged.
+
 - `atof doctor --probe` now exercises both k=2 and k=4 Portfolio paths and reports backend-level operational status for each.
 
 - Runtime JSON Schema validation for AI, Engine, and Portfolio outputs in the development test suite.
