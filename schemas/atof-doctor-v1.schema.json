@@ -9,7 +9,25 @@
     "name": {"const": "atof"},
     "version": {"type": "string"},
     "runtime": {"type": "object"},
-    "backends": {"type": "array"},
+    "backends": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "package", "optional", "available", "version", "importable", "import_error", "error"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "package": {"type": "string"},
+          "optional": {"type": "boolean"},
+          "available": {"type": "boolean"},
+          "version": {"type": ["string", "null"]},
+          "importable": {"type": "boolean"},
+          "import_error": {"type": ["string", "null"]},
+          "error": {"type": ["string", "null"]}
+        },
+        "additionalProperties": false
+      }
+    },
     "input_formats": {"type": "array", "items": {"type": "string"}},
     "portfolio_ready": {"type": "boolean"},
     "portfolio_kway_ready": {"type": "boolean"},
