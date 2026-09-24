@@ -11,6 +11,8 @@
     "runtime": {"type": "object"},
     "backends": {"type": "array"},
     "input_formats": {"type": "array", "items": {"type": "string"}},
-    "portfolio_ready": {"type": "boolean"}
+    "portfolio_ready": {"type": "boolean"},
+    "portfolio_kway_ready": {"type": "boolean"},
+    "portfolio_kway_backends": {"type": "array", "items": {"type": "string"}}
   }
 }
