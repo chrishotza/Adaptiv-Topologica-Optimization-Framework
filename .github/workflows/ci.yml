@@ -72,7 +72,6 @@ jobs:
   package:
     name: Validate Python distribution
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -93,6 +92,7 @@ jobs:
     name: SNAP k-way scalability (hardening branch)
     if: github.event_name == 'pull_request' && github.head_ref == 'hardening/topology-profile-scalability-clean'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
