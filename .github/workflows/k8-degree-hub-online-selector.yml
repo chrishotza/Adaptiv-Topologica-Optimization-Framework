@@ -1,0 +1,65 @@
+name: K8 degree-hub online selector budget control
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k8_degree_hub_online_selector.py"
+      - "experiments/k8_degree_hub_selector_budget_control.py"
+      - "experiments/k8_degree_hub_replication.py"
+      - "tests/test_k8_degree_hub_online_selector.py"
+      - "tests/test_k8_degree_hub_selector_budget_control.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+      - ".github/workflows/k8-degree-hub-online-selector.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  k8-selector:
+    runs-on: ubuntu-latest
+    timeout-minutes: 220
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+      - name: Run protocol tests
+        run: |
+          pytest -q tests/test_k8_degree_hub_online_selector.py tests/test_k8_degree_hub_selector_budget_control.py
+      - name: Run validated k=8 degree-hub five-seed benchmark
+        run: |
+          python -m experiments.k8_degree_hub_replication             --output results/state_of_art/k8_degree_hub_replication_latest.json             --cache-dir .cache/snap
+      - name: Run oracle-free selector
+        run: |
+          python -m experiments.k8_degree_hub_online_selector             --benchmark results/state_of_art/k8_degree_hub_replication_latest.json             --output results/state_of_art/k8_degree_hub_online_selector_latest.json
+      - name: Run budget-matched random control
+        run: |
+          python -m experiments.k8_degree_hub_selector_budget_control             --benchmark results/state_of_art/k8_degree_hub_replication_latest.json             --output results/state_of_art/k8_degree_hub_selector_budget_control_latest.json
+      - name: Validate manifests
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for name in [
+              "k8_degree_hub_replication_latest.json",
+              "k8_degree_hub_online_selector_latest.json",
+              "k8_degree_hub_selector_budget_control_latest.json",
+          ]:
+              payload=json.loads(Path("results/state_of_art") .joinpath(name).read_text())
+              assert payload["k"] == 8
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: k8-degree-hub-online-selector
+          path: |
+            results/state_of_art/k8_degree_hub_replication_latest.json
+            results/state_of_art/k8_degree_hub_online_selector_latest.json
+            results/state_of_art/k8_degree_hub_selector_budget_control_latest.json
+          if-no-files-found: error
