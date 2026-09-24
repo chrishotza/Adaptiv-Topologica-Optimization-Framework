@@ -146,7 +146,12 @@ def _rebalance_kway(
 
     while True:
         oversized = [block for block, count in enumerate(counts) if count > upper]
-        undersized = [block for block, count in enumerate(counts) if count < lower]
+        # A valid k-way partition may contain blocks of either floor(n/k) or
+        # ceil(n/k) nodes. When a source exceeds ceil(n/k), the destination
+        # only needs room to receive one node without exceeding that upper
+        # bound; requiring count < floor(n/k) incorrectly rejects states such
+        # as [476, 474, 474, 475] for n=1899, k=4.
+        undersized = [block for block, count in enumerate(counts) if count < upper]
         if not oversized and not undersized:
             return result
 
