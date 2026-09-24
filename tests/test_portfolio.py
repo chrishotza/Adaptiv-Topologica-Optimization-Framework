@@ -3,6 +3,7 @@ import networkx as nx
 
 from atof.portfolio import (
     PortfolioCandidate,
+    _rebalance_kway,
     _run_kahip,
     _validate_candidate_partition,
     optimize_portfolio,
@@ -107,6 +108,19 @@ def test_portfolio_supports_kway_without_optional_backends():
     assert "k=2" in networkx_candidate["error"]
 
 
+
+
+
+
+def test_rebalance_kway_accepts_floor_ceil_target_state():
+    graph = nx.empty_graph(1899)
+    membership = [0] * 476 + [1] * 474 + [2] * 474 + [3] * 475
+
+    repaired = _rebalance_kway(graph, membership, 4)
+    counts = [repaired.count(block) for block in range(4)]
+
+    assert sorted(counts) == [474, 475, 475, 475]
+    assert all(count in {474, 475} for count in counts)
 
 
 def test_kahip_kway_balance_is_measured_across_all_blocks(monkeypatch):
