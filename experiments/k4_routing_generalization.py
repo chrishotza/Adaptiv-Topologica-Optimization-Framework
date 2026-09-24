@@ -162,6 +162,13 @@ def _evaluate(records_by_corpus: dict[str, list[dict]]) -> dict:
     centroid_low, centroid_high = bootstrap_mean_ci(centroid_delta, resamples=5000, seed=BOOTSTRAP_SEED)
     nearest_low, nearest_high = bootstrap_mean_ci(nearest_delta, resamples=5000, seed=BOOTSTRAP_SEED)
 
+    all_records = [
+        record
+        for corpus_records in records_by_corpus.values()
+        for record in corpus_records
+    ]
+    unstable = [record for record in all_records if not record["stable"]]
+
     return {
         "graphs": len(graph_ids),
         "folds": folds,
@@ -187,7 +194,13 @@ def _evaluate(records_by_corpus: dict[str, list[dict]]) -> dict:
             for name in ("centroid", "nearest", "majority")
         },
         "seed_stability": {
-            "unstable_graphs": sum(not records_by_corpus[g.split("/", 1)[0]][0]["stable"] for g in []),
+            "graphs": len(all_records),
+            "unstable_graphs": len(unstable),
+            "unstable_graph_rate": len(unstable) / len(all_records) if all_records else 0.0,
+            "seed_oracles": {
+                record["graph_id"]: record["seed_oracles"]
+                for record in all_records
+            },
         },
     }
 
