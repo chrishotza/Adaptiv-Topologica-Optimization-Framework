@@ -143,3 +143,37 @@ def test_doctor_kway_fields_are_declared_by_schema():
     properties = schema["properties"]
     assert properties["portfolio_kway_ready"]["type"] == "boolean"
     assert properties["portfolio_kway_backends"]["type"] == "array"
+
+
+def test_ai_manifest_validates_against_json_schema(capsys):
+    import json
+    from pathlib import Path
+    from jsonschema import Draft202012Validator
+    from atof.cli import main
+
+    assert main(["ai"]) == 0
+    instance = json.loads(capsys.readouterr().out)
+    schema = json.loads(
+        (Path(__file__).parents[1] / "schemas" / "atof-ai-v1.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    Draft202012Validator(schema).validate(instance)
+
+
+def test_doctor_report_validates_against_json_schema(capsys):
+    import json
+    from pathlib import Path
+    from jsonschema import Draft202012Validator
+    from atof.cli import main
+
+    assert main(["doctor"]) == 0
+    instance = json.loads(capsys.readouterr().out)
+    schema = json.loads(
+        (Path(__file__).parents[1] / "schemas" / "atof-doctor-v1.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    Draft202012Validator(schema).validate(instance)
