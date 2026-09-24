@@ -145,18 +145,16 @@ def _rebalance_kway(
     upper = (graph.number_of_nodes() + k - 1) // k
 
     while True:
-        oversized = [block for block, count in enumerate(counts) if count > upper]
-        # A valid k-way partition may contain blocks of either floor(n/k) or
-        # ceil(n/k) nodes. When a source exceeds ceil(n/k), the destination
-        # only needs room to receive one node without exceeding that upper
-        # bound; requiring count < floor(n/k) incorrectly rejects states such
-        # as [476, 474, 474, 475] for n=1899, k=4.
-        undersized = [block for block, count in enumerate(counts) if count < upper]
-        if not oversized and not undersized:
+        # A valid balanced k-way partition has block sizes floor(n/k) or
+        # ceil(n/k). Move nodes only from blocks above floor(n/k) into blocks
+        # below floor(n/k); this reaches a floor/ceil state without requiring
+        # an oversized block to remain after an intermediate move.
+        sources = [block for block, count in enumerate(counts) if count > lower]
+        undersized = [block for block, count in enumerate(counts) if count < lower]
+        if not sources and not undersized:
             return result
 
-        source = min(oversized)
-        targets = tuple(undersized)
+        source = min(sources)
 
         candidates: list[tuple[int, str, int, int]] = []
         for node in nodes:
