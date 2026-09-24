@@ -82,6 +82,7 @@ def _seed_oracle_rows(rows: list[dict], payload: dict) -> list[dict]:
                 "graph_id": graph_id,
                 "seed": seed,
                 "corpus": payload["graph_metadata"][graph_id]["corpus"],
+                "topology": payload["graph_metadata"][graph_id]["topology"],
                 "oracle_strategy": oracle,
             }
         )
