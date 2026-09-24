@@ -34,9 +34,11 @@
     "portfolio_kway_backends": {"type": "array", "items": {"type": "string"}},
     "probe": {
       "type": "object",
-      "required": ["requested", "graph", "k", "seed", "iterations", "backends"],
+      "required": ["requested", "ok", "error", "graph", "k", "seed", "iterations", "backends"],
       "properties": {
         "requested": {"const": true},
+        "ok": {"type": "boolean"},
+        "error": {"type": ["string", "null"]},
         "graph": {
           "type": "object",
           "required": ["nodes", "edges"],
