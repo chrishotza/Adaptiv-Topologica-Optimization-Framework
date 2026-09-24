@@ -374,6 +374,11 @@ def run(output_path: str | Path, cache_dir: str | Path | None = None, *, seeds: 
             for corpus, records in records_by_corpus.items()
         },
         "router": {"features": list(FEATURES), "scale_mode": "iqr", "metric": "l2"},
+        "graph_manifest": [
+            record
+            for corpus_records in records_by_corpus.values()
+            for record in corpus_records
+        ],
         "evaluation": evaluation,
         "evidence_boundary": [
             "The k=4 strategy set is fixed before evaluation and excludes the k=2-only NetworkX Kernighan-Lin backend.",
