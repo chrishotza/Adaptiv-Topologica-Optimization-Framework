@@ -81,14 +81,14 @@ def _commit_sha() -> str | None:
         return None
 
 
-def _graph_record(graph, corpus: str, name: str) -> dict:
+def _graph_record(graph, corpus: str, name: str, *, seeds: tuple[int, ...] = SEEDS) -> dict:
     profiler = TopologyProfiler()
     topology = profiler.profile(graph).to_dict()
     by_seed = {}
     strategy_means = defaultdict(list)
 
     retry_by_seed = {}
-    for seed in SEEDS:
+    for seed in seeds:
         retry_metadata = {}
         result = optimize_portfolio(
             graph, k=K, seed=seed, iterations=25, include_optional=True
@@ -332,12 +332,12 @@ def _evaluate(records_by_corpus: dict[str, list[dict]]) -> dict:
     }
 
 
-def run(output_path: str | Path, cache_dir: str | Path | None = None) -> dict:
+def run(output_path: str | Path, cache_dir: str | Path | None = None, *, seeds: tuple[int, ...] = SEEDS) -> dict:
     started = time.perf_counter()
     corpora, provenance = _load_expanded_corpora(cache_dir=cache_dir)
     records_by_corpus = {
         corpus: [
-            _graph_record(graph, corpus, name)
+            _graph_record(graph, corpus, name, seeds=seeds)
             for name, graph in sorted(graphs.items())
         ]
         for corpus, graphs in sorted(corpora.items())
@@ -354,7 +354,7 @@ def run(output_path: str | Path, cache_dir: str | Path | None = None) -> dict:
         "python": sys.version,
         "platform": platform.platform(),
         "k": K,
-        "seeds": list(SEEDS),
+        "seeds": list(seeds),
         "candidate_strategies": list(STRATEGIES),
         "corpora": {
             corpus: {"graphs": len(records), "provenance": provenance[corpus]}
