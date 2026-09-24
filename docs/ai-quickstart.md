@@ -16,7 +16,7 @@ Returns the compact atof.ai.v1 manifest.
 atof doctor
 ~~~
 
-Returns backend availability, versions, input formats, and a compact runtime summary. Use "atof doctor --full" for the expanded environment record.
+Returns backend availability, versions, input formats, and a compact runtime summary. Its `portfolio_kway_ready` field tells an agent whether the current environment has at least one k-way-capable Portfolio backend. Use "atof doctor --full" for the expanded environment record and `portfolio_kway_backends` list.
 
 ## 3. Fast solve
 
