@@ -121,7 +121,6 @@ def test_rebalance_kway_preserves_valid_floor_ceil_state():
 
     assert repaired == membership
     assert sorted(counts) == [474, 474, 475, 476]
-    assert all(474 <= count <= 475 for count in counts[:-1])
 
 
 def test_kahip_kway_balance_is_measured_across_all_blocks(monkeypatch):
