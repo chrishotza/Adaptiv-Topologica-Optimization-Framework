@@ -47,7 +47,9 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
     by_seed = {}
     strategy_means = defaultdict(list)
 
+    retry_by_seed = {}
     for seed in SEEDS:
+        retry_metadata = {}
         result = optimize_portfolio(
             graph, k=K, seed=seed, iterations=25, include_optional=True
         )
@@ -86,6 +88,8 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                     f"{corpus}/{name} seed={seed}: missing k=4 candidates {missing}; "
                     f"retry_metadata={retry_metadata}"
                 )
+        if retry_metadata:
+            retry_by_seed[str(seed)] = retry_metadata
         by_seed[seed] = {
             strategy: {
                 "edge_cut": int(candidates[strategy].edge_cut),
@@ -116,7 +120,7 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
         "seed_oracles": seed_oracles,
         "stable": len(set(seed_oracles)) == 1,
         "by_seed": by_seed,
-        "backend_retries": retry_metadata if "retry_metadata" in locals() else {},
+        "backend_retries": retry_by_seed,
     }
 
 
