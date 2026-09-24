@@ -14,7 +14,7 @@ class BackendInfo:
     optional: bool
     available: bool
     version: str | None
-    importable: bool = False
+    importable: bool = True
     import_error: str | None = None
     error: str | None = None
 
