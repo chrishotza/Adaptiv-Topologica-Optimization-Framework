@@ -79,6 +79,7 @@ def test_compact_profile_cli(tmp_path, capsys):
     assert parsed["graph"]["nodes"] == 4
     assert "topology" not in parsed
     assert parsed["provenance"]["graph_fingerprint"]
+    assert parsed["profile_mode"] == "bounded"
 
 
 def test_compact_portfolio_cli(capsys):
