@@ -4,6 +4,7 @@ import json
 
 from . import __version__
 from .backends import inspect_backends
+from .portfolio import optimize_portfolio
 from .provenance import runtime_metadata
 from .product import SUPPORTED_INPUT_FORMATS
 
@@ -178,8 +179,6 @@ def build_doctor_report(*, full: bool = False, probe: bool = False) -> dict:
     }
     if probe:
         import networkx as nx
-
-        from .portfolio import optimize_portfolio
 
         probe_graph = nx.path_graph(8)
         probe_result = optimize_portfolio(
