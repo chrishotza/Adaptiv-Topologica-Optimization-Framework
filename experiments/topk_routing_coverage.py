@@ -37,12 +37,21 @@ def _load(path: Path) -> tuple[dict, list[dict]]:
     rows = [row for row in payload["rows"] if row.get("status") == "ok"]
     if payload.get("matched_graphs") != 20:
         raise ValueError("expected 20 matched graphs")
-    if len(payload.get("candidate_strategies", [])) != 11:
+    strategies = payload.get("candidate_strategies", [])
+    if len(strategies) != 11:
         raise ValueError("expected 11 strategies")
-    if payload.get("seeds") != [42, 101, 2024]:
+    seeds = payload.get("seeds")
+    if (
+        not isinstance(seeds, list)
+        or not seeds
+        or seeds != sorted(set(int(seed) for seed in seeds))
+    ):
         raise ValueError("unexpected seed manifest")
-    if len(rows) != 660:
-        raise ValueError("expected exactly 660 successful rows")
+    expected_rows = payload["matched_graphs"] * len(strategies) * len(seeds)
+    if len(rows) != expected_rows:
+        raise ValueError(
+            f"expected exactly {expected_rows} successful rows, got {len(rows)}"
+        )
     return payload, rows
 
 

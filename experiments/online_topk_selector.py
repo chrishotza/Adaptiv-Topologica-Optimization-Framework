@@ -296,7 +296,7 @@ def _evaluate(path: Path) -> dict:
         },
         "aggregate": {
             "graphs": len(records),
-            "seed_units": len(records) * 3,
+            "seed_units": sum(len(item["by_seed"]) for item in records),
             "top1": top1_summary,
             "selector": {
                 **selector_summary,

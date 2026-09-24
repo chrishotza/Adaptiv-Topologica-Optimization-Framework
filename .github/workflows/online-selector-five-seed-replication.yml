@@ -1,0 +1,65 @@
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+name: Online selector five-seed replication
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/online_selector_five_seed_replication.py"
+      - "experiments/online_topk_selector.py"
+      - "experiments/topk_routing_coverage.py"
+      - "experiments/fresh_sota_protocol.py"
+      - "experiments/run_expanded_20graph_kahip_transfer.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+      - ".github/workflows/online-selector-five-seed-replication.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  five-seed-replication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+      - name: Run five-seed unit tests
+        run: pytest -q tests/test_online_selector_five_seed_replication.py
+      - name: Run five-seed replication
+        run: |
+          python -m experiments.online_selector_five_seed_replication             --output results/state_of_art/online_selector_five_seed_replication_latest.json             --cache-dir .cache/snap
+      - name: Validate replication manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("results/state_of_art/online_selector_five_seed_replication_latest.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          assert payload["seeds"] == [7, 42, 101, 2024, 8191]
+          assert payload["matched_graphs"] == 20
+          assert payload["successful_rows"] == 1100
+          assert payload["seed_stability"]["graphs"] == 20
+          assert 0.0 <= payload["seed_stability"]["unstable_graph_rate"] <= 1.0
+          PY
+      - name: Upload replication and diagnostic artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: online-selector-five-seed-replication
+          path: |
+            results/state_of_art/fresh_sota_five_seed_latest.json
+            results/state_of_art/online_selector_five_seed_replication_latest.json
+            results/state_of_art/online_selector_five_seed_diagnostic.json
+          if-no-files-found: warn
