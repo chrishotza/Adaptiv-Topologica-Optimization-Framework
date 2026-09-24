@@ -44,13 +44,14 @@ def _emit_error(exc: Exception) -> int:
     return 2
 
 
-def _profile(path: Path, format: str = "auto") -> dict:
+def _profile(path: Path, format: str = "auto", *, mode: str = "full") -> dict:
     graph = load_graph(path, format=format)
-    profile = TopologyProfiler().profile(graph)
+    profile = TopologyProfiler().profile(graph, mode=mode)
     recommendation = HeuristicRegimeSelector().recommend(profile)
     return {
         "file": str(path),
         "version": __version__,
+        "profile_mode": mode,
         "nodes": graph.number_of_nodes(),
         "edges": graph.number_of_edges(),
         "graph": {
@@ -87,6 +88,11 @@ def main(argv: list[str] | None = None) -> int:
         help="inspect runtime and backend availability",
     )
     doctor_parser.add_argument("--full", "-F", action="store_true")
+    doctor_parser.add_argument(
+        "--probe",
+        action="store_true",
+        help="run a tiny real partition through available backends",
+    )
 
     solve_parser = subparsers.add_parser(
         "solve",
@@ -211,7 +217,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "doctor":
-        payload = build_doctor_report(full=args.full)
+        payload = build_doctor_report(full=args.full, probe=args.probe)
         print(
             json.dumps(payload, indent=2, sort_keys=True)
             if args.full
@@ -273,11 +279,13 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "profile":
         try:
-            payload = _profile(args.path, args.format)
+            profile_mode = "bounded" if args.compact else "full"
+            payload = _profile(args.path, args.format, mode=profile_mode)
             if args.compact:
                 compact = {
                     "mode": "profile",
                     "version": payload["version"],
+                    "profile_mode": payload["profile_mode"],
                     "graph": payload["graph"],
                     "recommendation": {
                         "regime": payload["recommendation"]["regime"],
