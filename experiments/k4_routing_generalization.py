@@ -72,15 +72,27 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                         "runtime_seconds": float(time.perf_counter() - retry_started),
                         "balance_error": float(balance_error),
                     }
+                    original_candidate = next(
+                        candidate
+                        for candidate in result.candidates
+                        if candidate.id == "metis"
+                    )
                     retry_metadata = {
                         "metis_retry_count": 1,
                         "metis_retry_reason": "first portfolio invocation returned unavailable",
+                        "metis_original_error": original_candidate.error,
                     }
                     missing = sorted(set(STRATEGIES) - set(candidates))
                 except Exception as exc:
+                    original_candidate = next(
+                        candidate
+                        for candidate in result.candidates
+                        if candidate.id == "metis"
+                    )
                     retry_metadata = {
                         "metis_retry_count": 1,
                         "metis_retry_reason": "first portfolio invocation returned unavailable",
+                        "metis_original_error": original_candidate.error,
                         "metis_retry_error": f"{type(exc).__name__}: {exc}",
                     }
             if missing:
