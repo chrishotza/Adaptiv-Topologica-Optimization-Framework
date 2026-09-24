@@ -1,0 +1,77 @@
+name: Oracle-free online top-k selector research
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/online_topk_selector.py"
+      - "tests/test_online_topk_selector.py"
+      - ".github/workflows/online-topk-selector.yml"
+      - "experiments/topk_routing_coverage.py"
+      - "experiments/fresh_sota_protocol.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  selector:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+      - name: Run selector tests
+        run: pytest -q tests/test_online_topk_selector.py
+      - name: Run fresh benchmark
+        run: |
+          python -m experiments.fresh_sota_protocol             --output results/state_of_art/fresh_sota_latest.json             --cache-dir .cache/snap
+      - name: Validate fresh benchmark completeness
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(
+              Path("results/state_of_art/fresh_sota_latest.json").read_text(encoding="utf-8")
+          )
+          assert payload["matched_graphs"] == 20
+          assert len(payload["candidate_strategies"]) == 11
+          assert payload["seeds"] == [42, 101, 2024]
+          assert len(payload["rows"]) == 660
+          assert all(row["status"] == "ok" for row in payload["rows"])
+          PY
+      - name: Run online selector evaluation
+        run: |
+          python -m experiments.online_topk_selector             --benchmark results/state_of_art/fresh_sota_latest.json             --output results/state_of_art/online_topk_selector_latest.json
+      - name: Validate selector manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(
+              Path("results/state_of_art/online_topk_selector_latest.json").read_text(encoding="utf-8")
+          )
+          aggregate = payload["aggregate"]
+          assert aggregate["graphs"] == 20
+          assert aggregate["seed_units"] == 60
+          assert aggregate["mean_actions"] <= 2.0
+          assert 0.0 <= aggregate["probe_rate"] <= 1.0
+          PY
+      - name: Upload selector artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: online-topk-selector
+          path: |
+            results/state_of_art/fresh_sota_latest.json
+            results/state_of_art/online_topk_selector_latest.json
+          if-no-files-found: error
