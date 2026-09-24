@@ -62,7 +62,7 @@ Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-l
 
 - Default machine output is JSON.
 - `atof.ai.v1` describes capabilities, variant semantics, and limits.
-- `atof.doctor.v1` describes backend availability, runtime, and whether the current environment can run k-way Portfolio requests (`portfolio_kway_ready`).
+- `atof.doctor.v1` describes backend installation state, importability, runtime, and whether the current environment can run k-way Portfolio requests (`portfolio_kway_ready`). Treat `available=true` with `importable=false` as installed-but-unusable until the import failure is resolved.
 - `atof.error.v1` describes structured CLI failures.
 - Optional backend failures are reported rather than silently hidden.
 - Full results include provenance suitable for agent-to-agent handoff.
