@@ -65,7 +65,8 @@
             "output": {"const": "-o"},
             "partition_output": {"const": "-p"},
             "full": {"const": "-F"},
-            "k": {"const": "-k"}
+            "k": {"const": "-k"},
+            "probe": {"const": "--probe"}
           },
           "additionalProperties": false
         }

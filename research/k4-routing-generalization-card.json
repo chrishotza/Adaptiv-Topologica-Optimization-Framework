@@ -1,0 +1,148 @@
+{
+  "schema": "atof.research-card.v1",
+  "experiment": "k4-routing-generalization",
+  "status": "completed",
+  "question": "Does topology-based routing retain measurable transfer value when graph partitioning moves from k=2 to genuine k=4?",
+  "scope": {
+    "domain": "graph partitioning",
+    "problem": "balanced unweighted k-way partitioning",
+    "k": 4,
+    "graphs": 20,
+    "seeds": [
+      42,
+      101,
+      2024
+    ],
+    "strategies": [
+      "bloc",
+      "bloc-affinity",
+      "metis",
+      "kahip",
+      "kaminpar",
+      "kaminpar-strong",
+      "mtkahypar",
+      "mtkahypar-quality"
+    ]
+  },
+  "protocol": {
+    "training": "leave-one-corpus-out",
+    "oracle": "graph-level mean edge-cut across fixed solver seeds",
+    "router": {
+      "features": [
+        "density",
+        "avg_degree",
+        "degree_std",
+        "hub_ratio",
+        "degree_gini",
+        "clustering",
+        "transitivity",
+        "core_number",
+        "diameter",
+        "avg_path_length",
+        "modularity"
+      ],
+      "scale_mode": "iqr",
+      "metric": "l2",
+      "methods": [
+        "centroid",
+        "nearest"
+      ]
+    },
+    "control": "training-fold majority oracle strategy",
+    "uncertainty": "graph-level paired bootstrap, 5000 resamples",
+    "production_change": false
+  },
+  "results": {
+    "majority_mean_relative_regret": 0.034083627443203944,
+    "centroid_mean_relative_regret": 0.007135111543501732,
+    "nearest_mean_relative_regret": 0.0044454541203391455,
+    "centroid_minus_majority_delta": -0.026948515899702218,
+    "nearest_minus_majority_delta": -0.0296381733228648,
+    "centroid_minus_majority_bootstrap_95_ci": [
+      -0.06355675250505122,
+      -0.0001298584791470217
+    ],
+    "nearest_minus_majority_bootstrap_95_ci": [
+      -0.06617352177790438,
+      -0.0020173137889131225
+    ]
+  },
+  "evidence_boundary": [
+    "This is evidence within graph partitioning, not cross-domain optimization generality.",
+    "The experiment does not establish universal superiority, universal runtime superiority, or production readiness.",
+    "No held-out corpus outcome is used to fit its router.",
+    "Tiny-graph backend retries use isolated-node padding only inside the research protocol and strip those nodes before scoring the original graph."
+  ],
+  "reproducibility": {
+    "historical_validated_commit_sha": "72ba33ae2610a362eefa471def06d485244cc02d",
+    "historical_workflow_run_id": 35962238393,
+    "historical_artifact_id": 10794035248,
+    "historical_artifact_digest": "sha256:330ed42174aedda1fe31937e4de3be3930195e252f885228c33a0af85de74a0c",
+    "current_head_sha": "6178b820befda5368035bcd2b38aa1aede24ffc2",
+    "current_execution_commit_sha": "060dad6af5b5591b903397e4747d3a20a2481725",
+    "current_workflow": "K4 routing generalization research",
+    "current_workflow_run_id": 35982854569,
+    "current_artifact_name": "k4-routing-generalization",
+    "current_artifact_id": 10802585027,
+    "current_artifact_digest": "sha256:92426baae5a0010c2fbc2bbefd7f0751d09942ceb6cceb4441a2c2226931d5a6"
+  },
+  "replication": {
+    "status": "completed",
+    "protocol_change": "fixed solver seed grid expanded from 3 to 5; all other routing, corpus, candidate, and leave-one-corpus-out settings unchanged",
+    "seeds": [
+      7,
+      42,
+      101,
+      2024,
+      8191
+    ],
+    "results": {
+      "majority_mean_relative_regret": 0.03700896833543533,
+      "centroid_mean_relative_regret": 0.01841466967657617,
+      "nearest_mean_relative_regret": 0.004404472201773905,
+      "centroid_minus_majority_delta": -0.018594298658859153,
+      "nearest_minus_majority_delta": -0.03260449613366142,
+      "centroid_minus_majority_bootstrap_95_ci": [
+        -0.05699662193947795,
+        0.011873253264061983
+      ],
+      "nearest_minus_majority_bootstrap_95_ci": [
+        -0.06760735956079804,
+        -0.005620424455098596
+      ]
+    },
+    "graph_level": {
+      "centroid_better_graphs": 6,
+      "centroid_worse_graphs": 7,
+      "centroid_ties": 7,
+      "nearest_better_graphs": 6,
+      "nearest_worse_graphs": 1,
+      "nearest_ties": 13
+    },
+    "seed_stability": {
+      "graphs": 20,
+      "unstable_graphs": 12,
+      "unstable_graph_rate": 0.6,
+      "seed_count": 5
+    },
+    "oracle_agreement": {
+      "centroid": 0.2,
+      "nearest": 0.65,
+      "majority": 0.55
+    },
+    "reproducibility": {
+      "branch_head_sha": "6178b820befda5368035bcd2b38aa1aede24ffc2",
+      "execution_commit_sha": "060dad6af5b5591b903397e4747d3a20a2481725",
+      "workflow": "K4 five-seed replication research",
+      "workflow_run_id": 35982854502,
+      "artifact_name": "k4-five-seed-replication",
+      "artifact_id": 10801544040,
+      "artifact_digest": "sha256:c6c76ee606feca4a81c87b0771c064f0273d94610a996bc528de806d14994e34"
+    },
+    "interpretation": [
+      "Nearest routing remained separated from the majority control under the five-seed replication.",
+      "Centroid routing remained directionally lower in mean regret but its paired bootstrap interval crossed zero.",
+      "Seed instability is 60% of graphs under the five-seed oracle definition and remains a material uncertainty source."
+    ]
+  }
+}

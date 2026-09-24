@@ -23,7 +23,7 @@
 ## Start here
 
 - `atof ai` — stable AI capability contract
-- `atof doctor` — runtime and backend inspection
+- `atof doctor` — runtime/backend inspection; use `--probe` for real tiny-graph execution checks at k=2 and k=4; `probe.ok` is true only when both paths have an operational backend
 - `atof solve examples/demo.edgelist` — shortest practical portfolio path
 - `cat graph.edgelist | atof solve -` — solve edge-list data from stdin
 - `cat graph.json | atof solve - --format json` — solve minimal JSON graph data
@@ -65,7 +65,7 @@ JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 - Default output is JSON.
 - Use `--compact` for low-token orchestration.
 - Preserve seed and graph fingerprint for reproducibility.
-- Optional backend failures are explicit.
+- Optional backend failures are explicit. `atof doctor` distinguishes package installation (`available`) from successful import/load (`importable`); agents should treat only importable backends as runtime-usable.
 - Unsupported directed and multigraph graph models are rejected. Source weight attributes are treated as metadata under the current unweighted graph model.
 - In Engine mode, use `objective.optimization_metric` to distinguish the actual optimization scalar from the reported `result.edge_cut`.
 - Do not pass `--variant` with Portfolio mode; ignored optimization choices are rejected.
@@ -75,7 +75,9 @@ JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 
 ## Research status
 
-`docs/research-evidence-map.md` is the fast path for distinguishing product contracts from research evidence. It records the recent adaptive-selection lineage, including negative results and open experiments, and must be read before making claims about adaptive routing.
+`docs/research-evidence-map.md` is the fast path for distinguishing product contracts from research evidence. It records the recent adaptive-selection lineage, including negative results and completed k=4 transfer evidence, and must be read before making claims about adaptive routing.
+
+For a machine-readable summary of the completed k=4 study, use `research/k4-routing-generalization-card.json`. It records the frozen protocol, metrics, uncertainty, evidence boundary, workflow run, and artifact identity.
 
 ## Evidence rule
 

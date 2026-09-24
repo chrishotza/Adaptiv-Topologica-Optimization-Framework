@@ -16,7 +16,7 @@ Returns the compact atof.ai.v1 manifest.
 atof doctor
 ~~~
 
-Returns backend availability, versions, input formats, and a compact runtime summary. Use "atof doctor --full" for the expanded environment record.
+Returns backend availability, versions, input formats, and a compact runtime summary. Its `portfolio_kway_ready` field tells an agent whether the current environment has at least one k-way-capable Portfolio backend that is actually importable. Each backend also reports `available` (package installed) separately from `importable` (Python/native module loads successfully). Use `atof doctor --probe` when the agent needs real execution checks on a tiny graph. The probe exercises both k=2 and k=4 Portfolio paths and reports operational status per backend without requiring the agent to parse logs; overall `probe.ok` is false when neither path has an operational backend. Use `atof doctor --full` for the expanded environment record and `portfolio_kway_backends` list.
 
 ## 3. Fast solve
 
@@ -59,7 +59,7 @@ atof optimize graph.edgelist --engine bloc --k 4 --compact
 atof optimize graph.edgelist --engine bloc --hybrid --compact
 ~~~
 
-Use Engine mode when the task needs more than two balanced blocks. Add `--hybrid` when a deeper local refinement pass is appropriate; its benchmarked defaults are 5-iteration intervals and 100 two-node swap samples. Portfolio mode supports `k>=2`. NetworkX Kernighan-Lin is available only for `k=2`; METIS and KaHIP can serve k-way requests when installed.
+Use Engine mode when the task needs more than two balanced blocks. Add `--hybrid` when a deeper local refinement pass is appropriate; its benchmarked defaults are 5-iteration intervals and 100 two-node swap samples. Portfolio mode supports `k>=2`. NetworkX Kernighan-Lin is available only for `k=2`; BLOC-RELOC, METIS, KaHIP, KaMinPar, and Mt-KaHyPar can serve k-way requests when their backend is available.
 
 ## 8. Compare native Engine and Portfolio
 

@@ -145,13 +145,35 @@ def _rebalance_kway(
     upper = (graph.number_of_nodes() + k - 1) // k
 
     while True:
+        # A valid balanced k-way partition has block sizes floor(n/k) or
+        # ceil(n/k). Only blocks outside that closed interval require repair.
         oversized = [block for block, count in enumerate(counts) if count > upper]
         undersized = [block for block, count in enumerate(counts) if count < lower]
         if not oversized and not undersized:
             return result
 
-        source = min(oversized)
-        targets = tuple(undersized)
+        if oversized:
+            # Repair a block above ceil(n/k) by moving one node into any block
+            # below ceil(n/k), including a floor-sized block.
+            sources = oversized
+            targets = tuple(
+                block for block, count in enumerate(counts) if count < upper
+            )
+        else:
+            # When a block is below floor(n/k), another block may only be at
+            # ceil(n/k) rather than above it (e.g. [20, 18, 19, 20] for n=77,k=4).
+            # That ceil-sized block is a valid donor for the one-node repair.
+            sources = [block for block, count in enumerate(counts) if count > lower]
+            targets = tuple(undersized)
+
+        if not sources or not targets:
+            raise RuntimeError(
+                "could not identify donor/target blocks for partition balance; "
+                f"n={len(result)}, k={k}, counts={counts}, "
+                f"oversized={oversized}, undersized={undersized}"
+            )
+
+        source = min(sources)
 
         candidates: list[tuple[int, str, int, int]] = []
         for node in nodes:
@@ -173,7 +195,13 @@ def _rebalance_kway(
                 candidates.append((delta, repr(node), i, target))
 
         if not candidates:
-            raise RuntimeError("could not repair partition balance")
+            raise RuntimeError(
+                "could not repair partition balance; "
+                f"n={len(result)}, k={k}, counts={counts}, "
+                f"oversized={list(sources)}, undersized={list(undersized)}, "
+                f"source={source}, source_count={counts[source]}, "
+                f"membership_labels={sorted(set(result), key=repr)}"
+            )
 
         _, _, chosen, target = min(candidates)
         result[chosen] = target
@@ -230,6 +258,8 @@ def _run_metis(
     *,
     seed: int,
     k: int,
+    recursive: bool = True,
+    ufactor: int | None = None,
 ) -> tuple[dict[Any, int], int, float]:
     import pymetis
 
@@ -239,12 +269,15 @@ def _run_metis(
         [index[neighbor] for neighbor in graph.neighbors(node)]
         for node in nodes
     ]
+    options_kwargs = {"seed": seed}
+    if ufactor is not None:
+        options_kwargs["ufactor"] = int(ufactor)
     raw = pymetis.part_graph(
         k,
         adjacency=adjacency,
         tpwgts=[1.0 / k] * k,
-        recursive=True,
-        options=pymetis.Options(seed=seed),
+        recursive=recursive,
+        options=pymetis.Options(**options_kwargs),
     )
     membership = _rebalance_kway(graph, list(raw.vertex_part), k)
     partition = {node: membership[index[node]] for node in nodes}
@@ -260,6 +293,7 @@ def _run_kahip(
     *,
     seed: int,
     k: int,
+    imbalance: float = 0.03,
 ) -> tuple[dict[Any, int], int, float]:
     import kahip
 
@@ -276,7 +310,7 @@ def _run_kahip(
         [1] * len(adjncy),
         adjncy,
         k,
-        0.03,
+        float(imbalance),
         1,
         int(seed),
         2,

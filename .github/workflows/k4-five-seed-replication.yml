@@ -1,0 +1,63 @@
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+name: K4 five-seed replication research
+# Protocol is intentionally rerun on the current branch HEAD after research/tooling hardening.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k4_five_seed_replication.py"
+      - "experiments/k4_routing_generalization.py"
+      - "tests/test_k4_five_seed_replication.py"
+      - "src/atof/portfolio.py"
+      - "src/atof/native_backends.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+      - ".github/workflows/k4-five-seed-replication.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  k4-five-seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+      - name: Run protocol tests
+        run: pytest -q tests/test_k4_five_seed_replication.py tests/test_k4_routing_generalization.py
+      - name: Run five-seed replication
+        run: |
+          python -m experiments.k4_five_seed_replication             --output results/generalization/k4_five_seed_replication.json             --cache-dir .cache/snap
+      - name: Validate result manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('results/generalization/k4_five_seed_replication.json').read_text())
+          assert payload['k'] == 4
+          assert payload['seeds'] == [7, 42, 101, 2024, 8191]
+          assert payload['candidate_strategies'] == ['bloc','bloc-affinity','metis','kahip','kaminpar','kaminpar-strong','mtkahypar','mtkahypar-quality']
+          assert sum(item['graphs'] for item in payload['corpora'].values()) == 20
+          assert payload['evaluation']['graphs'] == 20
+          assert payload['evaluation']['seed_stability']['graphs'] == 20
+          assert payload['evaluation']['seed_stability']['seed_count'] == 5
+          PY
+      - name: Upload five-seed artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k4-five-seed-replication
+          path: results/generalization/k4_five_seed_replication.json
+          if-no-files-found: warn

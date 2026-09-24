@@ -5,7 +5,7 @@ ATOF is an open-source graph optimization interface with a stable machine contra
 ## First 30 seconds
 
 1. Run `atof ai` for the stable machine contract.
-2. Run `atof doctor` to inspect available engines and the runtime.
+2. Run `atof doctor` to inspect backend installation/importability and the runtime; use `atof doctor --probe` for real tiny-graph execution checks at both k=2 and k=4.
 3. Run `atof solve examples/demo.edgelist` for the shortest practical portfolio path.
 4. Use `--compact` when topology detail or node assignments are not required.
 5. For k-way native Engine work, use `atof optimize <graph> --engine bloc --k <k>` with `k>=2`.
@@ -50,11 +50,11 @@ The Engine has three selection modes:
 
 Therefore, an Engine result's `result.edge_cut` is always the unweighted reported metric, but `objective.optimization_metric` identifies the scalar objective actually optimized.
 
-**ATOF Portfolio** is the empirical composition layer over the available BLOC, NetworkX, METIS, and KaHIP backends.
+**ATOF Portfolio** is the empirical composition layer over the available BLOC, NetworkX, METIS, KaHIP, KaMinPar, and Mt-KaHyPar backends.
 
 The Engine contract is k>=2, undirected, simple graphs with balanced node counts; its reported comparison metric is unweighted edge cut.
 
-The Portfolio contract is k=2 under an explicitly common unweighted edge-cut objective.
+The Portfolio contract is balanced k-way partitioning for k>=2 under an explicitly common unweighted edge-cut objective. NetworkX Kernighan-Lin is a k=2-only candidate; the other portfolio backends are used for k-way requests when installed.
 
 Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-list and JSON.
 
@@ -62,7 +62,7 @@ Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-l
 
 - Default machine output is JSON.
 - `atof.ai.v1` describes capabilities, variant semantics, and limits.
-- `atof.doctor.v1` describes backend availability and runtime.
+- `atof.doctor.v1` describes backend installation state, importability, runtime, and whether the current environment can run k-way Portfolio requests (`portfolio_kway_ready`). Treat `available=true` with `importable=false` as installed-but-unusable until the import failure is resolved. Use `doctor --probe` for actual solver-path checks at k=2 and k=4 when backend execution matters; `probe.ok` is false when no backend completes either requested path.
 - `atof.error.v1` describes structured CLI failures.
 - Optional backend failures are reported rather than silently hidden.
 - Full results include provenance suitable for agent-to-agent handoff.

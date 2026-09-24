@@ -4,6 +4,7 @@ import json
 
 from . import __version__
 from .backends import inspect_backends
+from .portfolio import optimize_portfolio
 from .provenance import runtime_metadata
 from .product import SUPPORTED_INPUT_FORMATS
 
@@ -35,6 +36,7 @@ def build_ai_manifest(*, full: bool = False) -> dict:
                 "output": "-o",
                 "partition_output": "-p",
                 "full": "-F",
+                "probe": "--probe",
             },
         },
         "input": {
@@ -137,9 +139,33 @@ def build_ai_manifest(*, full: bool = False) -> dict:
     }
 
 
-def build_doctor_report(*, full: bool = False) -> dict:
+def build_doctor_report(*, full: bool = False, probe: bool = False) -> dict:
     """Describe the current execution environment and backend availability."""
     backends = [item.to_dict() for item in inspect_backends()]
+    usable_ids = {
+        item["id"]
+        for item in backends
+        if item.get("available") and item.get("importable")
+    }
+    portfolio_backend_ids = {
+        "bloc",
+        "networkx-kl",
+        "metis",
+        "kahip",
+        "kaminpar",
+        "kaminpar-strong",
+        "mtkahypar",
+        "mtkahypar-quality",
+    }
+    kway_backend_ids = {
+        "bloc",
+        "metis",
+        "kahip",
+        "kaminpar",
+        "kaminpar-strong",
+        "mtkahypar",
+        "mtkahypar-quality",
+    }
     report = {
         "schema": "atof.doctor.v1",
         "name": "atof",
@@ -147,11 +173,66 @@ def build_doctor_report(*, full: bool = False) -> dict:
         "runtime": runtime_metadata(),
         "backends": backends,
         "input_formats": [item for item in SUPPORTED_INPUT_FORMATS if item != "auto"],
-        "portfolio_ready": any(
-            item["available"] and item["id"] == "networkx-kl"
-            for item in backends
-        ),
+        "portfolio_ready": bool(usable_ids & portfolio_backend_ids),
+        "portfolio_kway_ready": bool(usable_ids & kway_backend_ids),
+        "portfolio_kway_backends": sorted(usable_ids & kway_backend_ids),
     }
+    if probe:
+        import networkx as nx
+
+        probe_graph = nx.path_graph(8)
+
+        def _run_probe(requested_k: int) -> dict:
+            payload = {
+                "ok": False,
+                "error": None,
+                "graph": {
+                    "nodes": probe_graph.number_of_nodes(),
+                    "edges": probe_graph.number_of_edges(),
+                },
+                "k": requested_k,
+                "seed": 0,
+                "iterations": 1,
+                "backends": {},
+            }
+            try:
+                result = optimize_portfolio(
+                    probe_graph,
+                    k=requested_k,
+                    seed=0,
+                    iterations=1,
+                    include_optional=True,
+                )
+                for candidate in result.candidates:
+                    operational = bool(
+                        candidate.available and candidate.partition is not None
+                    )
+                    payload["backends"][candidate.id] = {
+                        "ok": operational,
+                        "edge_cut": candidate.edge_cut,
+                        "balance_error": candidate.balance_error,
+                        "runtime_seconds": candidate.runtime_seconds,
+                        "error": candidate.error,
+                    }
+                payload["ok"] = any(
+                    item["ok"] for item in payload["backends"].values()
+                )
+                if not payload["ok"] and payload["backends"]:
+                    payload["error"] = "no backend completed the probe"
+            except Exception as exc:
+                payload["error"] = f"{type(exc).__name__}: {exc}"
+            return payload
+
+        k2_probe = _run_probe(2)
+        kway_probe = _run_probe(4)
+        report["probe"] = {
+            "requested": True,
+            "ok": k2_probe["ok"] and kway_probe["ok"],
+            "error": k2_probe["error"] or kway_probe["error"],
+            "k2": k2_probe,
+            "k4": kway_probe,
+        }
+
     if not full:
         report["runtime"] = {
             "python": report["runtime"]["python"],
