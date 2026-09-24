@@ -12,7 +12,6 @@ from experiments.online_topk_selector import (
     _fit,
     _load,
     _mean,
-    _predict_alternate,
 )
 from experiments.selector_threshold_sensitivity import _training_predictor
 
@@ -28,6 +27,30 @@ def _median(values: list[float]) -> float:
     if len(ordered) % 2:
         return ordered[mid]
     return (ordered[mid - 1] + ordered[mid]) / 2.0
+
+
+def _global_candidates(
+    ranking: tuple[str, ...],
+    pair_median: dict[tuple[str, str], float],
+    candidate_median: dict[str, float],
+    rank_median: dict[int, float],
+) -> list[dict]:
+    top1 = ranking[0]
+    out = []
+    for rank in (1, 2):
+        candidate = ranking[rank]
+        prediction = pair_median.get(
+            (top1, candidate),
+            candidate_median.get(candidate, rank_median.get(rank, 0.0)),
+        )
+        out.append(
+            {
+                "rank": rank,
+                "candidate": candidate,
+                "prediction": prediction,
+            }
+        )
+    return out
 
 
 def _graph_pair_data(training: list[dict], router) -> dict[tuple[str, str], list[dict]]:
@@ -86,29 +109,48 @@ def _local_candidates(
                     "neighbor_ids": [row[2] for row in neighbors],
                 }
             )
+        else:
+            out.append(
+                {
+                    "rank": rank,
+                    "candidate": candidate,
+                    "prediction": None,
+                    "radius": None,
+                    "support": 0,
+                    "neighbor_ids": [],
+                }
+            )
     return out
 
 
 def _fused_prediction(
-    global_prediction: float,
+    global_candidates: list[dict],
     local: list[dict],
     radius_threshold: float,
     orientation: str,
 ) -> tuple[str, float, dict]:
+    global_by_candidate = {
+        row["candidate"]: row["prediction"] for row in global_candidates
+    }
     candidates = []
     for row in local:
-        use_global = (
-            row["radius"] <= radius_threshold
-            if orientation == "global_near"
-            else row["radius"] > radius_threshold
-        )
+        global_prediction = global_by_candidate[row["candidate"]]
+        has_local = row["support"] > 0 and row["prediction"] is not None
+        if not has_local:
+            use_global = True
+        elif orientation == "global_near":
+            use_global = row["radius"] <= radius_threshold
+        else:
+            use_global = row["radius"] > radius_threshold
         prediction = global_prediction if use_global else row["prediction"]
         source = "global" if use_global else "local"
-        candidates.append((prediction, row["rank"], row["candidate"], source, row))
+        candidates.append(
+            (prediction, row["rank"], row["candidate"], source, row, global_prediction)
+        )
 
     if not candidates:
-        raise RuntimeError("no local candidate support")
-    prediction, rank, candidate, source, row = min(
+        raise RuntimeError("no candidate support")
+    prediction, rank, candidate, source, row, global_prediction = min(
         candidates,
         key=lambda item: (item[0], item[1], item[2]),
     )
@@ -119,6 +161,7 @@ def _fused_prediction(
         "neighbor_ids": row["neighbor_ids"],
         "orientation": orientation,
         "global_prediction": global_prediction,
+        "global_candidate_predictions": global_by_candidate,
         "local_prediction": row["prediction"],
     }
 
@@ -149,7 +192,7 @@ def _evaluate(
 
         for item in test:
             ranking = router.rank(item["topology"])
-            _, global_pred = _predict_alternate(
+            global_candidates = _global_candidates(
                 ranking,
                 pair_median=pair_median,
                 candidate_median=candidate_median,
@@ -158,29 +201,12 @@ def _evaluate(
             top1 = ranking[0]
             local = _local_candidates(item, ranking, pair_data, router, k)
 
-            if local:
-                alternate, predicted, meta = _fused_prediction(
-                    global_pred,
-                    local,
-                    radius_threshold,
-                    orientation,
-                )
-            else:
-                alternate, predicted = _predict_alternate(
-                    ranking,
-                    pair_median=pair_median,
-                    candidate_median=candidate_median,
-                    rank_median=rank_median,
-                )
-                meta = {
-                    "source": "global_fallback",
-                    "radius": None,
-                    "support": 0,
-                    "neighbor_ids": [],
-                    "orientation": orientation,
-                    "global_prediction": global_pred,
-                    "local_prediction": None,
-                }
+            alternate, predicted, meta = _fused_prediction(
+                global_candidates,
+                local,
+                radius_threshold,
+                orientation,
+            )
 
             probe = predicted < 0.0
             realized_values = []
@@ -265,8 +291,8 @@ def run(path: Path) -> dict:
     return {
         "schema_version": "1.0",
         "protocol": (
-            "diagnostic hierarchical fusion of global pair predictor and "
-            "topology-local pair predictor using fixed neighbor-radius gates"
+            "diagnostic hierarchical fusion of candidate-specific global pair "
+            "predictions and topology-local pair predictions using fixed neighbor-radius gates"
         ),
         "benchmark_commit": payload.get("commit_sha"),
         "local_k_values": list(LOCAL_KS),
@@ -277,6 +303,7 @@ def run(path: Path) -> dict:
             "Each predictor is fitted only within its leave-one-corpus-out training fold.",
             "Held-out outcomes are evaluation only.",
             "The k and radius grids are fixed before the fresh benchmark and no cell is selected automatically.",
+            "Each top-2/top-3 candidate retains its own global prior; candidates without local neighbors use that global prior as fallback.",
             "No production/default behavior changes.",
         ],
     }
