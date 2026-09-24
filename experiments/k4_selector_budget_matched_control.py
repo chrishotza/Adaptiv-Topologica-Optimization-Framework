@@ -170,9 +170,6 @@ def run(path: Path) -> dict:
                         ),
                     )
                     oracle_cut = float(seed_values[oracle_strategy]["edge_cut"])
-                    top1 = min(seed_values, key=lambda _: 0)
-                    # The actual rank-1 strategy is reconstructed from the
-                    # already-evaluated selector records below.
                     top1_cut = float(
                         alternate_by_unit[graph_id]["per_seed"][seed]["top1_cut"]
                     )
@@ -240,6 +237,7 @@ def run(path: Path) -> dict:
         "graphs": len(graph_ids),
         "seed_units": len(graph_ids) * len(SEEDS),
         "selector": {
+            "probe_graph_count": probe_graph_count,
             "probe_graphs": probe_graph_count,
             "probe_graph_rate": probe_graph_count / len(graph_ids),
             "mean_actions": mean_actions,
