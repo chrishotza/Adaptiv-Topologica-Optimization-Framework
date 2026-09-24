@@ -3,6 +3,7 @@ concurrency:
   cancel-in-progress: true
 
 name: K4 five-seed replication research
+# Protocol is intentionally rerun on the current branch HEAD after research/tooling hardening.
 
 on:
   pull_request:
