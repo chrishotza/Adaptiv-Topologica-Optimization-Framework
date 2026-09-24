@@ -379,7 +379,7 @@ def run(output_path: str | Path, cache_dir: str | Path | None = None, *, seeds: 
             "The k=4 strategy set is fixed before evaluation and excludes the k=2-only NetworkX Kernighan-Lin backend.",
             "Topology vectors and routing parameters are frozen from the existing all-feature IQR/L2 configuration.",
             "For each held-out corpus, oracle labels are derived only from the other three corpora.",
-            "The graph-level mean edge-cut oracle is evaluated over three fixed solver seeds.",
+            f"The graph-level mean edge-cut oracle is evaluated over {len(seeds)} fixed solver seeds.",
             "Tiny k=4 backend compatibility retries may add isolated padding nodes; padding nodes carry no edges and are removed before scoring the original graph.",
             "No held-out seed outcome is used to fit the router.",
             "No production/default behavior changes.",
