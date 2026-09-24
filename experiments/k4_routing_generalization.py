@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from math import ceil
 import json
 import platform
 import subprocess
@@ -27,6 +28,14 @@ STRATEGIES = (
     "kaminpar", "kaminpar-strong", "mtkahypar", "mtkahypar-quality",
 )
 BOOTSTRAP_SEED = 2024
+
+
+def _integer_feasible_imbalance(graph, k: int, *, base: float = 0.03) -> float:
+    """Smallest tolerance that admits a floor/ceil integer k-way balance."""
+    n = graph.number_of_nodes()
+    average = n / k
+    required = ceil(average) / average - 1.0
+    return max(base, required)
 
 
 def _mean(values) -> float:
@@ -69,51 +78,67 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                 )
                 for candidate_id in missing
             }
-            if missing == ["metis"]:
-                try:
-                    retry_started = time.perf_counter()
-                    partition, edge_cut, balance_error = _run_metis(
-                        graph,
-                        seed=seed,
-                        k=K,
-                        recursive=False,
-                    )
-                    candidates["metis"] = PortfolioCandidate(
-                        id="metis",
-                        name="METIS(PyMetis)",
-                        available=True,
-                        edge_cut=int(edge_cut),
-                        balance_error=float(balance_error),
-                        runtime_seconds=float(time.perf_counter() - retry_started),
-                        partition=partition,
-                        backend_version=None,
-                        postprocess="balance_repair;research_direct_kway_retry",
-                        error=None,
-                    )
-                    original_candidate = next(
-                        candidate
-                        for candidate in result.candidates
-                        if candidate.id == "metis"
-                    )
-                    retry_metadata = {
-                        "metis_retry_count": 1,
-                        "metis_retry_reason": "first portfolio invocation returned unavailable",
-                        "metis_retry_mode": "direct_kway",
-                        "metis_original_error": original_candidate.error,
-                    }
-                    missing = sorted(set(STRATEGIES) - set(candidates))
-                except Exception as exc:
-                    original_candidate = next(
-                        candidate
-                        for candidate in result.candidates
-                        if candidate.id == "metis"
-                    )
-                    retry_metadata = {
-                        "metis_retry_count": 1,
-                        "metis_retry_reason": "first portfolio invocation returned unavailable",
-                        "metis_original_error": original_candidate.error,
-                        "metis_retry_error": f"{type(exc).__name__}: {exc}",
-                    }
+            if any(candidate_id in missing for candidate_id in ("metis", "kahip")):
+                backend_imbalance = _integer_feasible_imbalance(graph, K)
+                backend_ufactor = int(ceil(backend_imbalance * 1000))
+                retry_metadata = {
+                    "research_balance_tolerance": backend_imbalance,
+                    "research_metis_ufactor": backend_ufactor,
+                }
+
+                if "metis" in missing:
+                    try:
+                        retry_started = time.perf_counter()
+                        partition, edge_cut, balance_error = _run_metis(
+                            graph,
+                            seed=seed,
+                            k=K,
+                            recursive=False,
+                            ufactor=backend_ufactor,
+                        )
+                        candidates["metis"] = PortfolioCandidate(
+                            id="metis",
+                            name="METIS(PyMetis)",
+                            available=True,
+                            edge_cut=int(edge_cut),
+                            balance_error=float(balance_error),
+                            runtime_seconds=float(time.perf_counter() - retry_started),
+                            partition=partition,
+                            backend_version=None,
+                            postprocess="balance_repair;research_feasible_imbalance_retry",
+                            error=None,
+                        )
+                        retry_metadata["metis_retry_count"] = 1
+                        retry_metadata["metis_retry_reason"] = "fixed 3% tolerance was infeasible for integer k-way balance"
+                    except Exception as exc:
+                        retry_metadata["metis_retry_error"] = f"{type(exc).__name__}: {exc}"
+
+                if "kahip" in missing:
+                    try:
+                        from atof.portfolio import _run_kahip
+                        retry_started = time.perf_counter()
+                        partition, edge_cut, balance_error = _run_kahip(
+                            graph,
+                            seed=seed,
+                            k=K,
+                            imbalance=backend_imbalance,
+                        )
+                        candidates["kahip"] = PortfolioCandidate(
+                            id="kahip",
+                            name="KaHIP(KaFFPa-Strong)",
+                            available=True,
+                            edge_cut=int(edge_cut),
+                            balance_error=float(balance_error),
+                            runtime_seconds=float(time.perf_counter() - retry_started),
+                            partition=partition,
+                            backend_version=None,
+                            postprocess="balance_repair;research_feasible_imbalance_retry",
+                            error=None,
+                        )
+                        retry_metadata["kahip_retry_count"] = 1
+                        retry_metadata["kahip_retry_reason"] = "fixed 3% tolerance was infeasible for integer k-way balance"
+                    except Exception as exc:
+                        retry_metadata["kahip_retry_error"] = f"{type(exc).__name__}: {exc}"
             if missing:
                 raise RuntimeError(
                     f"{corpus}/{name} seed={seed}: missing k=4 candidates {missing}; "
