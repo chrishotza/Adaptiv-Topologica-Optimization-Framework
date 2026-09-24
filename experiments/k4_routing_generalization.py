@@ -110,9 +110,9 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                 for candidate_id in missing
             }
             if any(candidate_id in missing for candidate_id in ("metis", "kahip")):
-                backend_imbalance = _integer_feasible_imbalance(graph, K)
-                backend_ufactor = int(ceil(backend_imbalance * 1000))
                 padded_graph, padding_nodes = _pad_isolated_nodes(graph, K)
+                backend_imbalance = _integer_feasible_imbalance(padded_graph, K)
+                backend_ufactor = int(ceil(backend_imbalance * 1000))
                 retry_metadata = {
                     "research_balance_tolerance": backend_imbalance,
                     "research_metis_ufactor": backend_ufactor,
@@ -142,7 +142,7 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                             runtime_seconds=float(time.perf_counter() - retry_started),
                             partition=partition,
                             backend_version=None,
-                            postprocess="balance_repair;research_feasible_imbalance_retry",
+                            postprocess="balance_repair;research_isolated_node_padding",
                             error=None,
                         )
                         retry_metadata["metis_retry_count"] = 1
@@ -367,6 +367,7 @@ def run(output_path: str | Path, cache_dir: str | Path | None = None) -> dict:
             "Topology vectors and routing parameters are frozen from the existing all-feature IQR/L2 configuration.",
             "For each held-out corpus, oracle labels are derived only from the other three corpora.",
             "The graph-level mean edge-cut oracle is evaluated over three fixed solver seeds.",
+            "Tiny k=4 backend compatibility retries may add isolated padding nodes; padding nodes carry no edges and are removed before scoring the original graph.",
             "No held-out seed outcome is used to fit the router.",
             "No production/default behavior changes.",
         ],
