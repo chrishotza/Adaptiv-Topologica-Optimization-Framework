@@ -1,0 +1,106 @@
+name: Quality-conditioned routing research gate
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "experiments/quality_conditioned_routing.py"
+      - "tests/test_quality_conditioned_routing.py"
+      - ".github/workflows/quality-conditioned-routing.yml"
+      - "experiments/fresh_sota_protocol.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  routing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+
+      - name: Run router unit tests
+        run: |
+          pytest -q tests/test_quality_conditioned_routing.py
+
+      - name: Run fresh benchmark
+        run: |
+          python -m experiments.fresh_sota_protocol             --output results/state_of_art/fresh_sota_latest.json             --cache-dir .cache/snap
+
+      - name: Validate fresh benchmark completeness
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/state_of_art/fresh_sota_latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["matched_graphs"] == 20
+          assert len(payload["candidate_strategies"]) == 11
+          assert payload["seeds"] == [42, 101, 2024]
+          assert len(payload["rows"]) == 660
+          assert all(row["status"] == "ok" for row in payload["rows"])
+          PY
+
+      - name: Run quality-conditioned routing replay
+        run: |
+          python -m experiments.quality_conditioned_routing             --benchmark results/state_of_art/fresh_sota_latest.json             --output results/state_of_art/quality_conditioned_routing_latest.json
+
+      - name: Validate routing manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/state_of_art/quality_conditioned_routing_latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["matched_graphs"] == 20
+          assert payload["router"]["k_neighbors"] == 3
+          assert payload["router"]["target"] == "edge_cut / edge_count"
+          assert set(payload["pooled_summaries"]) == {
+              "quality_conditioned",
+              "centroid",
+              "majority",
+              "global_mean",
+          }
+          assert set(payload["paired_comparisons"]) == {
+              "quality_conditioned_vs_centroid",
+              "quality_conditioned_vs_majority",
+              "quality_conditioned_vs_global_mean",
+          }
+          assert len(payload["folds"]) == len(payload["corpora"])
+          PY
+
+      - name: Upload routing artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-conditioned-routing
+          path: |
+            results/state_of_art/fresh_sota_latest.json
+            results/state_of_art/quality_conditioned_routing_latest.json
+          if-no-files-found: error
