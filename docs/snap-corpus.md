@@ -55,6 +55,8 @@ The separate scalability registry includes:
 
 These are deliberately not part of the routine validation job. They are a separate tier because larger graphs change runtime and stress the topology profiler and optimizer in ways that should be measured explicitly.
 
+For operational graph inspection, `atof profile --compact` uses the bounded topology profiler. Its default 2,000-node guard skips all-pairs diameter/average-path calculations and greedy modularity detection above the limit; the full profiler remains available for research workflows where those exact descriptors are required.
+
 ## Run
 
 ~~~bash
