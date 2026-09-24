@@ -50,11 +50,11 @@ The Engine has three selection modes:
 
 Therefore, an Engine result's `result.edge_cut` is always the unweighted reported metric, but `objective.optimization_metric` identifies the scalar objective actually optimized.
 
-**ATOF Portfolio** is the empirical composition layer over the available BLOC, NetworkX, METIS, and KaHIP backends.
+**ATOF Portfolio** is the empirical composition layer over the available BLOC, NetworkX, METIS, KaHIP, KaMinPar, and Mt-KaHyPar backends.
 
 The Engine contract is k>=2, undirected, simple graphs with balanced node counts; its reported comparison metric is unweighted edge cut.
 
-The Portfolio contract is k=2 under an explicitly common unweighted edge-cut objective.
+The Portfolio contract is balanced k-way partitioning for k>=2 under an explicitly common unweighted edge-cut objective. NetworkX Kernighan-Lin is a k=2-only candidate; the other portfolio backends are used for k-way requests when installed.
 
 Input formats are edge-list, JSON, GraphML, GEXF, and GML. stdin supports edge-list and JSON.
 
