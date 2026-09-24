@@ -9,7 +9,7 @@ import time
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from atof.portfolio import _run_metis, optimize_portfolio
+from atof.portfolio import PortfolioCandidate, _run_metis, optimize_portfolio
 from atof.routing import LearnedTopologyRouter, NearestTopologyRouter
 from atof.statistics import bootstrap_mean_ci
 from atof.topology import TopologyProfiler
@@ -70,11 +70,18 @@ def _graph_record(graph, corpus: str, name: str) -> dict:
                         k=K,
                         recursive=False,
                     )
-                    candidates["metis"] = {
-                        "edge_cut": int(edge_cut),
-                        "runtime_seconds": float(time.perf_counter() - retry_started),
-                        "balance_error": float(balance_error),
-                    }
+                    candidates["metis"] = PortfolioCandidate(
+                        id="metis",
+                        name="METIS(PyMetis)",
+                        available=True,
+                        edge_cut=int(edge_cut),
+                        balance_error=float(balance_error),
+                        runtime_seconds=float(time.perf_counter() - retry_started),
+                        partition=partition,
+                        backend_version=None,
+                        postprocess="balance_repair;research_direct_kway_retry",
+                        error=None,
+                    )
                     original_candidate = next(
                         candidate
                         for candidate in result.candidates

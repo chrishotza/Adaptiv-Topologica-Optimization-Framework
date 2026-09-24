@@ -230,7 +230,6 @@ def _run_metis(
     *,
     seed: int,
     k: int,
-    recursive: bool = True,
 ) -> tuple[dict[Any, int], int, float]:
     import pymetis
 
@@ -244,7 +243,7 @@ def _run_metis(
         k,
         adjacency=adjacency,
         tpwgts=[1.0 / k] * k,
-        recursive=recursive,
+        recursive=True,
         options=pymetis.Options(seed=seed),
     )
     membership = _rebalance_kway(graph, list(raw.vertex_part), k)
