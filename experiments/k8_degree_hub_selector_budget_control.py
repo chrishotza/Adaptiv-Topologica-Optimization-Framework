@@ -232,7 +232,7 @@ def run(path: Path) -> dict:
         ),
         "benchmark_commit": payload.get("benchmark_commit") or payload.get("commit_sha"),
         "benchmark_head": payload.get("benchmark_head") or payload.get("git_head_sha"),
-        "k": 4,
+        "k": 8,
         "seeds": list(SEEDS),
         "graphs": len(graph_ids),
         "seed_units": len(graph_ids) * len(SEEDS),
