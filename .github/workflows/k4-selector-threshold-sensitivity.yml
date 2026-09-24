@@ -80,6 +80,15 @@ jobs:
           assert payload["thresholds"] == [0.0, 0.0025, 0.005, 0.01, 0.02]
           assert len(payload["cells"]) == 5
 
+          baseline = payload["cells"][0]
+          assert baseline["threshold"] == 0.0
+          assert abs(baseline["probe_rate"] - 0.30) < 1e-12
+          assert abs(baseline["mean_actions"] - 1.30) < 1e-12
+          assert abs(
+              baseline["paired_selector_minus_top1"]["mean"]
+              - (-0.005649469010581708)
+          ) < 1e-12
+
           for cell in payload["cells"]:
               assert cell["selector"]["graphs"] == 20
               assert cell["top1"]["graphs"] == 20
