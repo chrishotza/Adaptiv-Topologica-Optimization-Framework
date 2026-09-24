@@ -148,8 +148,18 @@ def build_doctor_report(*, full: bool = False) -> dict:
         "backends": backends,
         "input_formats": [item for item in SUPPORTED_INPUT_FORMATS if item != "auto"],
         "portfolio_ready": any(
-            item["available"] and item["id"] == "networkx-kl"
+            item["available"]
             for item in backends
+            if item["id"] in {
+                "bloc",
+                "networkx-kl",
+                "metis",
+                "kahip",
+                "kaminpar",
+                "kaminpar-strong",
+                "mtkahypar",
+                "mtkahypar-quality",
+            }
         ),
     }
     if not full:
