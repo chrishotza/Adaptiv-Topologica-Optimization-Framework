@@ -2,6 +2,9 @@ name: SNAP topology scalability
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - hardening/topology-profile-scalability-clean
 
 jobs:
   snap-scalability:
