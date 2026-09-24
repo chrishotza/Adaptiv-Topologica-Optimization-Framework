@@ -211,7 +211,7 @@ On that run, ATOF Portfolio selected PyMetis.
 
 This is a **benchmark-qualified composition/access result**, not a universal optimality or speed claim. Direct backends were faster on this small graph.
 
-See [docs/claims.md](docs/claims.md) and [docs/open-source-access-benchmark.md](docs/open-source-access-benchmark.md).
+See [docs/claims.md](docs/claims.md), [docs/open-source-access-benchmark.md](docs/open-source-access-benchmark.md), and [the research evidence map](docs/research-evidence-map.md).
 
 ## Current MVP contract
 
@@ -268,6 +268,12 @@ python -m experiments.run_routing_evaluation
 ```
 
 Research commands write generated outputs to ignored runtime directories.
+
+## Research scope and evidence boundary
+
+The public product is deliberately graph-partitioning focused. The adaptive-selection work is a graph-partitioning research program, not a claim of universal adaptive optimization. The research archive contains both positive and negative experiments; no research branch changes public/default behavior automatically.
+
+For an AI reviewer, start with [the research evidence map](docs/research-evidence-map.md) to distinguish product contracts, validated measurements, negative findings, and open experiments.
 
 ## Evidence discipline
 

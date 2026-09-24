@@ -73,6 +73,10 @@ JSON input contract = `{nodes?: [...], edges: [[u, v], ...]}`.
 - In Portfolio mode, `result.edge_cut` is the common selection metric.
 - Machine-readable partition outputs canonicalize node IDs with `str()`; stringification collisions are rejected.
 
+## Research status
+
+`docs/research-evidence-map.md` is the fast path for distinguishing product contracts from research evidence. It records the recent adaptive-selection lineage, including negative results and open experiments, and must be read before making claims about adaptive routing.
+
 ## Evidence rule
 
 Comparative claims must identify the graph/corpus, objective, protocol, and environment. Do not infer universal superiority from a single benchmark.
