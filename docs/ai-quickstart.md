@@ -59,7 +59,7 @@ atof optimize graph.edgelist --engine bloc --k 4 --compact
 atof optimize graph.edgelist --engine bloc --hybrid --compact
 ~~~
 
-Use Engine mode when the task needs more than two balanced blocks. Add `--hybrid` when a deeper local refinement pass is appropriate; its benchmarked defaults are 5-iteration intervals and 100 two-node swap samples. Portfolio mode supports `k>=2`. NetworkX Kernighan-Lin is available only for `k=2`; METIS and KaHIP can serve k-way requests when installed.
+Use Engine mode when the task needs more than two balanced blocks. Add `--hybrid` when a deeper local refinement pass is appropriate; its benchmarked defaults are 5-iteration intervals and 100 two-node swap samples. Portfolio mode supports `k>=2`. NetworkX Kernighan-Lin is available only for `k=2`; BLOC-RELOC, METIS, KaHIP, KaMinPar, and Mt-KaHyPar can serve k-way requests when their backend is available.
 
 ## 8. Compare native Engine and Portfolio
 
