@@ -45,7 +45,7 @@ jobs:
           assert p["k"] == 8
           assert p["seeds"] == [1337, 2718, 3141, 1618, 65537]
           assert len(p["graph_manifest"]) == 20
-          assert p["paired_degree_hub_minus_all"]["degrees_hub_better_graphs"] if False else True
+          assert "degree_hub_better_graphs" in p["paired_degree_hub_minus_all"]
           PY
       - uses: actions/upload-artifact@v4
         with:
