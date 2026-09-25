@@ -4,7 +4,12 @@ __version__ = "0.6.0"
 
 from .partition import balance_error, edge_cut, initialize_balanced_partition, weighted_cut
 from .strategies import BLOCReloc, PartitionResult
-from .topology import TopologyProfiler, TopologyProfile
+from .topology import (
+    PROFILE_FEATURES,
+    TopologyProfiler,
+    TopologyProfile,
+    resolve_profile_features,
+)
 from .selector import HeuristicRegimeSelector, StrategyRecommendation
 from .adaptive import (
     ControllerDecision,
@@ -52,7 +57,8 @@ from .statistics import (
 
 __all__ = [
     "BLOCReloc", "PartitionResult",
-    "TopologyProfiler", "TopologyProfile",
+    "TopologyProfiler", "TopologyProfile", "PROFILE_FEATURES",
+    "resolve_profile_features",
     "HeuristicRegimeSelector", "StrategyRecommendation",
     "RegimeSignatureV2", "build_regime_signature_v2", "adaptive_regime_summary",
     "TrajectoryMonitor", "TrajectoryState",
