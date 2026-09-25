@@ -1,0 +1,76 @@
+name: K8 hybrid representation confirmatory gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k8_hybrid_representation_confirmatory.py"
+      - "tests/test_k8_hybrid_representation_confirmatory.py"
+      - "experiments/run_expanded_20graph_kahip_transfer.py"
+      - "experiments/k8_degree_hub_replication.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+      - "src/atof/topology.py"
+      - ".github/workflows/k8-hybrid-representation-confirmatory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hybrid-confirmatory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ATOF and benchmark backends
+        run: python -m pip install -e ".[dev,sota]"
+
+      - name: Protocol tests
+        run: pytest -q tests/test_k8_hybrid_representation_confirmatory.py
+
+      - name: Run fresh hybrid representation gate
+        run: |
+          mkdir -p artifacts
+          python experiments/k8_hybrid_representation_confirmatory.py             --output artifacts/k8_hybrid_representation_confirmatory_latest.json             --cache-dir .cache/snap
+
+      - name: Validate result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = json.loads(
+              Path("artifacts/k8_hybrid_representation_confirmatory_latest.json").read_text()
+          )
+          assert p["k"] == 8
+          assert p["graphs"] == 20
+          assert p["seeds"] == [7001, 8192, 104729, 131071, 262144]
+          assert len(p["routers"]) == 4
+          assert p["candidate_features"] == [
+              "density",
+              "avg_degree",
+              "degree_std",
+              "hub_ratio",
+              "degree_gini",
+              "core_number",
+              "diameter",
+              "avg_path_length",
+          ]
+          assert len(p["graph_manifest"]) == 20
+          assert all(
+              len(record["seed_oracles"]) == 5
+              for record in p["graph_manifest"]
+          )
+          PY
+
+      - name: Upload hybrid confirmatory artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8-hybrid-representation-confirmatory
+          path: artifacts/k8_hybrid_representation_confirmatory_latest.json
