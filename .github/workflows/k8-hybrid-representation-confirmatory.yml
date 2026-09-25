@@ -35,6 +35,8 @@ jobs:
         run: pytest -q tests/test_k8_hybrid_representation_confirmatory.py
 
       - name: Run fresh hybrid representation gate
+        env:
+          PYTHONPATH: .
         run: |
           mkdir -p artifacts
           python experiments/k8_hybrid_representation_confirmatory.py             --output artifacts/k8_hybrid_representation_confirmatory_latest.json             --cache-dir .cache/snap
