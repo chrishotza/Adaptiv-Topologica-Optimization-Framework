@@ -47,7 +47,7 @@ def test_profile_feature_subset_skips_unrequested_expensive_descriptors(
         raise AssertionError("unrequested topology computation was executed")
 
     for name in expensive:
-        monkeypatch.setattr(getattr(topology.nx, name), "__call__", fail, raising=False)
+        monkeypatch.setattr(topology.nx, name, fail)
 
     profiler = TopologyProfiler(
         features=(
