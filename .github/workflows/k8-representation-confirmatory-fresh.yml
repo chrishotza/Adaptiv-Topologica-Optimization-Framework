@@ -1,0 +1,54 @@
+name: K8 fresh representation confirmatory gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k8_representation_confirmatory_fresh.py"
+      - "experiments/k8_degree_hub_replication.py"
+      - "tests/test_k8_representation_confirmatory_fresh.py"
+      - "src/atof/routing.py"
+      - "src/atof/topology.py"
+      - "src/atof/statistics.py"
+      - ".github/workflows/k8-representation-confirmatory-fresh.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  confirmatory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 260
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF and benchmark backends
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[analysis,metis,kahip,sota,dev]"
+      - name: Protocol tests
+        run: pytest -q tests/test_k8_representation_confirmatory_fresh.py
+      - name: Generate fresh solver outcomes
+        run: |
+          python -m experiments.k8_representation_confirmatory_fresh             --output results/state_of_art/k8_representation_confirmatory_fresh_latest.json             --cache-dir .cache/snap
+      - name: Validate confirmatory manifest
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path(
+              "results/state_of_art/k8_representation_confirmatory_fresh_latest.json"
+          ).read_text())
+          assert p["k"] == 8
+          assert p["seeds"] == [1337, 2718, 3141, 1618, 65537]
+          assert len(p["graph_manifest"]) == 20
+          assert p["paired_degree_hub_minus_all"]["degrees_hub_better_graphs"] if False else True
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: k8-representation-confirmatory-fresh
+          path: results/state_of_art/k8_representation_confirmatory_fresh_latest.json
+          if-no-files-found: error
