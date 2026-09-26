@@ -1,6 +1,15 @@
 name: K8 external solver matrix
 
 on:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "experiments/k8_external_solver_unit.py"
+      - "experiments/k8_external_solver_aggregate.py"
+      - ".github/workflows/k8-external-solver-matrix.yml"
+      - "src/atof/**"
+      - "experiments/k8_degree_hub_replication.py"
   push:
     branches:
       - "main"
