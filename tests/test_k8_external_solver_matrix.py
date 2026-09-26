@@ -19,3 +19,5 @@ def test_matrix_scope_is_frozen():
 
 def test_router_scope_is_frozen():
     assert set(ROUTER_CONFIGS) == {"all_iqr_l2", "global_paths_iqr_l2"}
+
+# Workflow activation commit.
