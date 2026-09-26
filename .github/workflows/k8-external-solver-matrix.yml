@@ -3,6 +3,7 @@ name: K8 external solver matrix
 on:
   push:
     branches:
+      - "main"
       - "research/k8-external-runtime-preflight"
     paths:
       - "experiments/k8_external_solver_unit.py"
