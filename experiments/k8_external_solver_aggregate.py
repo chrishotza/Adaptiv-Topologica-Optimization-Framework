@@ -101,7 +101,7 @@ def mean_regret(strategy_means: dict[str, float], oracle: str, selected: str) ->
     return (selected_cut - oracle_cut) / oracle_cut if oracle_cut else 0.0
 
 
-def aggregate(input_dir: Path, training_fixture: Path, output: Path, cache_dir: Path) -> dict:
+def aggregate(input_dir: Path, training_fixture: Path, output: Path, topology_dir: Path) -> dict:
     files = sorted(input_dir.glob("*.json"))
     expected = 2 * len(EXTERNAL_SEEDS) * len(STRATEGIES)
     if len(files) != expected:
