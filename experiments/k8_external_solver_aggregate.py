@@ -295,9 +295,9 @@ def main() -> int:
     parser.add_argument("--input-dir", type=Path, required=True)
     parser.add_argument("--training-fixture", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--cache-dir", type=Path, required=True)
+    parser.add_argument("--topology-dir", type=Path, required=True)
     args = parser.parse_args()
-    aggregate(args.input_dir, args.training_fixture, args.output, args.cache_dir)
+    aggregate(args.input_dir, args.training_fixture, args.output, args.topology_dir)
     return 0
 
 
