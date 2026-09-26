@@ -9,6 +9,8 @@ on:
       - ".github/workflows/k8-external-runtime-preflight.yml"
       - "src/atof/portfolio.py"
       - "src/atof/topology.py"
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -61,7 +63,7 @@ jobs:
           path: artifacts/k8_external_runtime_preflight_latest.json
 
   solver-matrix:
-    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'research/k8-external-runtime-preflight' }}
+    if: ${{ (github.event_name == 'pull_request' && github.head_ref == 'research/k8-external-runtime-preflight') || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
     strategy:
       fail-fast: false
       max-parallel: 20
