@@ -1,0 +1,119 @@
+name: K8 external graph holdout split
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k8_external_holdout_split.py"
+      - "tests/test_k8_external_holdout_split.py"
+      - "experiments/k8_degree_hub_replication.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+      - ".github/workflows/k8-external-holdout-split.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF and benchmark backends
+        run: python -m pip install -e ".[dev,sota,metis,kahip]"
+      - name: Protocol tests
+        run: pytest -q tests/test_k8_external_holdout_split.py
+      - name: Download frozen prior training artifact
+        env:
+          GH_TOKEN: \${{ github.token }}
+        run: |
+          mkdir -p source_fixture artifacts
+          curl -L \
+            -H "Authorization: Bearer \${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            -o source_fixture/prior.zip \
+            "https://api.github.com/repos/\${{ github.repository }}/actions/artifacts/10829012259/zip"
+          unzip -q source_fixture/prior.zip -d source_fixture
+          test -f source_fixture/k8_degree_hub_replication_latest.json
+          python experiments/k8_external_holdout_split.py make-fixture \
+            --source source_fixture/k8_degree_hub_replication_latest.json \
+            --output artifacts/k8_external_training_fixture.json
+      - name: Upload frozen training fixture
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8-external-training-fixture
+          path: artifacts/k8_external_training_fixture.json
+
+  external:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        dataset:
+          - ego_facebook
+          - p2p_gnutella08
+          - ca_astroph
+          - ca_condmat
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF and benchmark backends
+        run: python -m pip install -e ".[dev,sota,metis,kahip]"
+      - name: Download frozen training fixture
+        uses: actions/download-artifact@v4
+        with:
+          name: k8-external-training-fixture
+          path: artifacts/training
+      - name: Run external graph
+        env:
+          PYTHONPATH: .
+        run: |
+          mkdir -p artifacts/results .cache/snap_external
+          python experiments/k8_external_holdout_split.py external \
+            --dataset "\${{ matrix.dataset }}" \
+            --training-fixture artifacts/training/k8_external_training_fixture.json \
+            --output "artifacts/results/\${{ matrix.dataset }}.json" \
+            --cache-dir .cache/snap_external
+      - name: Upload graph result
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8-external-\${{ matrix.dataset }}
+          path: artifacts/results/\${{ matrix.dataset }}.json
+
+  aggregate:
+    needs: external
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF
+        run: python -m pip install -e ".[dev]"
+      - name: Download external results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: k8-external-*
+          path: artifacts/external
+          merge-multiple: true
+      - name: Aggregate external holdout
+        run: |
+          python experiments/k8_external_holdout_split.py aggregate \
+            --input-dir artifacts/external \
+            --output artifacts/k8_external_holdout_split_latest.json
+      - name: Upload combined result
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8-external-holdout-split
+          path: artifacts/k8_external_holdout_split_latest.json
