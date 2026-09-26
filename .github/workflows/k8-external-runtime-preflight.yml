@@ -1,0 +1,61 @@
+name: K8 external runtime preflight
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k8_external_runtime_preflight.py"
+      - "tests/test_k8_external_runtime_preflight.py"
+      - ".github/workflows/k8-external-runtime-preflight.yml"
+      - "src/atof/portfolio.py"
+      - "src/atof/topology.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ATOF and benchmark backends
+        run: python -m pip install -e ".[dev,sota,metis,kahip]"
+
+      - name: Protocol tests
+        run: pytest -q tests/test_k8_external_runtime_preflight.py
+
+      - name: Run runtime preflight
+        env:
+          PYTHONPATH: .
+        run: |
+          mkdir -p artifacts
+          python experiments/k8_external_runtime_preflight.py             --output artifacts/k8_external_runtime_preflight_latest.json             --cache-dir .cache/snap_external
+
+      - name: Validate preflight
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = json.loads(
+              Path("artifacts/k8_external_runtime_preflight_latest.json").read_text()
+          )
+          assert p["k"] == 8
+          assert p["seed"] == 5003
+          assert p["graph"]["nodes"] == 4039
+          assert p["graph"]["edges"] == 88234
+          assert len(p["solver"]["candidates"]) >= 8
+          PY
+
+      - name: Upload preflight artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8-external-runtime-preflight
+          path: artifacts/k8_external_runtime_preflight_latest.json
