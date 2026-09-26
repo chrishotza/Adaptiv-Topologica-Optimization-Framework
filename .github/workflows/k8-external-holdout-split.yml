@@ -31,14 +31,14 @@ jobs:
         run: pytest -q tests/test_k8_external_holdout_split.py
       - name: Download frozen prior training artifact
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p source_fixture artifacts
           curl -L \
-            -H "Authorization: Bearer \${GH_TOKEN}" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
             -H "Accept: application/vnd.github+json" \
             -o source_fixture/prior.zip \
-            "https://api.github.com/repos/\${{ github.repository }}/actions/artifacts/10829012259/zip"
+            "https://api.github.com/repos/${{ github.repository }}/actions/artifacts/10829012259/zip"
           unzip -q source_fixture/prior.zip -d source_fixture
           test -f source_fixture/k8_degree_hub_replication_latest.json
           python experiments/k8_external_holdout_split.py make-fixture \
@@ -80,15 +80,15 @@ jobs:
         run: |
           mkdir -p artifacts/results .cache/snap_external
           python experiments/k8_external_holdout_split.py external \
-            --dataset "\${{ matrix.dataset }}" \
+            --dataset "${{ matrix.dataset }}" \
             --training-fixture artifacts/training/k8_external_training_fixture.json \
-            --output "artifacts/results/\${{ matrix.dataset }}.json" \
+            --output "artifacts/results/${{ matrix.dataset }}.json" \
             --cache-dir .cache/snap_external
       - name: Upload graph result
         uses: actions/upload-artifact@v4
         with:
-          name: k8-external-\${{ matrix.dataset }}
-          path: artifacts/results/\${{ matrix.dataset }}.json
+          name: k8-external-${{ matrix.dataset }}
+          path: artifacts/results/${{ matrix.dataset }}.json
 
   aggregate:
     needs: external
