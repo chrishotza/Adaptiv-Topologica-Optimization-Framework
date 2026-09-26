@@ -32,6 +32,7 @@ jobs:
       - name: Download frozen prior training artifact
         env:
           GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: .
         run: |
           mkdir -p source_fixture artifacts
           curl -L \
