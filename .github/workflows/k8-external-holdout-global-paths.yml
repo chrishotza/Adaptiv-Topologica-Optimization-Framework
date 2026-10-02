@@ -1,0 +1,71 @@
+name: K8 external graph holdout
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/k8_external_holdout_global_paths.py"
+      - "tests/test_k8_external_holdout_global_paths.py"
+      - "experiments/run_expanded_20graph_kahip_transfer.py"
+      - "experiments/k8_degree_hub_replication.py"
+      - "src/atof/routing.py"
+      - "src/atof/statistics.py"
+      - ".github/workflows/k8-external-holdout-global-paths.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  external-holdout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ATOF and benchmark backends
+        run: python -m pip install -e ".[dev,sota,metis,kahip]"
+
+      - name: Protocol tests
+        run: pytest -q tests/test_k8_external_holdout_global_paths.py
+
+      - name: Run k=8 external holdout
+        env:
+          PYTHONPATH: .
+        run: |
+          mkdir -p artifacts
+          python experiments/k8_external_holdout_global_paths.py             --output artifacts/k8_external_holdout_global_paths_latest.json             --cache-dir .cache/snap_external
+
+      - name: Validate result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          p = json.loads(
+              Path("artifacts/k8_external_holdout_global_paths_latest.json").read_text()
+          )
+          assert p["k"] == 8
+          assert p["training_graphs"] == 20
+          assert p["external_graphs"] == 4
+          assert p["external_seeds"] == [5003, 7003, 9001, 12011, 16001]
+          assert set(p["routers"]) == {"all_iqr_l2", "global_paths_iqr_l2"}
+          assert len(p["external_manifest"]) == 4
+          assert all(
+              len(record["seed_oracles"]) == 5
+              for record in p["external_manifest"]
+          )
+          assert not (
+              set(p["training_seeds"]).intersection(p["external_seeds"])
+          )
+          PY
+
+      - name: Upload external holdout artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8-external-holdout-global-paths
+          path: artifacts/k8_external_holdout_global_paths_latest.json
