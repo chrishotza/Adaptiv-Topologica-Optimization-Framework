@@ -1,0 +1,48 @@
+name: Soft balance canonical benchmark
+
+on:
+  pull_request:
+    paths:
+      - "src/atof/soft_balance.py"
+      - "experiments/run_soft_balance_canonical.py"
+      - "tests/test_soft_balance.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canonical:
+    name: Karate Club soft balance benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Run canonical benchmark
+        run: python -m experiments.run_soft_balance_canonical
+      - name: Validate canonical benchmark
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(
+              Path("results/soft-balance-canonical/latest.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert payload["nodes"] == 34
+          assert payload["edges"] == 78
+          assert len(payload["rows"]) == 24
+          assert all(row["soft_balance_error"] == 0.0 for row in payload["rows"])
+          assert all(item["comparisons"] == 6 for item in payload["summaries"])
+          PY
+      - name: Upload canonical artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: soft-balance-canonical
+          path: results/soft-balance-canonical/latest.json
