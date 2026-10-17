@@ -306,6 +306,8 @@ Comparative statements should name the graph or corpus, objective, protocol, env
 - [Research findings](research/generalization-findings-2026-09-21.md)
 - [AI agent rules](AGENTS.md)
 - [llms.txt](llms.txt)
+- [Earlier topology-research archive (separate historical repository)](https://github.com/chrishotza/adaptive-topological-optimization)
+- [BLOC-RELOC v2 dynamics observatory (separate research repository)](https://github.com/chrishotza/bloc-reloc-v2)
 
 ## Citation
 
