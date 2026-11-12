@@ -57,3 +57,26 @@ def test_bloc_swap_delta_matches_full_objective():
             after = bloc._objective(partition)
             partition[u], partition[v] = bu, bv
             assert abs((after - before) - delta) < 1e-12
+
+def test_balance_error_rejects_extra_partition_nodes():
+    graph = nx.path_graph(2)
+    with pytest.raises(ValueError, match="not present in the graph"):
+        balance_error(graph, {0: 0, 1: 1, 99: 1}, 2)
+
+
+def test_balance_error_rejects_missing_partition_nodes():
+    graph = nx.path_graph(2)
+    with pytest.raises(ValueError, match="missing"):
+        balance_error(graph, {0: 0}, 2)
+
+
+@pytest.mark.parametrize("k", [0, -1, 1.5])
+def test_balance_error_rejects_invalid_k(k):
+    with pytest.raises(ValueError, match="positive integer"):
+        balance_error(nx.Graph(), {}, k)
+
+
+@pytest.mark.parametrize("invalid_label", [0.5, "0", -1, 2])
+def test_balance_error_rejects_invalid_labels(invalid_label):
+    with pytest.raises(ValueError, match="partition labels"):
+        balance_error(nx.path_graph(2), {0: 0, 1: invalid_label}, 2)
