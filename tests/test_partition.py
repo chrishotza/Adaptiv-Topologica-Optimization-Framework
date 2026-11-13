@@ -70,13 +70,18 @@ def test_balance_error_rejects_missing_partition_nodes():
         balance_error(graph, {0: 0}, 2)
 
 
-@pytest.mark.parametrize("k", [0, -1, 1.5])
+@pytest.mark.parametrize("k", [0, -1, 1.5, True, False])
 def test_balance_error_rejects_invalid_k(k):
     with pytest.raises(ValueError, match="positive integer"):
         balance_error(nx.Graph(), {}, k)
 
 
-@pytest.mark.parametrize("invalid_label", [0.5, "0", -1, 2])
+@pytest.mark.parametrize("invalid_label", [0.5, "0", -1, 2, True, False])
 def test_balance_error_rejects_invalid_labels(invalid_label):
     with pytest.raises(ValueError, match="partition labels"):
         balance_error(nx.path_graph(2), {0: 0, 1: invalid_label}, 2)
+
+@pytest.mark.parametrize("k", [0, -1, 1.5, True, False])
+def test_initializer_rejects_nonpositive_noninteger_or_boolean_k(k):
+    with pytest.raises(ValueError, match="positive integer"):
+        initialize_balanced_partition(nx.path_graph(4), k)
