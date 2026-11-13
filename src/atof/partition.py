@@ -10,12 +10,12 @@ EdgeCost = Callable[[Node, Node], float]
 
 def initialize_balanced_partition(graph: nx.Graph, k: int) -> Partition:
     """Create a deterministic near-balanced k-way partition."""
-    if k < 1:
-        raise ValueError("k must be >= 1")
+    if not isinstance(k, Integral) or isinstance(k, bool) or k < 1:
+        raise ValueError("k must be a positive integer")
     return {node: i % k for i, node in enumerate(graph.nodes())}
 
 def _validate_partition(graph: nx.Graph, partition: Mapping[Node, int], k: int) -> None:
-    if not isinstance(k, Integral) or k < 1:
+    if not isinstance(k, Integral) or isinstance(k, bool) or k < 1:
         raise ValueError("k must be a positive integer")
     graph_nodes = set(graph.nodes())
     partition_nodes = set(partition)
@@ -26,7 +26,7 @@ def _validate_partition(graph: nx.Graph, partition: Mapping[Node, int], k: int) 
     if extra:
         raise ValueError(f"partition has {len(extra)} nodes not present in the graph")
     if any(
-        not isinstance(label, Integral) or label < 0 or label >= k
+        not isinstance(label, Integral) or isinstance(label, bool) or label < 0 or label >= k
         for label in partition.values()
     ):
         raise ValueError("partition labels must be integers in [0, k)")
