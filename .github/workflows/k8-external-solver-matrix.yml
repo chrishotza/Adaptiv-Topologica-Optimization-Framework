@@ -1,4 +1,4 @@
-name: K8 external solver matrix
+name: K8 contract smoke (full solver matrix requires manual dispatch)
 
 on:
   pull_request:
@@ -27,7 +27,27 @@ permissions:
   actions: read
 
 jobs:
+  # Protect PRs against regression without automatically allocating 80 solver
+  # runners, downloading SNAP twice, and hitting 20-minute aggregation timeout.
+  # A green PR check here is a contract smoke, NOT a completed external study.
+  contract-smoke:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ATOF without external native benchmark backends
+        run: python -m pip install -e ".[dev]"
+      - name: Validate partition contracts and experiment parser syntax
+        run: |
+          python -m pytest -q tests/test_partition.py
+          python -m py_compile experiments/k8_external_solver_unit.py experiments/k8_external_solver_aggregate.py
+
   solver:
+    if: github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       max-parallel: 20
@@ -62,6 +82,9 @@ jobs:
           path: artifacts/unit/*.json
 
   aggregate:
+    # The 80-run external matrix is intentionally manual and its historical
+    # aggregation performance remains unverified after a 20-minute timeout.
+    if: github.event_name == 'workflow_dispatch'
     needs: solver
     runs-on: ubuntu-latest
     timeout-minutes: 20
